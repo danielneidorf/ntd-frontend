@@ -224,6 +224,7 @@ import Footer from '../components/Footer.astro';
 
   document.getElementById('pay-button')?.addEventListener('click', () => {
     document.getElementById('screen-3')?.classList.add('hidden');
+    document.getElementById('pricing-section')?.classList.add('hidden');
     const success = document.getElementById('screen-success');
     if (success) fadeIn(success);
   });
