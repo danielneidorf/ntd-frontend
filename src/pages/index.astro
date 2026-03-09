@@ -12,6 +12,95 @@ import Footer from '../components/Footer.astro';
   <main>
     <Hero />
     <AddressLookup />
+
+    <!-- Step 1.5: Resolver loading -->
+    <div id="resolver-loading" class="hidden border-t border-[#E2E8F0] py-24">
+      <div class="max-w-7xl mx-auto px-8 flex flex-col items-center gap-6">
+        <div class="w-10 h-10 border-2 border-[#0D7377] border-t-transparent rounded-full animate-spin"></div>
+        <div class="text-[15px] text-[#1E3A5F] font-medium">Tikriname registrus...</div>
+        <div class="text-[13px] text-[#64748B]">NTR · PENS · Registrų centras · Kadastras</div>
+      </div>
+    </div>
+
+    <!-- Screen 2: Confirm property -->
+    <div id="screen-2" class="hidden border-t border-[#E2E8F0] py-16">
+      <div class="max-w-7xl mx-auto px-8">
+        <div class="text-[11px] font-semibold tracking-[0.12em] uppercase text-[#0D7377] mb-2">02 · Patvirtinkite objektą</div>
+        <h2 class="text-[24px] font-semibold text-[#1E3A5F] mb-8">Ar tai teisingas objektas?</h2>
+        <div class="grid grid-cols-2 gap-8">
+
+          <!-- Proof card -->
+          <div class="bg-white border border-[#E2E8F0] rounded-sm p-6">
+            <div class="text-[11px] font-semibold tracking-[0.1em] uppercase text-[#64748B] mb-4">Rastas objektas</div>
+            <div class="text-[16px] font-semibold text-[#1E3A5F] mb-1">Žirmūnų g. 12-45</div>
+            <div class="text-[14px] text-[#64748B] mb-4">Vilnius, Šiaurės g. raj.</div>
+            <div class="space-y-2 text-[13px] text-[#64748B]">
+              <div class="flex justify-between"><span>NTR numeris</span><span class="text-[#1E3A5F] font-medium">1234-5678-9012</span></div>
+              <div class="flex justify-between"><span>Paskirtis</span><span class="text-[#1E3A5F] font-medium">Gyvenamoji</span></div>
+              <div class="flex justify-between"><span>Plotas</span><span class="text-[#1E3A5F] font-medium">68 m²</span></div>
+              <div class="flex justify-between"><span>Statybos metai</span><span class="text-[#1E3A5F] font-medium">1978</span></div>
+            </div>
+            <div class="mt-6 flex gap-3">
+              <button class="flex-1 py-2.5 bg-[#1E3A5F] text-white text-[13px] font-medium rounded-sm hover:bg-[#162d4a] transition-colors" id="confirm-object">
+                Taip, tai teisingas objektas
+              </button>
+            </div>
+            <button class="mt-3 w-full py-2.5 border border-[#E2E8F0] text-[#64748B] text-[13px] rounded-sm hover:border-[#1E3A5F] transition-colors">
+              Ne, ieškoti kito
+            </button>
+          </div>
+
+          <!-- EPC card -->
+          <div class="bg-[#FAFBFC] border border-[#E2E8F0] rounded-sm p-6">
+            <div class="text-[11px] font-semibold tracking-[0.1em] uppercase text-[#64748B] mb-1">Pasirinktinai</div>
+            <div class="text-[15px] font-semibold text-[#1E3A5F] mb-1">Energijos naudingumo duomenys</div>
+            <p class="text-[12px] text-[#64748B] mb-5 leading-[1.6]">
+              Jei turite energijos naudingumo sertifikatą ar žinote faktines energijos sąnaudas,
+              galite juos pateikti — tai padės tiksliau įvertinti objektą.
+            </p>
+            <div class="space-y-5">
+
+              <!-- Upload EPC certificate -->
+              <div>
+                <label class="block text-[11px] font-semibold tracking-[0.1em] uppercase text-[#1E3A5F] mb-1.5">
+                  Energinio naudingumo sertifikatas (PDF)
+                </label>
+                <div class="border-2 border-dashed border-[#E2E8F0] rounded-sm p-4 text-center cursor-pointer hover:border-[#0D7377] transition-colors">
+                  <div class="text-[13px] text-[#64748B]">📄 Įkelti sertifikatą</div>
+                  <div class="text-[11px] text-[#94A3B8] mt-1">PDF · sistema automatiškai nuskaitys duomenis</div>
+                </div>
+              </div>
+
+              <div class="border-t border-[#E2E8F0] pt-5">
+                <!-- kWh from bills/meters -->
+                <label class="block text-[11px] font-semibold tracking-[0.1em] uppercase text-[#1E3A5F] mb-1.5">
+                  Faktinės energijos sąnaudos (iš sąskaitų / skaitiklių)
+                </label>
+                <div class="flex gap-3 items-center mb-3">
+                  <input type="number" placeholder="pvz. 145"
+                    class="w-32 px-3 py-2.5 border border-[#E2E8F0] rounded-sm text-[13px] text-[#1E3A5F] focus:outline-none focus:border-[#0D7377]" />
+                  <span class="text-[13px] text-[#64748B]">kWh/m² per metus</span>
+                </div>
+                <!-- Scope selector -->
+                <div class="flex gap-3">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="kwh-scope" value="heating" class="accent-[#0D7377]" checked />
+                    <span class="text-[12px] text-[#64748B]">Tik šildymas</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="kwh-scope" value="all" class="accent-[#0D7377]" />
+                    <span class="text-[12px] text-[#64748B]">Visas komfortas (šildymas + vėsinimas + kt.)</span>
+                  </label>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
     <Pricing />
     <Sources />
   </main>

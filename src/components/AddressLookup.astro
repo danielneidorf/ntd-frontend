@@ -79,9 +79,32 @@
               <span>Atidaryti žemėlapį</span>
             </button>
           </div>
+
+          <div>
+            <label class="block text-[11px] font-semibold tracking-[0.1em] uppercase text-[#1E3A5F] mb-2">
+              Skelbimo nuoroda
+            </label>
+            <input
+              type="url"
+              placeholder="pvz. https://www.aruodas.lt/..."
+              class="w-full px-4 py-3 border border-[#E2E8F0] rounded-sm text-[14px] text-[#1E3A5F] placeholder-[#94A3B8] focus:outline-none focus:border-[#0D7377]"
+            />
+            <p class="mt-1.5 text-[12px] text-[#94A3B8]">
+              Aruodas.lt, Domoplius.lt ir kt. — sistema pati identifikuos objektą.
+            </p>
+          </div>
         </div>
       </div>
 
+    </div>
+
+    <div class="mt-8 flex justify-end">
+      <button
+        id="lookup-submit"
+        class="px-8 py-3 bg-[#1E3A5F] text-white text-[14px] font-medium rounded-sm hover:bg-[#162d4a] transition-colors"
+      >
+        Tęsti
+      </button>
     </div>
   </div>
 </div>
@@ -117,6 +140,17 @@
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-open-lookup]').forEach(btn => {
       btn.addEventListener('click', openLookup);
+    });
+
+    document.getElementById('lookup-submit')?.addEventListener('click', () => {
+      document.getElementById('address-lookup')?.classList.add('hidden');
+      document.getElementById('resolver-loading')?.classList.remove('hidden');
+      // Auto-advance after 2.5s
+      setTimeout(() => {
+        document.getElementById('resolver-loading')?.classList.add('hidden');
+        document.getElementById('screen-2')?.classList.remove('hidden');
+        document.getElementById('screen-2')?.scrollIntoView({ behavior: 'smooth' });
+      }, 2500);
     });
   });
 </script>
