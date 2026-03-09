@@ -1,0 +1,122 @@
+---
+---
+<div id="address-lookup" class="hidden border-t border-[#E2E8F0] bg-white">
+  <div class="max-w-[1200px] mx-auto px-16 pt-12 pb-4 flex items-center gap-0">
+    <span class="text-[13px] font-semibold text-[#1E3A5F] whitespace-nowrap">01 · Įveskite adresą</span>
+    <span class="text-[#E2E8F0] px-6">→</span>
+    <span class="text-[13px] font-semibold text-[#1E3A5F] whitespace-nowrap">02 · Patvirtinkite objektą</span>
+    <span class="text-[#E2E8F0] px-6">→</span>
+    <span class="text-[13px] font-semibold text-[#1E3A5F] whitespace-nowrap">03 · Gaukite duomenis</span>
+  </div>
+  <div class="max-w-[1200px] mx-auto px-16 py-12">
+    <div class="grid grid-cols-2 gap-8">
+
+      <!-- Left: Object type -->
+      <div class="bg-white border border-[#E2E8F0] rounded-sm p-8 shadow-[0_4px_24px_rgba(30,58,95,0.08)]">
+        <h3 class="text-[15px] font-semibold text-[#1A1A2E] mb-2">
+          Ką tiksliai norite patikrinti?
+        </h3>
+        <p class="text-[13px] text-[#64748B] mb-6">
+          Tai padeda parinkti tinkamiausią paieškos logiką jūsų atvejui.
+        </p>
+
+        <div class="space-y-3">
+          <label class="flex items-center gap-4 p-4 border border-[#E2E8F0] rounded-sm cursor-pointer hover:border-[#1E3A5F] hover:bg-[#F8FAFC] transition-all group">
+            <div class="w-5 h-5 rounded-full border-2 border-[#E2E8F0] flex-shrink-0 group-hover:border-[#1E3A5F] transition-colors"></div>
+            <span class="text-[14px] text-[#1A1A2E]">Esamą registruose matomą pastatą / patalpas.</span>
+          </label>
+
+          <label class="flex items-center gap-4 p-4 border border-[#E2E8F0] rounded-sm cursor-pointer hover:border-[#1E3A5F] hover:bg-[#F8FAFC] transition-all group">
+            <div class="w-5 h-5 rounded-full border-2 border-[#E2E8F0] flex-shrink-0 group-hover:border-[#1E3A5F] transition-colors"></div>
+            <span class="text-[14px] text-[#1A1A2E]">Naujai statomą ar ką tik baigtą pastatą / patalpas šiame sklype.</span>
+          </label>
+
+          <label class="flex items-center gap-4 p-4 border border-[#E2E8F0] rounded-sm cursor-pointer hover:border-[#1E3A5F] hover:bg-[#F8FAFC] transition-all group">
+            <div class="w-5 h-5 rounded-full border-2 border-[#E2E8F0] flex-shrink-0 group-hover:border-[#1E3A5F] transition-colors"></div>
+            <span class="text-[14px] text-[#1A1A2E]">Tik žemės sklypą (be šildomų pastatų).</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Right: Location input -->
+      <div class="bg-white border border-[#E2E8F0] rounded-sm p-8 shadow-[0_4px_24px_rgba(30,58,95,0.08)]">
+        <h3 class="text-[15px] font-semibold text-[#1A1A2E] mb-2">
+          Prašome nurodyti tikrinamo objekto vietą.
+        </h3>
+        <p class="text-[13px] text-[#64748B] mb-6">
+          Vienu iš būdų.
+        </p>
+
+        <div class="space-y-5">
+          <div>
+            <label class="block text-[11px] font-semibold tracking-[0.1em] uppercase text-[#64748B] mb-2">
+              NTR unikalus numeris
+            </label>
+            <input
+              type="text"
+              placeholder="pvz. 1234-5678-9012"
+              class="w-full h-11 border border-[#E2E8F0] rounded-sm px-4 text-[14px] text-[#1A1A2E] placeholder-[#CBD5E1] focus:outline-none focus:border-[#1E3A5F] transition-colors bg-white"
+            />
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-semibold tracking-[0.1em] uppercase text-[#64748B] mb-2">
+              Adresas
+            </label>
+            <input
+              type="text"
+              placeholder="Pradėkite rašyti adresą (gatvė, numeris, miestas)..."
+              class="w-full h-11 border border-[#E2E8F0] rounded-sm px-4 text-[14px] text-[#1A1A2E] placeholder-[#CBD5E1] focus:outline-none focus:border-[#1E3A5F] transition-colors bg-white"
+            />
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-semibold tracking-[0.1em] uppercase text-[#64748B] mb-2">
+              Taškas žemėlapyje
+            </label>
+            <button class="w-full h-11 border border-[#E2E8F0] rounded-sm px-4 text-[14px] text-[#64748B] bg-[#FAFBFC] hover:bg-[#F1F5F9] hover:border-[#1E3A5F] transition-all flex items-center gap-3">
+              <span class="text-[16px]">📍</span>
+              <span>Atidaryti žemėlapį</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+  #address-lookup {
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  #address-lookup.lookup-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
+
+<script>
+  function openLookup() {
+    const block = document.getElementById('address-lookup');
+    if (block) {
+      block.classList.remove('hidden');
+      // Allow display:block to take effect before starting transition
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          block.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          block.classList.add('lookup-visible');
+        });
+      });
+    }
+  }
+
+  // Trigger from both "Pradėti" and "Gauti įžvalgas" buttons
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-open-lookup]').forEach(btn => {
+      btn.addEventListener('click', openLookup);
+    });
+  });
+</script>

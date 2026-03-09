@@ -1,0 +1,45 @@
+---
+---
+<div class="fixed bottom-0 left-0 right-0 z-50 border-t border-[#E2E8F0] bg-white overflow-hidden py-3">
+  <div class="ticker-track flex gap-16 whitespace-nowrap">
+    <span class="ticker-content flex gap-16 text-[12px] font-medium text-[#94A3B8] tracking-wide">
+      <span>NTR — Nekilnojamojo turto registras</span>
+      <span class="text-[#E2E8F0]">·</span>
+      <span>Registrų centras — sandoriai ir rinkos kainos</span>
+      <span class="text-[#E2E8F0]">·</span>
+      <span>PENS — energinio naudingumo sertifikatai</span>
+      <span class="text-[#E2E8F0]">·</span>
+      <span>Kadastras — techniniai ir kadastriniai duomenys</span>
+      <span class="text-[#E2E8F0]">·</span>
+      <span class="text-[#0D7377]">Duomenys iš oficialių Lietuvos registrų</span>
+      <span class="text-[#E2E8F0]">·</span>
+    </span>
+    <!-- Duplicate for seamless loop -->
+    <span class="ticker-content flex gap-16 text-[12px] font-medium text-[#94A3B8] tracking-wide">
+      <span>NTR — Nekilnojamojo turto registras</span>
+      <span class="text-[#E2E8F0]">·</span>
+      <span>Registrų centras — sandoriai ir rinkos kainos</span>
+      <span class="text-[#E2E8F0]">·</span>
+      <span>PENS — energinio naudingumo sertifikatai</span>
+      <span class="text-[#E2E8F0]">·</span>
+      <span>Kadastras — techniniai ir kadastriniai duomenys</span>
+      <span class="text-[#E2E8F0]">·</span>
+      <span class="text-[#0D7377]">Duomenys iš oficialių Lietuvos registrų</span>
+      <span class="text-[#E2E8F0]">·</span>
+    </span>
+  </div>
+</div>
+
+<style>
+  .ticker-track {
+    animation: ticker 84s linear infinite;
+    display: inline-flex;
+  }
+  @keyframes ticker {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .ticker-track:hover {
+    animation-play-state: paused;
+  }
+</style>
