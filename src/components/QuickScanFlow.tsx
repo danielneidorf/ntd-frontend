@@ -57,23 +57,31 @@ export default function QuickScanFlow() {
   );
 }
 
-const CASES: { value: CaseType; label: string; note: string }[] = [
+const CASE_OPTIONS: { value: CaseType; label: string; hint: string; note?: string }[] = [
   {
     value: 'existing_object',
     label: 'Esamą registruose matomą pastatą/patalpas.',
-    note: '',
+    hint: 'Butas, namas, patalpa ar kitas objektas, jau įregistruotas Nekilnojamojo turto registre.',
   },
   {
     value: 'new_build_project',
     label: 'Naujai statomą ar ką tik baigtą pastatą/patalpas šiame sklype.',
-    note: 'Šiuo atveju vertinsime planuojamą ar ką tik baigtą pastatą šiame sklype. Registruose nauji projektai dažnai dar nematomi, todėl prireiks šiek tiek jūsų projekto informacijos.',
+    hint: 'Projektas dar neįregistruotas arba neseniai baigtas — registruose gali nebūti duomenų.',
+    note: 'Šiame vertinime naudosime sklypo duomenis ir jūsų pateiktą projekto informaciją.',
   },
   {
     value: 'land_only',
-    label: 'Tik žemės sklypą (be šildomų pastatų — gali būti ir visiškai tuščias sklypas, ir sklypas su atvira automobilių aikštele).',
-    note: 'Šiuo vertinime apžvelgsime tik žemės sklypą — be esamų ar būsimų šildomų pastatų.',
+    label: 'Tik žemės sklypą (be šildomų pastatų).',
+    hint: 'Gali būti ir visiškai tuščias sklypas, ir sklypas su atvira automobilių aikštele. Uždari garažai ar pastatai čia nepriklauso.',
+    note: 'Šiame vertinime apžvelgsime tik žemės sklypą — be esamų ar būsimų šildomų pastatų.',
   },
 ];
+
+const CASE_LABELS: Record<CaseType, string> = {
+  existing_object: 'Esamas registruose matomas pastatas/patalpos.',
+  new_build_project: 'Naujai statomas ar ką tik baigtas pastatas/patalpos.',
+  land_only: 'Tik žemės sklypas.',
+};
 
 const NTR_REGEX = /^\d{4}-\d{4}-\d{4}(:\d{1,6})?$/;
 
@@ -94,14 +102,15 @@ function Screen1({
   const [ntrInput, setNtrInput] = useState('');
   const [ntrTouched, setNtrTouched] = useState(false);
   const [addressInput, setAddressInput] = useState('');
+  const [resolving, setResolving] = useState(false);
 
   const ntrValid = NTR_REGEX.test(ntrInput.trim());
   const addressValid = addressInput.trim().length > 5;
   const locationValid = ntrValid || addressValid;
   const canProceed = !!selected && locationValid;
 
-  function handleNtrChange(e: React.ChangeEvent<HTMLInputElement>) {
-    let v = e.target.value.replace(/[^\d:]/g, '');
+  function handleNtrChange(value: string) {
+    let v = value.replace(/[^\d:]/g, '');
     const digits = v.replace(/\D/g, '');
     if (digits.length <= 4) v = digits;
     else if (digits.length <= 8) v = digits.slice(0, 4) + '-' + digits.slice(4);
@@ -115,146 +124,171 @@ function Screen1({
     setState((s) => ({ ...s, address_text: e.target.value || null }));
   }
 
-  function handleTesti() {
-    // P6-B will replace this with the /resolve call
-    setState((s) => ({ ...s, step: 2 }));
-  }
+  const handleTesti = async () => {
+    setResolving(true);
+    // P6-B: replace with real POST /resolve call
+    await new Promise(r => setTimeout(r, 1500));
+    setResolving(false);
+    setState(s => ({ ...s, step: 2 }));
+  };
 
   return (
     <div className="max-w-2xl">
+      <style>{`
+        @keyframes fadeSlideIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .fade-slide-in {
+          animation: fadeSlideIn 0.35s ease forwards;
+        }
+      `}</style>
       {/* Case selection */}
-      <h1 className="text-2xl font-semibold text-[#1E3A5F] mb-2">
-        Ką tiksliai norite įvertinti?
-      </h1>
-      <p className="text-sm text-[#64748B] mb-6">
-        Tai padeda parinkti tinkamiausią logiką jūsų situacijai.
-      </p>
+      {!state.case_type && (
+        <>
+          <h1 className="text-2xl font-bold text-[#1E3A5F] mb-1">Ką tiksliai norite įvertinti?</h1>
+          <p className="text-sm text-[#64748B] mb-6">Tai padeda parinkti tinkamiausią logiką jūsų situacijai.</p>
+        </>
+      )}
 
-      <div className="flex flex-col gap-3 mb-8">
-        {CASES.map((c) => {
-          const active = selected === c.value;
-          return (
-            <button
-              key={c.value}
-              onClick={() => setState((s) => ({ ...s, case_type: c.value }))}
-              className={[
-                'text-left px-5 py-4 rounded-lg border transition-all',
-                active
-                  ? 'border-[#0D7377] bg-[#E8F4F8] text-[#1A1A2E]'
-                  : 'border-[#E2E8F0] bg-white text-[#1A1A2E] hover:border-[#0D7377]',
-              ].join(' ')}
+      {!state.case_type ? (
+        <div className="flex flex-col gap-3 mb-6">
+          {CASE_OPTIONS.map((opt) => (
+            <div
+              key={opt.value}
+              onClick={() => setState((s) => ({ ...s, case_type: opt.value }))}
+              className={`cursor-pointer rounded-xl border-2 px-5 py-4 transition-all
+                ${state.case_type === opt.value
+                  ? 'border-[#0D7377] bg-[#EEF9F9]'
+                  : 'border-[#E2E8F0] bg-white hover:border-[#0D7377]/40'}`}
             >
-              <span className="text-sm font-medium">{c.label}</span>
-              {active && c.note && (
-                <p className="mt-2 text-xs text-[#64748B]">{c.note}</p>
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Location block — always visible */}
-      <div className="mb-8">
-        <h2 className="text-base font-semibold text-[#1E3A5F] mb-4">
-          {selected
-            ? LOCATION_TITLES[selected]
-            : 'Kaip patogiausia nurodyti objekto vietą?'}
-        </h2>
-
-        <div className="flex flex-col gap-4">
-
-          {/* NTR */}
-          <div>
-            <label className="block text-sm font-medium text-[#1A1A2E] mb-1">
-              NTR unikalus numeris
-              {ntrValid && (
-                <span className="ml-2 text-[#059669] text-xs">✓ naudosime šį</span>
-              )}
-            </label>
-            <input
-              type="text"
-              value={ntrInput}
-              onChange={handleNtrChange}
-              onBlur={() => setNtrTouched(true)}
-              placeholder="1234-5678-9012"
-              maxLength={14}
-              className={[
-                'w-full px-4 py-3 rounded-lg border text-sm outline-none transition-all',
-                ntrValid
-                  ? 'border-[#059669] bg-white'
-                  : ntrTouched && ntrInput
-                  ? 'border-[#DC3545] bg-white'
-                  : 'border-[#E2E8F0] bg-white focus:border-[#0D7377]',
-              ].join(' ')}
-            />
-            {ntrTouched && ntrInput && !ntrValid && (
-              <p className="text-xs text-[#DC3545] mt-1">
-                Formatas: 1234-5678-9012
-              </p>
-            )}
-            <p className="text-xs text-[#64748B] mt-1">
-              Jei turite NTR numerį, tai greičiausias ir tiksliausias būdas rasti objektą.
-            </p>
-          </div>
-
-          {/* Address */}
-          <div>
-            <label className="block text-sm font-medium text-[#1A1A2E] mb-1">
-              Adresas
-              {!ntrValid && addressValid && (
-                <span className="ml-2 text-[#059669] text-xs">✓ naudosime šį</span>
-              )}
-            </label>
-            <input
-              type="text"
-              value={addressInput}
-              onChange={handleAddressChange}
-              placeholder="Pradėkite rašyti adresą (gatvė, numeris, miestas)..."
-              className="w-full px-4 py-3 rounded-lg border border-[#E2E8F0] bg-white text-sm outline-none focus:border-[#0D7377] transition-all"
-            />
-            <p className="text-xs text-[#64748B] mt-1">
-              Automatinis pasiūlymų sąrašas — kitame žingsnyje.
-            </p>
-          </div>
-
-          {/* Map pin placeholder */}
-          <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-5 py-4 text-sm text-[#64748B]">
-            🗺 Pažymėti vietą žemėlapyje — bus pridėta kitame žingsnyje.
-          </div>
-
-          {/* Listing URL — backend not yet implemented */}
-          <div>
-            <label className="block text-sm font-medium text-[#1A1A2E] mb-1">
-              Skelbimo nuoroda
-            </label>
-            <input
-              type="url"
-              disabled
-              placeholder="pvz. https://www.aruodas.lt/..."
-              className="w-full px-4 py-3 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] text-sm text-[#64748B] cursor-not-allowed"
-            />
-            <p className="text-xs text-[#64748B] mt-1">
-              Aruodas.lt, Domoplius.lt ir kt. — sistema pati identifikuos objektą. Ši funkcija bus pridėta netrukus.
-            </p>
-          </div>
-
+              <p className="text-sm font-semibold text-[#1E3A5F]">{opt.label}</p>
+              <p className="text-xs text-[#64748B] mt-1">{opt.hint}</p>
+            </div>
+          ))}
         </div>
-      </div>
+      ) : (
+        <div className="flex items-center gap-3 mb-6 ml-auto w-fit px-4 py-2 rounded-lg border border-[#E2E8F0] bg-[#F1F5F9]">
+          <span className="text-sm text-[#64748B]">✓ {CASE_LABELS[state.case_type]}</span>
+          <button
+            onClick={() => setState(s => ({ ...s, case_type: null }))}
+            className="text-xs text-[#94A3B8] hover:text-[#1E3A5F] underline transition-colors whitespace-nowrap"
+          >
+            Keisti
+          </button>
+        </div>
+      )}
+
+      {/* Location block — visible only after case is selected */}
+      {state.case_type && (
+        <div key={state.case_type} className="fade-slide-in mb-8">
+          <h2 className="text-base font-semibold text-[#1E3A5F] mb-1">
+            {LOCATION_TITLES[state.case_type]}
+          </h2>
+          <p className="text-sm text-[#64748B] mb-5">Pasirinkite patogų būdą.</p>
+
+          <div className="flex flex-col gap-3">
+
+            {/* Card 1 — NTR */}
+            <div className={[
+              'rounded-lg border px-5 py-4 transition-all',
+              ntrValid ? 'border-[#059669] bg-[#F0FDF4]' : 'border-[#E2E8F0] bg-white',
+            ].join(' ')}>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="w-6 h-6 rounded-full bg-[#1E3A5F] text-white text-xs font-semibold flex items-center justify-center flex-shrink-0">1</span>
+                <span className="text-sm font-semibold text-[#1A1A2E]">
+                  NTR unikalus numeris
+                  {ntrValid && <span className="ml-2 text-[#059669] font-normal">✓ naudosime šį</span>}
+                </span>
+              </div>
+              <input
+                type="text"
+                value={ntrInput}
+                onChange={(e) => handleNtrChange(e.target.value)}
+                onBlur={() => setNtrTouched(true)}
+                placeholder="1234-5678-9012"
+                maxLength={14}
+                className={[
+                  'w-full px-4 py-2.5 rounded-md border text-sm outline-none transition-all',
+                  ntrValid
+                    ? 'border-[#059669] bg-white'
+                    : ntrTouched && ntrInput
+                    ? 'border-[#DC3545] bg-white'
+                    : 'border-[#E2E8F0] bg-white focus:border-[#0D7377]',
+                ].join(' ')}
+              />
+              {ntrTouched && ntrInput && !ntrValid && (
+                <p className="text-xs text-[#DC3545] mt-1">Formatas: 1234-5678-9012</p>
+              )}
+              <p className="text-xs text-[#94A3B8] mt-1.5">
+                Greičiausias ir tiksliausias būdas — sistema objektą ras akimirksniu.
+              </p>
+            </div>
+
+            {/* Card 2 — Address */}
+            <div className={[
+              'rounded-lg border px-5 py-4 transition-all',
+              !ntrValid && addressValid ? 'border-[#059669] bg-[#F0FDF4]' : 'border-[#E2E8F0] bg-white',
+            ].join(' ')}>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="w-6 h-6 rounded-full bg-[#1E3A5F] text-white text-xs font-semibold flex items-center justify-center flex-shrink-0">2</span>
+                <span className="text-sm font-semibold text-[#1A1A2E]">
+                  Adresas
+                  {!ntrValid && addressValid && <span className="ml-2 text-[#059669] font-normal">✓ naudosime šį</span>}
+                </span>
+              </div>
+              <input
+                type="text"
+                value={addressInput}
+                onChange={handleAddressChange}
+                placeholder="Pradėkite rašyti adresą (gatvė, numeris, miestas)..."
+                className="w-full px-4 py-2.5 rounded-md border border-[#E2E8F0] bg-white text-sm outline-none focus:border-[#0D7377] transition-all"
+              />
+              <p className="text-xs text-[#94A3B8] mt-1.5">
+                Automatinis pasiūlymų sąrašas — kitame žingsnyje.
+              </p>
+            </div>
+
+            {/* Card 3 — Map pin */}
+            <div className="rounded-lg border border-[#E2E8F0] bg-[#FAFBFC] px-5 py-4">
+              <div className="flex items-center gap-3">
+                <span className="w-6 h-6 rounded-full bg-[#CBD5E1] text-white text-xs font-semibold flex items-center justify-center flex-shrink-0">3</span>
+                <span className="text-sm font-semibold text-[#94A3B8]">Taškas žemėlapyje</span>
+                <span className="ml-auto text-xs text-[#CBD5E1]">Netrukus</span>
+              </div>
+            </div>
+
+            {/* Card 4 — Listing URL (hidden for new_build_project) */}
+            {state.case_type !== 'new_build_project' && (
+              <div className="rounded-lg border border-[#E2E8F0] bg-[#FAFBFC] px-5 py-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="w-6 h-6 rounded-full bg-[#CBD5E1] text-white text-xs font-semibold flex items-center justify-center flex-shrink-0">4</span>
+                  <span className="text-sm font-semibold text-[#94A3B8]">Skelbimo nuoroda</span>
+                  <span className="ml-auto text-xs text-[#CBD5E1]">Netrukus</span>
+                </div>
+                <input
+                  type="url"
+                  disabled
+                  placeholder="pvz. https://www.aruodas.lt/..."
+                  className="w-full px-4 py-2.5 rounded-md border border-[#E2E8F0] bg-white text-sm text-[#94A3B8] cursor-not-allowed"
+                />
+                <p className="text-xs text-[#CBD5E1] mt-1.5">
+                  Aruodas.lt, Domoplius.lt ir kt. — sistema pati identifikuos objektą.
+                </p>
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
 
       {/* New-build project inputs — card 2 only */}
       {selected === 'new_build_project' && (
         <div className="mb-8 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-5 py-5">
-          <h2 className="text-base font-semibold text-[#1E3A5F] mb-1">
-            Papildoma informacija apie naują projektą (pasirinktinai šiame žingsnyje)
-          </h2>
-          <p className="text-xs text-[#64748B] mb-4">
-            Nauji projektai registruose dažnai dar nematomi. Vertinimas sujungs informaciją apie sklypą su jūsų pateiktais projekto duomenimis. Jei šiuo metu patogu, galite įkelti nuorodą ar PDF — jie bus panaudoti vertinime.
-          </p>
-
           {/* Project URL */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-[#1A1A2E] mb-1">
-              Projekto svetainės adresas
+              Projekto ar skelbimo nuoroda
             </label>
             <input
               type="url"
@@ -264,6 +298,10 @@ function Screen1({
               }
               className="w-full px-4 py-3 rounded-lg border border-[#E2E8F0] bg-white text-sm outline-none focus:border-[#0D7377] transition-all"
             />
+            <p className="text-xs text-[#64748B] mt-1">
+              Projekto puslapis, kūrėjo svetainė ar skelbimas portale (Aruodas.lt, Domoplius.lt ir kt.) —
+              sistema pati identifikuos sklypą ir pabandys ištraukti techninius duomenis.
+            </p>
           </div>
 
           {/* PDF upload */}
@@ -299,13 +337,26 @@ function Screen1({
       )}
 
       {/* Tęsti */}
-      <button
-        disabled={!canProceed}
-        onClick={handleTesti}
-        className="px-6 py-3 rounded-lg text-sm font-semibold bg-[#1E3A5F] text-white disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
-      >
-        Tęsti
-      </button>
+      {state.case_type && (
+        <button
+          onClick={handleTesti}
+          disabled={!canProceed || resolving}
+          className={`px-8 py-3 rounded-lg text-sm font-semibold transition-all flex items-center gap-2
+            ${canProceed && !resolving
+              ? 'bg-[#0D7377] text-white hover:bg-[#0B6268] cursor-pointer'
+              : 'bg-[#CBD5E1] text-white cursor-not-allowed'}`}
+        >
+          {resolving ? (
+            <>
+              <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+              </svg>
+              Ieškoma...
+            </>
+          ) : 'Tęsti'}
+        </button>
+      )}
     </div>
   );
 }
