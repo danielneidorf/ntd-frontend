@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export type CaseType = 'existing_object' | 'new_build_project' | 'land_only';
 
@@ -47,10 +47,22 @@ const initialState = (): QuickScanState => ({
 
 export default function QuickScanFlow() {
   const [state, setState] = useState<QuickScanState>(initialState);
+  const [addressCandidates, setAddressCandidates] = useState<
+    { place_id: string; description: string; main_text: string; secondary_text: string }[]
+  >([]);
+  const [sessionToken] = useState(() => crypto.randomUUID());
 
   return (
     <div>
-      {state.step === 1 && <Screen1 state={state} setState={setState} />}
+      {state.step === 1 && (
+        <Screen1
+          state={state}
+          setState={setState}
+          addressCandidates={addressCandidates}
+          setAddressCandidates={setAddressCandidates}
+          sessionToken={sessionToken}
+        />
+      )}
       {state.step === 2 && <Screen2 state={state} setState={setState} />}
       {state.step === 3 && <Screen3 state={state} setState={setState} />}
     </div>
@@ -91,22 +103,118 @@ const LOCATION_TITLES: Record<CaseType, string> = {
   land_only: 'Kaip patogiausia nurodyti šio žemės sklypo vietą?',
 };
 
+const API_BASE = import.meta.env.PUBLIC_API_BASE ?? 'http://127.0.0.1:8100';
+
 function Screen1({
   state,
   setState,
+  addressCandidates,
+  setAddressCandidates,
+  sessionToken,
 }: {
   state: QuickScanState;
   setState: React.Dispatch<React.SetStateAction<QuickScanState>>;
+  addressCandidates: { place_id: string; description: string; main_text: string; secondary_text: string }[];
+  setAddressCandidates: React.Dispatch<React.SetStateAction<{ place_id: string; description: string; main_text: string; secondary_text: string }[]>>;
+  sessionToken: string;
 }) {
   const selected = state.case_type;
   const [ntrInput, setNtrInput] = useState('');
   const [ntrTouched, setNtrTouched] = useState(false);
   const [addressInput, setAddressInput] = useState('');
   const [resolving, setResolving] = useState(false);
+  const [resolveError, setResolveError] = useState<string | null>(null);
+
+  // Map picker
+  const [mapExpanded, setMapExpanded] = useState(false);
+  const [geoSource, setGeoSource] = useState<'map' | 'address' | null>(null);
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const addressWrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!mapExpanded || !mapRef.current || mapInstanceRef.current) return;
+
+    const initMap = () => {
+      const google = (window as any).google;
+      const map = new google.maps.Map(mapRef.current!, {
+        center: { lat: 54.6872, lng: 25.2797 },
+        zoom: 12,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+      });
+
+      const placeMarker = (latLng: any) => {
+        if (markerRef.current) {
+          markerRef.current.setPosition(latLng);
+        } else {
+          markerRef.current = new google.maps.Marker({ map, position: latLng, draggable: true });
+          markerRef.current.addListener('dragend', (e: any) => {
+            setState((s) => ({ ...s, geo: { lat: e.latLng.lat(), lng: e.latLng.lng() } }));
+            setGeoSource('map');
+          });
+        }
+        setState((s) => ({ ...s, geo: { lat: latLng.lat(), lng: latLng.lng() } }));
+        setGeoSource('map');
+      };
+
+      map.addListener('click', (e: any) => {
+        if (e.latLng) placeMarker(e.latLng);
+      });
+
+      if (searchRef.current) {
+        const searchBox = new google.maps.places.SearchBox(searchRef.current);
+        searchBox.addListener('places_changed', () => {
+          const places = searchBox.getPlaces();
+          if (!places || places.length === 0) return;
+          const loc = places[0].geometry?.location;
+          if (loc) { map.setCenter(loc); map.setZoom(16); placeMarker(loc); }
+        });
+      }
+
+      mapInstanceRef.current = map;
+    };
+
+    if ((window as any).google?.maps) {
+      initMap();
+    } else {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.PUBLIC_GOOGLE_MAPS_KEY}&libraries=places`;
+      script.async = true;
+      script.onload = initMap;
+      document.head.appendChild(script);
+    }
+
+    return () => {
+      mapInstanceRef.current = null;
+    };
+  }, [mapExpanded]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (addressWrapperRef.current && !addressWrapperRef.current.contains(e.target as Node)) {
+        setAddressCandidates([]);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (mapExpanded) {
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = ''; };
+    }
+  }, [mapExpanded]);
 
   const ntrValid = NTR_REGEX.test(ntrInput.trim());
   const addressValid = addressInput.trim().length > 5;
-  const locationValid = ntrValid || addressValid;
+  const geoValid = state.geo !== null;
+  const mapPinActive = geoValid && geoSource === 'map';
+  const locationValid = ntrValid || addressValid || geoValid;
   const canProceed = !!selected && locationValid;
 
   function handleNtrChange(value: string) {
@@ -119,17 +227,63 @@ function Screen1({
     setState((s) => ({ ...s, ntr_unique_number: v || null }));
   }
 
-  function handleAddressChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setAddressInput(e.target.value);
-    setState((s) => ({ ...s, address_text: e.target.value || null }));
+  async function handleAddressChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const val = e.target.value;
+    setAddressInput(val);
+    setState((s) => ({ ...s, address_text: val || null, geo: null }));
+    setGeoSource(null);
+    if (val.length < 2) { setAddressCandidates([]); return; }
+    try {
+      const r = await fetch(
+        `${API_BASE}/v1/quickscan-lite/geocode?q=${encodeURIComponent(val)}&session_token=${sessionToken}`
+      );
+      const json = await r.json();
+      setAddressCandidates(json.data?.candidates ?? []);
+    } catch {
+      setAddressCandidates([]);
+    }
+  }
+
+  function handleAddressSelect(c: { place_id: string; description: string }) {
+    setAddressInput(c.description);
+    setAddressCandidates([]);
+    setState((s) => ({ ...s, address_text: c.description }));
+    fetch(`${API_BASE}/v1/quickscan-lite/geocode?q=__&place_id=${c.place_id}&session_token=${sessionToken}`)
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.data?.lat) {
+          setState((s) => ({ ...s, geo: { lat: json.data.lat, lng: json.data.lng } }));
+          setGeoSource('address');
+        }
+      })
+      .catch(() => {});
   }
 
   const handleTesti = async () => {
+    if (!state.case_type) return;
     setResolving(true);
-    // P6-B: replace with real POST /resolve call
-    await new Promise(r => setTimeout(r, 1500));
-    setResolving(false);
-    setState(s => ({ ...s, step: 2 }));
+    setResolveError(null);
+    try {
+      const r = await fetch(`${API_BASE}/v1/quickscan-lite/resolve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          case_type: state.case_type,
+          ntr_unique_number: state.ntr_unique_number,
+          address_text: state.address_text,
+          geo: state.geo,
+          project_website_url: state.project_website_url,
+          project_doc_id: state.project_doc_id,
+        }),
+      });
+      const json = await r.json();
+      if (!json.ok) throw new Error('Resolver error');
+      setState((s) => ({ ...s, resolver_result: json.data, step: 2 }));
+    } catch {
+      setResolveError('Nepavyko prisijungti prie serverio. Bandykite dar kartą.');
+    } finally {
+      setResolving(false);
+    }
   };
 
   return (
@@ -237,25 +391,71 @@ function Screen1({
                   {!ntrValid && addressValid && <span className="ml-2 text-[#059669] font-normal">✓ naudosime šį</span>}
                 </span>
               </div>
-              <input
-                type="text"
-                value={addressInput}
-                onChange={handleAddressChange}
-                placeholder="Pradėkite rašyti adresą (gatvė, numeris, miestas)..."
-                className="w-full px-4 py-2.5 rounded-md border border-[#E2E8F0] bg-white text-sm outline-none focus:border-[#0D7377] transition-all"
-              />
+              <div className="relative" ref={addressWrapperRef}>
+                <input
+                  type="text"
+                  value={addressInput}
+                  onChange={handleAddressChange}
+                  onKeyDown={(e) => { if (e.key === 'Escape') setAddressCandidates([]); }}
+                  placeholder="Pradėkite rašyti adresą (gatvė, numeris, miestas)..."
+                  className="w-full px-4 py-2.5 rounded-md border border-[#E2E8F0] bg-white text-sm outline-none focus:border-[#0D7377] transition-all"
+                />
+                {addressCandidates.length > 0 && (
+                  <ul className="absolute z-10 top-full left-0 right-0 bg-white border border-[#E2E8F0] rounded-md shadow-lg mt-1 max-h-48 overflow-y-auto">
+                    {addressCandidates.map((c) => (
+                      <li
+                        key={c.place_id}
+                        onClick={() => handleAddressSelect(c)}
+                        className="px-4 py-2.5 text-sm cursor-pointer hover:bg-[#F1F5F9]"
+                      >
+                        <span className="font-medium text-[#1E3A5F]">{c.main_text}</span>
+                        <span className="text-[#94A3B8] ml-1">{c.secondary_text}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
               <p className="text-xs text-[#94A3B8] mt-1.5">
                 Automatinis pasiūlymų sąrašas — kitame žingsnyje.
               </p>
             </div>
 
-            {/* Card 3 — Map pin */}
-            <div className="rounded-lg border border-[#E2E8F0] bg-[#FAFBFC] px-5 py-4">
-              <div className="flex items-center gap-3">
-                <span className="w-6 h-6 rounded-full bg-[#CBD5E1] text-white text-xs font-semibold flex items-center justify-center flex-shrink-0">3</span>
-                <span className="text-sm font-semibold text-[#94A3B8]">Taškas žemėlapyje</span>
-                <span className="ml-auto text-xs text-[#CBD5E1]">Netrukus</span>
+            {/* Card 3 — Map pin (Google Maps) */}
+            <div className={`rounded-lg border px-5 py-4 transition-all ${
+              mapPinActive ? 'border-[#0D7377] bg-[#F0FAFA]' : 'border-[#E2E8F0] bg-[#FAFBFC]'
+            }`}>
+              <div className="flex items-center gap-3 mb-3">
+                <span className={`w-6 h-6 rounded-full text-white text-xs font-semibold flex items-center justify-center flex-shrink-0 ${
+                  mapPinActive ? 'bg-[#0D7377]' : 'bg-[#1E3A5F]'
+                }`}>3</span>
+                <span className={`text-sm font-semibold ${mapPinActive ? 'text-[#0D7377]' : 'text-[#1E3A5F]'}`}>
+                  Taškas žemėlapyje
+                </span>
+                {mapPinActive && !mapExpanded && (
+                  <span className="ml-auto text-xs text-[#0D7377] font-medium">✓ naudosime šį</span>
+                )}
               </div>
+
+              {!mapExpanded && !mapPinActive && (
+                <button
+                  onClick={() => setMapExpanded(true)}
+                  className="w-full py-2.5 rounded-md border border-dashed border-[#CBD5E1] text-sm text-[#64748B] hover:border-[#0D7377] hover:text-[#0D7377] transition-all"
+                >
+                  Spustelėkite, kad atidarytumėte žemėlapį
+                </button>
+              )}
+
+              {mapPinActive && !mapExpanded && (
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-[#0D7377]">
+                    {'Koordinatės: ' + state.geo!.lat.toFixed(5) + ', ' + state.geo!.lng.toFixed(5)}
+                  </p>
+                  <button onClick={() => { mapInstanceRef.current = null; markerRef.current = null; setMapExpanded(true); }} className="text-xs text-[#0D7377] underline ml-3">
+                    Keisti
+                  </button>
+                </div>
+              )}
+
             </div>
 
             {/* Card 4 — Listing URL (hidden for new_build_project) */}
@@ -320,11 +520,22 @@ function Screen1({
                 type="file"
                 accept=".pdf"
                 className="hidden"
-                onChange={(e) => {
+                onChange={async (e) => {
                   const file = e.target.files?.[0];
-                  if (file) {
-                    // P6-B: replace with real POST /upload-project-doc call
-                    setState((s) => ({ ...s, project_doc_id: 'pending_upload' }));
+                  if (!file) return;
+                  const formData = new FormData();
+                  formData.append('file', file);
+                  try {
+                    const r = await fetch(`${API_BASE}/v1/quickscan-lite/upload-project-doc`, {
+                      method: 'POST',
+                      body: formData,
+                    });
+                    const json = await r.json();
+                    if (json.ok) {
+                      setState((s) => ({ ...s, project_doc_id: json.data.project_doc_id }));
+                    }
+                  } catch {
+                    // silent fail — doc upload is optional
                   }
                 }}
               />
@@ -337,6 +548,9 @@ function Screen1({
       )}
 
       {/* Tęsti */}
+      {resolveError && (
+        <p className="text-sm text-[#DC3545] mb-3">{resolveError}</p>
+      )}
       {state.case_type && (
         <button
           onClick={handleTesti}
@@ -356,6 +570,51 @@ function Screen1({
             </>
           ) : 'Tęsti'}
         </button>
+      )}
+
+      {/* Fullscreen map overlay — rendered outside fade-slide-in to avoid transform containing block */}
+      {mapExpanded && (
+        <div className="fixed inset-0 z-50 bg-white flex flex-col">
+          {/* Header */}
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-[#E2E8F0]">
+            <span className="w-6 h-6 rounded-full bg-[#0D7377] text-white text-xs font-semibold flex items-center justify-center flex-shrink-0">3</span>
+            <span className="text-sm font-semibold text-[#1E3A5F]">Taškas žemėlapyje</span>
+            <button
+              onClick={() => { if (!geoValid) { mapInstanceRef.current = null; markerRef.current = null; } setMapExpanded(false); }}
+              className="ml-auto w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#F1F5F9] text-[#64748B] text-lg"
+            >✕</button>
+          </div>
+          {/* Search */}
+          <div className="px-4 py-2">
+            <input
+              ref={searchRef}
+              type="text"
+              placeholder="Ieškoti adreso žemėlapyje..."
+              className="w-full px-3 py-2 rounded-md border border-[#E2E8F0] text-sm outline-none focus:border-[#0D7377] transition-all"
+            />
+          </div>
+          {/* Map — fills remaining space */}
+          <div className="flex-1 px-4 pb-2">
+            <div ref={mapRef} style={{ height: '100%', borderRadius: '8px' }} />
+          </div>
+          {/* Footer buttons */}
+          <div className="flex gap-2 px-4 py-3 border-t border-[#E2E8F0]">
+            {geoValid && (
+              <button
+                onClick={() => setMapExpanded(false)}
+                className="flex-1 py-2.5 rounded-md bg-[#0D7377] text-white text-sm font-medium"
+              >
+                Patvirtinti vietą
+              </button>
+            )}
+            <button
+              onClick={() => { if (!geoValid) { mapInstanceRef.current = null; markerRef.current = null; } setMapExpanded(false); }}
+              className="flex-1 py-2.5 rounded-md border border-[#E2E8F0] text-sm text-[#64748B]"
+            >
+              {geoValid ? 'Atšaukti' : 'Uždaryti'}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
