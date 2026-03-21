@@ -1,0 +1,167 @@
+---
+const slides = [
+  {
+    icon: "🌡️",
+    title: "Šiluminis komfortas",
+    metric: "Vidutiniškai",
+    isHighlight: true,
+    detail: "Žiemos šildymo poreikis 10–30 % didesnis nei etalone. Vasaros perkaitimo rizika vidutinė — rekomenduojamas vėdinimas.",
+    takeaway: "Šildymo sąskaitą galima sumažinti apšiltinus.",
+  },
+  {
+    icon: "⚡",
+    title: "Energijos sąnaudos",
+    metric: "~95 €/mėn.",
+    isHighlight: false,
+    detail: "Šildymas ir karštas vanduo pagal energinio naudingumo sertifikatą ir plotą. Klasė B — geresnis nei 70 % panašių objektų.",
+    takeaway: "Mažesnės sąnaudos nei rinkos vidurkis.",
+  },
+  {
+    icon: "📊",
+    title: "10 metų išlaidos",
+    metric: "~48 000 €",
+    isHighlight: false,
+    detail: "Hipoteka, energija ir administravimas per 10 metų. Energija sudaro ~24 % visos sumos (~11 400 €).",
+    takeaway: "Aiški ilgalaikė investicijos kaina.",
+  },
+  {
+    icon: "🌿",
+    title: "Oro ir vandens tarša",
+    metric: "Kokybė: gera",
+    isHighlight: false,
+    detail: "Aplinkos oro kokybė gera, vanduo tinkamas vartoti. Radono lygis žemas — papildomų priemonių nereikia.",
+    takeaway: "Vieta saugi pagal aplinkos duomenis.",
+  },
+  {
+    icon: "🔇",
+    title: "Triukšmo tarša",
+    metric: "52 dB — vidutinis",
+    isHighlight: false,
+    detail: "Kelių ir pramonės triukšmas dienos metu. Naktinis triukšmas 44 dB — atitinka gyvenamųjų zonų normą.",
+    takeaway: "Tinka gyventi, nors šalia gatvės.",
+  },
+  {
+    icon: "💰",
+    title: "Kainos pagrįstumas",
+    metric: "−8 % vs. rinka",
+    isHighlight: false,
+    detail: "Palyginimas su 3 neseniai parduotais panašaus tipo ir ploto objektais tame rajone. Kaina per m²: 1 850 €.",
+    takeaway: "Kaina žemesnė nei rinkos — derybinis pranašumas.",
+  },
+  {
+    icon: "⚖️",
+    title: "Teisinės rizikos",
+    metric: "Areštų: nėra ✓",
+    isHighlight: false,
+    detail: "Patikrinti suvaržymai, paveldas, servitutai ir hipotekos. Bendrijos rezervas pakankamas — neplanuojamos rinkliavos.",
+    takeaway: "Teisiniu požiūriu objektas švarus.",
+  },
+  {
+    icon: "🎯",
+    title: "Derybų strategija",
+    metric: "3 argumentai",
+    isHighlight: false,
+    detail: "Siūloma derybinė kaina ir 3 pagrindiniai argumentai, pagrįsti blokų duomenimis ir rinkos analize.",
+    takeaway: "Pasiruoškite deryboms su faktais.",
+  },
+];
+---
+
+<div id="report-carousel"
+     class="carousel-card hidden md:block w-full bg-white border border-[#E2E8F0] rounded-[10px] overflow-hidden"
+     style="box-shadow: 0 6px 32px rgba(0,0,0,0.10);">
+
+  <!-- Persistent header -->
+  <div class="flex items-center justify-between px-6 py-4 bg-[#1E3A5F] flex-shrink-0">
+    <span class="text-[15px] font-bold tracking-widest text-white">NTD</span>
+    <span class="text-[13px] text-white/60">Pavyzdinė ataskaita</span>
+  </div>
+
+  <!-- Slides viewport — 2 sizes (18px navy, 16px grey), 2 colours (#1E3A5F, #64748B) -->
+  <div class="overflow-hidden" style="height: 320px;">
+    <div id="carousel-track" class="flex h-full" style="transition: transform 0.4s ease-in-out;">
+      {slides.map((s) => (
+        <div class="flex-none w-full h-full px-6 py-5 flex flex-col gap-3">
+          <!-- Icon + Title -->
+          <div class="flex items-center gap-3">
+            <span class="text-[28px]">{s.icon}</span>
+            <span class="text-[28px] font-bold text-[#1E3A5F]">{s.title}</span>
+          </div>
+          <!-- Key metric -->
+          <div class="text-[18px] font-semibold text-[#1E3A5F]">{s.metric}</div>
+          <!-- Detail -->
+          <div class="text-[16px] text-[#64748B] leading-[1.6]">{s.detail}</div>
+          <!-- Takeaway -->
+          <div class="text-[16px] text-[#64748B] font-medium mt-auto border-t border-[#E2E8F0] pt-3">{s.takeaway}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <!-- Persistent footer: dot indicators -->
+  <div class="flex items-center justify-center gap-2 py-3 border-t border-[#E2E8F0]">
+    {slides.map((_, i) => (
+      <button
+        data-dot={i}
+        class="carousel-dot rounded-full transition-all duration-200 bg-[#E2E8F0]"
+        style="width: 6px; height: 6px;"
+        aria-label={`Slide ${i + 1}`}
+      />
+    ))}
+  </div>
+
+</div>
+
+<style>
+  .carousel-card {
+    opacity: 0;
+    animation: carouselFadeUp 0.5s ease-out 0.5s forwards;
+  }
+
+  @keyframes carouselFadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .carousel-dot[data-active="true"] {
+    background-color: #0D7377!important;
+    width: 8px!important;
+    height: 8px!important;
+  }
+</style>
+
+<script>
+  (function () {
+    const track = document.getElementById('carousel-track') as HTMLElement;
+    const card  = document.getElementById('report-carousel') as HTMLElement;
+    const dots  = Array.from(card.querySelectorAll<HTMLElement>('.carousel-dot'));
+    const total = dots.length;
+    let current = 0;
+    let timer: ReturnType<typeof setInterval> | null = null;
+
+    function goTo(index: number) {
+      current = (index + total) % total;
+      track.style.transform = `translateX(-${current * 100}%)`;
+      dots.forEach((d, i) => d.dataset.active = String(i === current));
+    }
+
+    function start() {
+      if (timer) return;
+      timer = setInterval(() => goTo(current + 1), 3500);
+    }
+
+    function stop() {
+      if (timer) { clearInterval(timer); timer = null; }
+    }
+
+    dots.forEach((dot, i) => {
+      dot.addEventListener('click', () => { stop(); goTo(i); start(); });
+    });
+
+    card.addEventListener('mouseenter', stop);
+    card.addEventListener('mouseleave', start);
+
+    goTo(0);
+    start();
+  })();
+</script>

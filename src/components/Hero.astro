@@ -1,107 +1,46 @@
 ---
+import ReportCarousel from './ReportCarousel.astro';
 ---
-<section class="flex items-center px-16 max-w-[1200px] mx-auto" style="height: calc(100vh - 64px);">
-  <div class="grid grid-cols-2 gap-24 items-center w-full">
+<section class="flex items-center px-8 max-w-[1400px] mx-auto" style="min-height: calc(100vh - 64px);">
+  <div class="grid gap-12 items-center w-full" style="grid-template-columns: 3fr minmax(0, 2fr);">
 
     <!-- Left: Text content -->
     <div>
-      <h1 class="text-[36px] font-semibold leading-[1.15] tracking-tight text-[#1E3A5F] mb-6">
-        Nekilnojamojo turto duomenys<br />
-        iš oficialių Lietuvos registrų
+      <h1 class="text-[49px] font-semibold leading-[1.1] tracking-tight text-[#1E3A5F] mb-4">
+        Nekilnojamojo turto duomenys<br />iš oficialių Lietuvos registrų
       </h1>
 
-      <p class="text-[20px] text-[#64748B] font-light leading-relaxed mb-10">
+      <p class="text-[21px] text-[#64748B] font-light leading-relaxed mb-20">
         Analitika ir aiškios įžvalgos.
       </p>
 
-      <div class="space-y-4 mb-12">
-        <p class="text-[16px] text-[#1A1A2E] font-medium">
+      <div class="space-y-4 mb-20 text-justify">
+        <p class="text-[20px] text-[#1E3A5F] font-semibold leading-snug">
           Kiekvieno objekto DNR — vienoje vietoje.
         </p>
-        <p class="text-[15px] text-[#64748B] leading-[1.7]">
+        <p class="text-[19px] text-[#475569] leading-[1.7]">
           Šalia to, ką pasakoja pardavėjas, kiekvienas objektas turi savo istoriją.
-          Skelbimas parodo fasadą — mes parodome, kas už jo.
+          Skelbimas parodo fasadą — registrų duomenys parodo, kas už jo.
         </p>
-        <p class="text-[15px] text-[#64748B] leading-[1.7]">
-          Ar perkate, ar nuomojate — norite žinoti tiesą: tikrąsias energijos sąnaudas,
-          šiluminį komfortą, teisines rizikas, kainos pagrįstumą. Bet objekto ekspertizė
-          kainuoja šimtus eurų ir trunka dienas.
+        <p class="text-[19px] text-[#475569] leading-[1.7]">
+          Ar perkate, ar nuomojate — tikrosios energijos sąnaudos, šiluminis
+          komfortas, teisinės rizikos ir kainos pagrįstumas prieinami iš oficialių
+          šaltinių. Objekto ekspertizė kainuoja šimtus eurų ir trunka dienas.
         </p>
-        <p class="text-[15px] text-[#1A1A2E] leading-[1.7]">
-          Mes surenkame duomenis, apskaičiuojame ir pateikiame aiškias įžvalgas,
-          kad galėtumėte rinktis ne akimis, o faktais.
+        <p class="text-[19px] text-[#1E3A5F] font-medium leading-[1.7]">
+          Duomenys surenkami, apskaičiuojami ir pateikiami kaip aiškios įžvalgos —
+          kad sprendimus priimtumėte faktais, ne akimis.
         </p>
       </div>
 
-      <a href="/quickscan/" class="bg-[#1E3A5F] text-white text-[15px] font-semibold px-10 py-4 rounded-sm hover:bg-[#0D7377] transition-colors duration-200 tracking-wide">
-        Gauti įžvalgas
+      <a href="/quickscan/" class="bg-[#1E3A5F] text-white text-[19px] font-semibold px-14 py-5 rounded-sm hover:bg-[#0D7377] transition-colors duration-200 tracking-wide">
+        Gauti ataskaitą
       </a>
     </div>
 
-    <!-- Right: Data preview panel -->
-    <div class="bg-white border border-[#E2E8F0] rounded-sm p-8 shadow-sm">
-      <div class="text-[11px] font-semibold tracking-[0.12em] uppercase text-[#64748B] mb-6">
-        Duomenų blokai
-      </div>
-      <div class="space-y-3">
-
-        <!-- Block 1 — live -->
-        <div class="flex items-center gap-4 p-4 bg-[#F0F9F6] border border-[#059669]/20 rounded-sm">
-          <span class="text-[20px]">🌡</span>
-          <div class="flex-1">
-            <div class="flex items-center gap-2">
-              <div class="text-[13px] font-semibold text-[#1E3A5F]">Šiluminis komfortas</div>
-              <span class="text-[9px] font-bold tracking-wider uppercase bg-[#059669] text-white px-2 py-0.5 rounded-full">Beta</span>
-            </div>
-            <div class="text-[12px] text-[#64748B]">Žiema ir vasara, perkaitimo rizika</div>
-          </div>
-        </div>
-
-        <!-- Blocks 2–6 — coming soon -->
-        <div class="flex items-center gap-4 p-4 bg-[#FAFBFC] border border-[#E2E8F0] rounded-sm opacity-40">
-          <span class="text-[20px] grayscale">⚡</span>
-          <div>
-            <div class="text-[13px] font-semibold text-[#1E3A5F]">Energijos sąnaudos</div>
-            <div class="text-[12px] text-[#64748B]">€/mėn. + 5 metų prognozė</div>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-4 p-4 bg-[#FAFBFC] border border-[#E2E8F0] rounded-sm opacity-40">
-          <span class="text-[20px] grayscale">📊</span>
-          <div>
-            <div class="text-[13px] font-semibold text-[#1E3A5F]">10 metų išlaidos</div>
-            <div class="text-[12px] text-[#64748B]">Hipoteka, energija, administravimas</div>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-4 p-4 bg-[#FAFBFC] border border-[#E2E8F0] rounded-sm opacity-40">
-          <span class="text-[20px] grayscale">⚖</span>
-          <div>
-            <div class="text-[13px] font-semibold text-[#1E3A5F]">Kainos pagrįstumas</div>
-            <div class="text-[12px] text-[#64748B]">Palyginimas su rinkos duomenimis</div>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-4 p-4 bg-[#FAFBFC] border border-[#E2E8F0] rounded-sm opacity-40">
-          <span class="text-[20px] grayscale">🔒</span>
-          <div>
-            <div class="text-[13px] font-semibold text-[#1E3A5F]">Teisinės rizikos</div>
-            <div class="text-[12px] text-[#64748B]">Areštai, servitutai, apribojimai</div>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-4 p-4 bg-[#FAFBFC] border border-[#E2E8F0] rounded-sm opacity-40">
-          <span class="text-[20px] grayscale">🤝</span>
-          <div>
-            <div class="text-[13px] font-semibold text-[#1E3A5F]">Derybų strategija</div>
-            <div class="text-[12px] text-[#64748B]">Rekomenduojamas pasiūlymo diapazonas</div>
-          </div>
-        </div>
-
-      </div>
-      <div class="mt-6 pt-6 border-t border-[#E2E8F0] text-[11px] text-[#64748B]">
-        Duomenys iš NTR · PENS · Registrų centro · Kadastro
-      </div>
+    <!-- Right: Rotating report preview carousel -->
+    <div class="flex items-center justify-end">
+      <ReportCarousel />
     </div>
 
   </div>

@@ -2,6 +2,40 @@ import { useState, useEffect, useRef } from 'react';
 
 export type CaseType = 'existing_object' | 'new_build_project' | 'land_only';
 
+export interface Candidate {
+  candidate_id: string;
+  address: string;
+  ntr_unique_number: string | null;
+  municipality: string | null;
+  kind: 'whole_building' | 'unit_in_building' | 'land_plot';
+  confidence: 'high' | 'medium' | 'low';
+  primary_object: Record<string, unknown>;
+  bundle_items: unknown[];
+  bundle_confidence: 'HIGH' | 'AMBIGUOUS' | 'LOW';
+}
+
+export interface ResolveResponse {
+  status: 'resolved' | 'ambiguous' | 'low_confidence' | 'no_match' | 'error';
+  candidates: Candidate[];
+  message_lt: string | null;
+}
+
+export interface QuoteData {
+  quote_id: string;
+  bundle_id: string | null;
+  base_price_eur: number;
+  final_price_eur: number;
+  discount_amount_eur: number;
+  pricing_label: string;
+  pricing_version: string;
+  currency: string;
+  special_discount_applied: boolean;
+  ui_explanation_block: string[];
+  expires_at: string;
+  has_active_discount: boolean;
+  discount_context: unknown;
+}
+
 export interface QuickScanState {
   step: 1 | 2 | 3;
   case_type: CaseType | null;
@@ -10,7 +44,7 @@ export interface QuickScanState {
   geo: { lat: number; lng: number } | null;
   project_website_url: string | null;
   project_doc_id: string | null;
-  resolver_result: unknown | null;
+  resolver_result: ResolveResponse | null;
   selected_candidate_id: string | null;
   user_epc: {
     energy_class?: string;
@@ -18,10 +52,16 @@ export interface QuickScanState {
     issue_year?: number;
     year_unknown?: boolean;
   } | null;
-  quote: unknown | null;
-  customer_email: string | null;
+  quote: QuoteData | null;
+  email: string;
   consent_accepted: boolean;
   invoice_requested: boolean;
+  invoice_name: string;
+  invoice_is_company: boolean;
+  invoice_company_name: string;
+  invoice_email: string;
+  order_id: string | null;
+  payment_complete: boolean;
   discount_token: string | null;
 }
 
@@ -37,13 +77,25 @@ const initialState = (): QuickScanState => ({
   selected_candidate_id: null,
   user_epc: null,
   quote: null,
-  customer_email: null,
+  email: '',
   consent_accepted: false,
   invoice_requested: false,
+  invoice_name: '',
+  invoice_is_company: false,
+  invoice_company_name: '',
+  invoice_email: '',
+  order_id: null,
+  payment_complete: false,
   discount_token: typeof window !== 'undefined'
     ? new URLSearchParams(window.location.search).get('token')
     : null,
 });
+
+const BREADCRUMB_STEPS = [
+  { step: 1, label: '1 Vieta' },
+  { step: 2, label: '2 Patvirtinimas' },
+  { step: 3, label: '3 Užsakymas ir apmokėjimas' },
+] as const;
 
 export default function QuickScanFlow() {
   const [state, setState] = useState<QuickScanState>(initialState);
@@ -54,6 +106,17 @@ export default function QuickScanFlow() {
 
   return (
     <div>
+      <nav className="flex items-center gap-3 text-sm mb-10">
+        {BREADCRUMB_STEPS.map((s, i) => (
+          <span key={s.step} className="flex items-center gap-3">
+            {i > 0 && <span className="text-[#64748B]">→</span>}
+            <span className={s.step === state.step ? 'font-semibold text-[#1E3A5F]' : 'text-[#64748B]'}>
+              {s.label}
+            </span>
+          </span>
+        ))}
+      </nav>
+
       {state.step === 1 && (
         <Screen1
           state={state}
@@ -620,6 +683,120 @@ function Screen1({
   );
 }
 
+const KIND_LABELS: Record<Candidate['kind'], string> = {
+  whole_building: 'Pastatas',
+  unit_in_building: 'Patalpa pastate',
+  land_plot: 'Žemės sklypas',
+};
+
+const EPC_CLASSES = ['A++', 'A+', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
+
+function EpcCard({
+  state,
+  setState,
+  epcError,
+  setEpcError,
+}: {
+  state: QuickScanState;
+  setState: React.Dispatch<React.SetStateAction<QuickScanState>>;
+  epcError: string | null;
+  setEpcError: React.Dispatch<React.SetStateAction<string | null>>;
+}) {
+  const epc = state.user_epc ?? {};
+  const kwhVal = epc.kwhm2_year;
+  const kwhWarning = kwhVal !== undefined && (kwhVal < 10 || kwhVal > 1000);
+
+  function updateEpc(patch: Partial<NonNullable<QuickScanState['user_epc']>>) {
+    setState(s => ({ ...s, user_epc: { ...s.user_epc, ...patch } }));
+    setEpcError(null);
+  }
+
+  return (
+    <div className="rounded-xl border border-[#E2E8F0] bg-white px-6 py-5 mb-4">
+      <h3 className="text-sm font-semibold text-[#1E3A5F] mb-2">
+        Energijos naudingumo duomenys (pasirinktinai)
+      </h3>
+      <p className="text-xs text-[#64748B] mb-4">
+        Jei turite energijos naudingumo sertifikatą ar patikimus savo skaičiavimus, galite čia įvesti klasę, sąnaudas ir sertifikato metus — palyginsime su registrų įrašais ir, jei jie naujesni, vertinime remsimės būtent jais.
+      </p>
+
+      <div className="flex flex-col gap-4">
+        {/* Energy class */}
+        <div>
+          <label className="block text-xs font-medium text-[#1E3A5F] mb-1">Energijos naudingumo klasė</label>
+          <select
+            value={epc.energy_class ?? ''}
+            onChange={e => updateEpc({ energy_class: e.target.value || undefined })}
+            className="w-full px-3 py-2 rounded-md border border-[#E2E8F0] text-sm outline-none focus:border-[#0D7377] bg-white transition-all"
+          >
+            <option value="">—</option>
+            {EPC_CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+
+        {/* kWh/m² */}
+        <div>
+          <label className="block text-xs font-medium text-[#1E3A5F] mb-1">Metinės šildymo energijos sąnaudos</label>
+          <div className="relative">
+            <input
+              type="number"
+              value={epc.kwhm2_year ?? ''}
+              onChange={e => updateEpc({ kwhm2_year: e.target.value ? Number(e.target.value) : undefined })}
+              placeholder="pvz., 120"
+              className={`w-full px-3 py-2 pr-32 rounded-md border text-sm outline-none focus:border-[#0D7377] transition-all ${kwhWarning ? 'border-[#F59E0B]' : 'border-[#E2E8F0]'}`}
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#94A3B8] pointer-events-none">kWh/m² per metus</span>
+          </div>
+          {kwhWarning && (
+            <p className="text-xs text-[#F59E0B] mt-1">Neįprasta reikšmė — patikrinkite.</p>
+          )}
+        </div>
+
+        {/* Issue year */}
+        <div>
+          <label className="block text-xs font-medium text-[#1E3A5F] mb-1">Sertifikato metai</label>
+          <input
+            type="number"
+            value={epc.issue_year ?? ''}
+            onChange={e => updateEpc({ issue_year: e.target.value ? Number(e.target.value) : undefined })}
+            placeholder="pvz., 2022"
+            disabled={epc.year_unknown}
+            className={[
+              'w-full px-3 py-2 rounded-md border text-sm outline-none focus:border-[#0D7377] transition-all',
+              epc.year_unknown ? 'bg-[#F1F5F9] text-[#94A3B8] cursor-not-allowed border-[#E2E8F0]' :
+              (epcError && epc.energy_class && !epc.year_unknown && !epc.issue_year) ? 'border-[#DC3545]' : 'border-[#E2E8F0]',
+            ].join(' ')}
+          />
+          {epcError && (
+            <p className="text-xs text-[#DC3545] mt-1">{epcError}</p>
+          )}
+        </div>
+
+        {/* Year unknown */}
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={epc.year_unknown ?? false}
+            onChange={e => updateEpc({ year_unknown: e.target.checked, issue_year: e.target.checked ? undefined : epc.issue_year })}
+            className="w-4 h-4 accent-[#0D7377]"
+          />
+          <span className="text-xs text-[#64748B]">Nežinau / neturiu po ranka</span>
+        </label>
+
+        {epc.energy_class && epc.year_unknown && (
+          <p className="text-xs text-[#94A3B8]">
+            Be sertifikato metų negalime patikrinti, ar klasė naujesnė, todėl vertinime paliksime registrų klasę.
+          </p>
+        )}
+      </div>
+
+      <p className="text-xs text-[#94A3B8] mt-4 pt-4 border-t border-[#F1F5F9]">
+        Jei nepildysite šių laukų, vertinimui bus naudojami registrų duomenys arba apytiksliai skaičiavimai, jei jų nėra.
+      </p>
+    </div>
+  );
+}
+
 function Screen2({
   state,
   setState,
@@ -627,7 +804,215 @@ function Screen2({
   state: QuickScanState;
   setState: React.Dispatch<React.SetStateAction<QuickScanState>>;
 }) {
-  return <p className="text-[#64748B] text-sm">Screen 2 — proof card.</p>;
+  const [quoting, setQuoting] = useState(false);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+  const [epcError, setEpcError] = useState<string | null>(null);
+
+  const resolver = state.resolver_result;
+
+  if (!resolver) return null;
+
+  // Non-resolved: low_confidence / no_match / error
+  if (resolver.status === 'low_confidence' || resolver.status === 'no_match' || resolver.status === 'error') {
+    const msg = resolver.message_lt ?? 'Nepavyko rasti objekto. Bandykite kitu būdu.';
+    return (
+      <div className="max-w-2xl">
+        <p className="text-sm text-[#64748B] mb-4">{msg}</p>
+        <button
+          onClick={() => setState(s => ({ ...s, step: 1 }))}
+          className="px-6 py-2.5 rounded-lg border border-[#E2E8F0] text-sm text-[#64748B] hover:border-[#1E3A5F] transition-all"
+        >
+          Atgal
+        </button>
+      </div>
+    );
+  }
+
+  // Chooser: ambiguous + no candidate selected yet
+  if (resolver.status === 'ambiguous' && state.selected_candidate_id === null) {
+    const groups: { kind: Candidate['kind']; label: string; candidates: Candidate[] }[] = [];
+    const seen = new Set<string>();
+    for (const c of resolver.candidates) {
+      if (!seen.has(c.kind)) {
+        seen.add(c.kind);
+        groups.push({ kind: c.kind, label: KIND_LABELS[c.kind], candidates: [] });
+      }
+      groups.find(g => g.kind === c.kind)!.candidates.push(c);
+    }
+
+    return (
+      <div className="max-w-2xl">
+        <h1 className="text-2xl font-bold text-[#1E3A5F] mb-1">Pasirinkite tikslų objektą</h1>
+        <p className="text-sm text-[#64748B] mb-6">Radome kelis galimus atitikmenis. Pasirinkite vieną.</p>
+
+        <div className="flex flex-col gap-6 mb-6">
+          {groups.map(g => (
+            <div key={g.kind}>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#94A3B8] mb-2">{g.label}</p>
+              <div className="flex flex-col gap-2">
+                {g.candidates.map(c => (
+                  <div
+                    key={c.candidate_id}
+                    onClick={() => setState(s => ({ ...s, selected_candidate_id: c.candidate_id }))}
+                    className="cursor-pointer rounded-lg border border-[#E2E8F0] bg-white px-5 py-4 hover:border-[#0D7377] hover:bg-[#EEF9F9] transition-all"
+                  >
+                    <p className="text-sm font-semibold text-[#1E3A5F]">{c.address}</p>
+                    {c.ntr_unique_number && (
+                      <p className="text-xs text-[#64748B] mt-1">Unikalus Nr.: {c.ntr_unique_number}</p>
+                    )}
+                    {c.municipality && (
+                      <p className="text-xs text-[#64748B]">Savivaldybė: {c.municipality}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={() => setState(s => ({ ...s, step: 1 }))}
+          className="px-6 py-2.5 rounded-lg border border-[#E2E8F0] text-sm text-[#64748B] hover:border-[#1E3A5F] transition-all"
+        >
+          Atgal
+        </button>
+      </div>
+    );
+  }
+
+  // Proof card sub-state
+  const candidate = resolver.status === 'resolved'
+    ? resolver.candidates[0]
+    : resolver.candidates.find(c => c.candidate_id === state.selected_candidate_id);
+
+  if (!candidate) return null;
+
+  const handleConfirmCandidate = async () => {
+    const epc = state.user_epc;
+    if (epc?.energy_class && !epc.year_unknown && !epc.issue_year) {
+      setEpcError("Nurodykite sertifikato metus arba pažymėkite 'Nežinau'.");
+      return;
+    }
+    setEpcError(null);
+    setQuoting(true);
+    setQuoteError(null);
+    try {
+      // Step 1: POST /confirm
+      const confirmRes = await fetch(`${API_BASE}/v1/quickscan-lite/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          candidate_id: candidate.candidate_id,
+          case_type: state.case_type,
+          address: candidate.address,
+          ntr_unique_number: candidate.ntr_unique_number ?? null,
+          municipality: candidate.municipality ?? null,
+          kind: candidate.kind,
+          bundle_item_count: candidate.bundle_items.length,
+          user_energy_class: state.user_epc?.energy_class ?? null,
+          user_epc_kwhm2_year: state.user_epc?.kwhm2_year ?? null,
+          user_epc_issue_year: state.user_epc?.issue_year ?? null,
+          user_epc_issue_year_unknown: state.user_epc?.year_unknown ?? false,
+          discount_token: state.discount_token ?? null,
+        }),
+      });
+      const confirmJson = await confirmRes.json();
+      if (!confirmJson.ok) throw new Error('confirm failed');
+      const { bundle_signature, bundle_id, bundle_size, has_new_build_project } = confirmJson.data;
+
+      // Step 2: POST /quote using confirm response
+      const quoteBody: Record<string, unknown> = {
+        bundle_signature,
+        bundle_id,
+        bundle_size,
+        has_new_build_project,
+      };
+      if (state.discount_token) quoteBody.promo = state.discount_token;
+      const quoteRes = await fetch(`${API_BASE}/v1/quickscan-lite/quote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(quoteBody),
+      });
+      const json = await quoteRes.json();
+      if (!json.ok) throw new Error('Quote error');
+      setState(s => ({
+        ...s,
+        selected_candidate_id: candidate.candidate_id,
+        quote: json.data as QuoteData,
+        step: 3,
+      }));
+    } catch {
+      setQuoteError('Klaida gaunant kainą. Bandykite dar kartą.');
+    } finally {
+      setQuoting(false);
+    }
+  };
+
+  return (
+    <div className="max-w-2xl">
+      <h1 className="text-2xl font-bold text-[#1E3A5F] mb-1">Patvirtinkite objektą</h1>
+      <p className="text-sm text-[#64748B] mb-6">Radome atitinkantį įrašą. Patikrinkite, ar tai tas pats objektas.</p>
+
+      {/* Proof card */}
+      <div className="rounded-xl border border-[#E2E8F0] bg-white px-6 py-5 mb-4">
+        <p className="text-lg font-bold text-[#1E3A5F] mb-2">{candidate.address}</p>
+        {candidate.ntr_unique_number && (
+          <p className="text-sm text-[#64748B] mb-1">Unikalus Nr.: {candidate.ntr_unique_number}</p>
+        )}
+        {candidate.municipality && (
+          <p className="text-sm text-[#64748B] mb-1">Savivaldybė: {candidate.municipality}</p>
+        )}
+        {candidate.bundle_items.length > 0 && (
+          <p className="text-sm text-[#94A3B8] mt-2">Komplekte yra papildomų objektų.</p>
+        )}
+        {/* TODO: small static map — blocked P6-C Google Maps issue */}
+        <p className="text-xs text-[#94A3B8] mt-3 pt-3 border-t border-[#F1F5F9]">
+          Vertinimas taikomas pagrindiniam šildomam objektui.
+        </p>
+      </div>
+
+      {/* EPC override card — hidden for land_only */}
+      {state.case_type !== 'land_only' && (
+        <EpcCard state={state} setState={setState} epcError={epcError} setEpcError={setEpcError} />
+      )}
+
+      {quoteError && (
+        <div className="flex items-center gap-3 mb-4">
+          <p className="text-sm text-[#DC3545]">{quoteError}</p>
+          <button onClick={handleConfirmCandidate} className="text-sm text-[#0D7377] underline">
+            Bandyti dar kartą
+          </button>
+        </div>
+      )}
+
+      <div className="flex gap-3 mt-2">
+        <button
+          onClick={() => setState(s => ({ ...s, step: 1 }))}
+          className="px-6 py-3 rounded-lg border border-[#E2E8F0] text-sm text-[#64748B] hover:border-[#1E3A5F] transition-all"
+        >
+          Keisti vietą
+        </button>
+        <button
+          onClick={handleConfirmCandidate}
+          disabled={quoting}
+          className={`px-8 py-3 rounded-lg text-sm font-semibold transition-all flex items-center gap-2
+            ${quoting
+              ? 'bg-[#CBD5E1] text-white cursor-not-allowed'
+              : 'bg-[#0D7377] text-white hover:bg-[#0B6268] cursor-pointer'}`}
+        >
+          {quoting ? (
+            <>
+              <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+              </svg>
+              Kraunama…
+            </>
+          ) : 'Tęsti'}
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function Screen3({
@@ -637,5 +1022,336 @@ function Screen3({
   state: QuickScanState;
   setState: React.Dispatch<React.SetStateAction<QuickScanState>>;
 }) {
-  return <p className="text-[#64748B] text-sm">Screen 3 — quote and payment.</p>;
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const stripeRef = useRef<any>(null);
+  const cardElementRef = useRef<any>(null);
+
+  const quote = state.quote!;
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email);
+  const canPay = emailValid && state.consent_accepted && !paying;
+
+  // Mount Stripe card when clientSecret is set (non-stub path)
+  useEffect(() => {
+    if (!clientSecret) return;
+    const pubKey = import.meta.env.PUBLIC_STRIPE_PUBLISHABLE_KEY;
+    if (!pubKey) return;
+
+    const mountCard = () => {
+      const stripe = (window as any).Stripe(pubKey);
+      stripeRef.current = stripe;
+      const elements = stripe.elements();
+      const card = elements.create('card');
+      card.mount('#stripe-card-element');
+      cardElementRef.current = card;
+    };
+
+    if ((window as any).Stripe) {
+      mountCard();
+    } else {
+      const script = document.createElement('script');
+      script.src = 'https://js.stripe.com/v3/';
+      script.onload = mountCard;
+      document.head.appendChild(script);
+    }
+  }, [clientSecret]);
+
+  // Reassurance screen
+  if (state.payment_complete) {
+    return (
+      <div className="max-w-2xl">
+        <div className="flex flex-col items-center text-center py-12">
+          <div className="w-16 h-16 rounded-full bg-[#EEF9F9] flex items-center justify-center mb-6">
+            <svg className="w-8 h-8 text-[#0D7377]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-[#1E3A5F] mb-4">Patvirtinome jūsų užsakymą.</h1>
+          <p className="text-sm text-[#64748B] max-w-md leading-relaxed">
+            Pradėjome informacijos paiešką registruose, duomenų tikrinimą ir visų blokų skaičiavimus. Ataskaitą el. paštu paprastai išsiunčiame greitai, bet gali užtrukti iki 1 valandos.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const handlePayment = async () => {
+    if (!emailValid || !state.consent_accepted) return;
+    setPaying(true);
+    setPayError(null);
+    try {
+      const r = await fetch(`${API_BASE}/v1/quickscan-lite/payment-intent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quote_id: quote.quote_id,
+          customer_email: state.email,
+          invoice_requested: state.invoice_requested,
+          bundle_signature: state.selected_candidate_id ?? quote.bundle_id ?? '',
+        }),
+      });
+      const json = await r.json();
+      if (!json.ok) {
+        if (json.error_code === 'quote_expired') {
+          setPayError('expired');
+        } else {
+          setPayError('Mokėjimo klaida. Bandykite dar kartą.');
+        }
+        return;
+      }
+      const { client_secret, order_id } = json.data;
+      const pubKey = import.meta.env.PUBLIC_STRIPE_PUBLISHABLE_KEY;
+      if (client_secret.startsWith('pi_stub') || client_secret === 'stub' || !pubKey) {
+        setState(s => ({ ...s, order_id, payment_complete: true }));
+        return;
+      }
+      setState(s => ({ ...s, order_id }));
+      setClientSecret(client_secret);
+    } catch {
+      setPayError('Mokėjimo klaida. Bandykite dar kartą.');
+    } finally {
+      setPaying(false);
+    }
+  };
+
+  const handleStripeConfirm = async () => {
+    if (!stripeRef.current || !cardElementRef.current || !clientSecret) return;
+    setPaying(true);
+    setPayError(null);
+    try {
+      const result = await stripeRef.current.confirmCardPayment(clientSecret, {
+        payment_method: { card: cardElementRef.current },
+      });
+      if (result.error) {
+        setPayError(result.error.message);
+      } else if (result.paymentIntent?.status === 'succeeded') {
+        setState(s => ({ ...s, payment_complete: true }));
+      }
+    } finally {
+      setPaying(false);
+    }
+  };
+
+  if (payError === 'expired') {
+    return (
+      <div className="max-w-2xl">
+        <p className="text-sm text-[#64748B] mb-4">
+          Jūsų užklausa pasibaigė. Grįžkite ir pradėkite iš naujo.
+        </p>
+        <button
+          onClick={() => setState(s => ({ ...s, step: 2 }))}
+          className="px-6 py-2.5 rounded-lg border border-[#E2E8F0] text-sm text-[#64748B] hover:border-[#1E3A5F] transition-all"
+        >
+          Atgal
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-2xl">
+      <h1 className="text-2xl font-bold text-[#1E3A5F] mb-6">Kaina ir paslauga</h1>
+
+      {/* Quote card */}
+      <div className="rounded-xl border border-[#E2E8F0] bg-white px-6 py-5 mb-4">
+        <div className="flex items-baseline gap-3 mb-3">
+          {quote.special_discount_applied && (
+            <span className="text-lg text-[#94A3B8] line-through">{quote.base_price_eur} €</span>
+          )}
+          <span className="text-3xl font-bold text-[#1E3A5F]">{quote.final_price_eur} €</span>
+          <span className="flex items-center gap-1 text-xs font-medium text-[#0D7377] bg-[#EEF9F9] px-2 py-0.5 rounded-full">
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            {quote.pricing_label}
+          </span>
+        </div>
+        <ul className="flex flex-col gap-1.5">
+          <li className="flex items-start gap-2 text-sm text-[#64748B]">
+            <span className="text-[#0D7377] mt-0.5">✓</span>
+            Šiluminio komforto vertinimas pagrindiniam pastatui šiame komplekte.
+          </li>
+          <li className="flex items-start gap-2 text-sm text-[#64748B]">
+            <span className="text-[#0D7377] mt-0.5">✓</span>
+            PDF ataskaita el. paštu.
+          </li>
+        </ul>
+      </div>
+
+      {/* Why this price */}
+      {quote.ui_explanation_block.length > 0 && (
+        <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-6 py-5 mb-4">
+          <h3 className="text-sm font-semibold text-[#1E3A5F] mb-3">Kodėl tokia kaina?</h3>
+          <ul className="flex flex-col gap-2">
+            {quote.ui_explanation_block.map((line, i) => (
+              <li key={i} className={`text-xs ${line.startsWith('Šiuo metu') ? 'text-[#0D7377] font-medium' : 'text-[#64748B]'}`}>{line}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Email + consent + invoice */}
+      <div className="rounded-xl border border-[#E2E8F0] bg-white px-6 py-5 mb-4 flex flex-col gap-4">
+        {/* Email */}
+        <div>
+          <label className="block text-xs font-medium text-[#1E3A5F] mb-1">El. pašto adresas</label>
+          <input
+            type="email"
+            value={state.email}
+            onChange={e => setState(s => ({ ...s, email: e.target.value }))}
+            onBlur={() => setEmailTouched(true)}
+            placeholder="vardas@pastas.lt"
+            className={[
+              'w-full px-3 py-2 rounded-md border text-sm outline-none focus:border-[#0D7377] transition-all',
+              emailTouched && !emailValid ? 'border-[#DC3545]' : 'border-[#E2E8F0]',
+            ].join(' ')}
+          />
+          {emailTouched && !emailValid && (
+            <p className="text-xs text-[#DC3545] mt-1">Įveskite teisingą el. pašto adresą.</p>
+          )}
+        </div>
+
+        {/* Invoice checkbox */}
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={state.invoice_requested}
+            onChange={e => setState(s => ({ ...s, invoice_requested: e.target.checked }))}
+            className="w-4 h-4 accent-[#0D7377]"
+          />
+          <span className="text-sm text-[#1E3A5F]">Reikia sąskaitos faktūros</span>
+        </label>
+
+        {/* Invoice fields */}
+        {state.invoice_requested && (
+          <div className="flex flex-col gap-3 pl-6 border-l-2 border-[#E2E8F0]">
+            {/* Individual/company toggle */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setState(s => ({ ...s, invoice_is_company: false }))}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${!state.invoice_is_company ? 'bg-[#0D7377] text-white border-[#0D7377]' : 'border-[#E2E8F0] text-[#64748B] hover:border-[#0D7377]'}`}
+              >
+                Fizinis asmuo
+              </button>
+              <button
+                onClick={() => setState(s => ({ ...s, invoice_is_company: true }))}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${state.invoice_is_company ? 'bg-[#0D7377] text-white border-[#0D7377]' : 'border-[#E2E8F0] text-[#64748B] hover:border-[#0D7377]'}`}
+              >
+                Juridinis asmuo
+              </button>
+            </div>
+            {/* Name */}
+            <div>
+              <label className="block text-xs font-medium text-[#1E3A5F] mb-1">
+                {state.invoice_is_company ? 'Kontaktinis asmuo' : 'Vardas, pavardė'}
+              </label>
+              <input
+                type="text"
+                value={state.invoice_name}
+                onChange={e => setState(s => ({ ...s, invoice_name: e.target.value }))}
+                className="w-full px-3 py-2 rounded-md border border-[#E2E8F0] text-sm outline-none focus:border-[#0D7377] transition-all"
+              />
+            </div>
+            {/* Company name */}
+            {state.invoice_is_company && (
+              <div>
+                <label className="block text-xs font-medium text-[#1E3A5F] mb-1">Įmonės pavadinimas</label>
+                <input
+                  type="text"
+                  value={state.invoice_company_name}
+                  onChange={e => setState(s => ({ ...s, invoice_company_name: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-md border border-[#E2E8F0] text-sm outline-none focus:border-[#0D7377] transition-all"
+                />
+              </div>
+            )}
+            {/* Invoice email */}
+            <div>
+              <label className="block text-xs font-medium text-[#1E3A5F] mb-1">Sąskaitos el. paštas</label>
+              <input
+                type="email"
+                value={state.invoice_email || state.email}
+                onChange={e => setState(s => ({ ...s, invoice_email: e.target.value }))}
+                placeholder={state.email || 'vardas@pastas.lt'}
+                className="w-full px-3 py-2 rounded-md border border-[#E2E8F0] text-sm outline-none focus:border-[#0D7377] transition-all"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Consent */}
+        <label className="flex items-start gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={state.consent_accepted}
+            onChange={e => setState(s => ({ ...s, consent_accepted: e.target.checked }))}
+            className="w-4 h-4 mt-0.5 accent-[#0D7377] flex-shrink-0"
+          />
+          <span className="text-sm text-[#64748B]">
+            Sutinku su{' '}
+            <a href="/salygos" className="text-[#0D7377] underline">paslaugos teikimo sąlygomis</a>
+            {' '}ir{' '}
+            <a href="/privatumas" className="text-[#0D7377] underline">privatumo nuostatomis</a>.
+          </span>
+        </label>
+      </div>
+
+      {/* Stripe card element (non-stub path, shown after /payment-intent) */}
+      {clientSecret && (
+        <div className="rounded-xl border border-[#E2E8F0] bg-white px-6 py-5 mb-4">
+          <p className="text-xs font-medium text-[#1E3A5F] mb-3">Mokėjimo duomenys</p>
+          <div id="stripe-card-element" className="py-2" />
+          {payError && <p className="text-xs text-[#DC3545] mt-2">{payError}</p>}
+          <button
+            onClick={handleStripeConfirm}
+            disabled={paying}
+            className={`mt-4 w-full py-3 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${paying ? 'bg-[#CBD5E1] text-white cursor-not-allowed' : 'bg-[#0D7377] text-white hover:bg-[#0B6268] cursor-pointer'}`}
+          >
+            {paying ? (
+              <>
+                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>
+                Kraunama…
+              </>
+            ) : 'Patvirtinti mokėjimą'}
+          </button>
+        </div>
+      )}
+
+      {/* Pay error (non-card errors) */}
+      {payError && payError !== 'expired' && !clientSecret && (
+        <p className="text-sm text-[#DC3545] mb-4">{payError}</p>
+      )}
+
+      {/* Action buttons */}
+      {!clientSecret && (
+        <div className="flex gap-3">
+          <button
+            onClick={() => setState(s => ({ ...s, step: 2 }))}
+            className="px-6 py-3 rounded-lg border border-[#E2E8F0] text-sm text-[#64748B] hover:border-[#1E3A5F] transition-all"
+          >
+            Atgal
+          </button>
+          <button
+            onClick={handlePayment}
+            disabled={!canPay}
+            className={`px-8 py-3 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${canPay ? 'bg-[#0D7377] text-white hover:bg-[#0B6268] cursor-pointer' : 'bg-[#CBD5E1] text-white cursor-not-allowed'}`}
+          >
+            {paying ? (
+              <>
+                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>
+                Kraunama…
+              </>
+            ) : 'Mokėti ir gauti ataskaitą'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
