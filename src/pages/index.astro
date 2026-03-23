@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
+import SituationCards from '../components/SituationCards.astro';
 import AddressLookup from '../components/AddressLookup.astro';
 import Pricing from '../components/Pricing.astro';
 import Sources from '../components/Sources.astro';
@@ -11,6 +12,7 @@ import Footer from '../components/Footer.astro';
   <Header />
   <main>
     <Hero />
+    <SituationCards />
     <AddressLookup />
 
     <!-- Step 1.5: Resolver loading -->
@@ -180,7 +182,7 @@ import Footer from '../components/Footer.astro';
     </div>
 
     <Pricing />
-    <Sources />
+    <Sources showPropertyTypes={true} />
   </main>
   <Footer />
 </BaseLayout>

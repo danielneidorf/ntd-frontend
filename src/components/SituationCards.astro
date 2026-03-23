@@ -1,0 +1,77 @@
+---
+const cards = [
+  {
+    icon: '🏠',
+    title: 'Esamą pastatą ar patalpas',
+    description: 'Registruose matomas butas, namas ar komercinė patalpa. Oficialūs duomenys ir įžvalgos.',
+    link: '/quickscan/?case=existing_object',
+  },
+  {
+    icon: '🏗️',
+    title: 'Naujai statomą ar baigtą projektą',
+    description: 'Naujas ar ką tik baigtas projektas. Sklypo ir projekto duomenų analizė.',
+    link: '/quickscan/?case=new_build_project',
+  },
+  {
+    icon: '🌿',
+    title: 'Tik žemės sklypą',
+    description: 'Sklypas be šildomų pastatų. Aplinkos, teisiniai ir kainos duomenys.',
+    link: '/quickscan/?case=land_only',
+  },
+];
+---
+
+<section id="below-hero" class="bg-[#FAFBFC] py-16 border-t border-[#E2E8F0]">
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="text-center mb-12">
+      <h2 class="text-[32px] font-semibold text-[#1A1A2E]">Pasirinkite, ką norite išanalizuoti</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 situation-cards">
+      {cards.map((card, i) => (
+        <a
+          href={card.link}
+          class="situation-card bg-white border border-[#E2E8F0] rounded-2xl p-10 flex flex-col min-h-[280px] transition-all duration-250 shadow-[0_4px_24px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.10)] hover:border-t-[3px] hover:border-t-[#0D7377]"
+          style={`animation-delay: ${i * 0.1}s`}
+        >
+          <div class="text-[48px] mb-5">{card.icon}</div>
+          <h3 class="text-[20px] font-semibold text-[#1A1A2E] mb-3">{card.title}</h3>
+          <p class="text-[16px] text-[#64748B] leading-[1.65] mb-6 flex-1">{card.description}</p>
+          <span class="inline-block bg-[#1E3A5F] text-white text-[15px] font-medium px-7 py-3 rounded-lg hover:bg-[#162d4a] transition-colors self-start mt-auto">Užsakyti ataskaitą</span>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .situation-card {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  .situation-cards.visible .situation-card {
+    animation: fadeSlideIn 0.4s ease-out forwards;
+  }
+  @keyframes fadeSlideIn {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+
+<script>
+  const section = document.querySelector('.situation-cards');
+  if (section) {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          section.classList.add('visible');
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.2 }
+    );
+    observer.observe(section);
+  }
+</script>

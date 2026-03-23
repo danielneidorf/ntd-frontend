@@ -1,45 +1,102 @@
 ---
+interface Props {
+  showPropertyTypes?: boolean;
+}
+const { showPropertyTypes = false } = Astro.props;
+
+const row1 = [
+  'Namai','Kotedžai','Dvibučiai','Sublokuoti namai','Sodų namai','Butai','Daugiabučiai','Bendrabučiai','Loftai','Studijos','Biurai','Ofisai','Administracinės patalpos','Mokyklos','Darželiai','Universitetai','Kolegijos','Gimnazijos','Mokslo patalpos','Klinikos','Poliklinikos','Gydymo patalpos','Restoranai','Kavinės','Maitinimo patalpos','Parduotuvės','Prekybos centrai','Prekybos patalpos','Sporto salės','Arenos',
+];
+const row2 = [
+  'Sporto patalpos','Baseinai','Teatrai','Muziejai','Bibliotekos','Kultūros patalpos','Garažai','Gamyklos','Cechai','Industrinės patalpos','Sandėliai','Logistikos centrai','Sandėliavimo patalpos','Viešbučiai','Svečių namai','Apgyvendinimo patalpos','Paslaugų patalpos','Salonai','Stotys','Terminalai','Transporto patalpos','Poilsio namai','Sanatorijos','Poilsio patalpos','Specialiosios patalpos','Nauji projektai','Komercinės patalpos','Žemės sklypai','Sodų sklypai','Parkavimo vietos','Parkavimo aikštelės',
+];
+
+const row1Text = row1.join(' · ') + ' · ';
+const row2Text = row2.join(' · ') + ' · ';
 ---
-<div class="fixed bottom-0 left-0 right-0 z-50 border-t border-[#E2E8F0] bg-white overflow-hidden py-3">
-  <div class="ticker-track flex gap-16 whitespace-nowrap">
-    <span class="ticker-content flex gap-16 text-[12px] font-medium text-[#94A3B8] tracking-wide">
-      <span>NTR — Nekilnojamojo turto registras</span>
-      <span class="text-[#E2E8F0]">·</span>
-      <span>Registrų centras — sandoriai ir rinkos kainos</span>
-      <span class="text-[#E2E8F0]">·</span>
-      <span>PENS — energinio naudingumo sertifikatai</span>
-      <span class="text-[#E2E8F0]">·</span>
-      <span>Kadastras — techniniai ir kadastriniai duomenys</span>
-      <span class="text-[#E2E8F0]">·</span>
-      <span class="text-[#0D7377]">Duomenys iš oficialių Lietuvos registrų</span>
-      <span class="text-[#E2E8F0]">·</span>
-    </span>
-    <!-- Duplicate for seamless loop -->
-    <span class="ticker-content flex gap-16 text-[12px] font-medium text-[#94A3B8] tracking-wide">
-      <span>NTR — Nekilnojamojo turto registras</span>
-      <span class="text-[#E2E8F0]">·</span>
-      <span>Registrų centras — sandoriai ir rinkos kainos</span>
-      <span class="text-[#E2E8F0]">·</span>
-      <span>PENS — energinio naudingumo sertifikatai</span>
-      <span class="text-[#E2E8F0]">·</span>
-      <span>Kadastras — techniniai ir kadastriniai duomenys</span>
-      <span class="text-[#E2E8F0]">·</span>
-      <span class="text-[#0D7377]">Duomenys iš oficialių Lietuvos registrų</span>
-      <span class="text-[#E2E8F0]">·</span>
-    </span>
-  </div>
+<div class="fixed bottom-0 left-0 right-0 z-50 border-t border-[#E2E8F0] bg-white overflow-hidden flex flex-col gap-1 py-2">
+
+  {showPropertyTypes && (
+    <!-- Row 1: property types LTR -->
+    <div class="overflow-hidden">
+      <div class="ticker-ltr flex gap-16 whitespace-nowrap">
+        <span class="ticker-content flex gap-0 text-[12px] font-medium text-[#94A3B8] tracking-wide">
+          {row1Text}
+        </span>
+        <span class="ticker-content flex gap-0 text-[12px] font-medium text-[#94A3B8] tracking-wide">
+          {row1Text}
+        </span>
+      </div>
+    </div>
+  )}
+
+  {showPropertyTypes && (
+    <!-- Row 2: property types RTL -->
+    <div class="overflow-hidden">
+      <div class="ticker-rtl flex gap-16 whitespace-nowrap">
+        <span class="ticker-content flex gap-0 text-[12px] font-medium text-[#94A3B8] tracking-wide">
+          {row2Text}
+        </span>
+        <span class="ticker-content flex gap-0 text-[12px] font-medium text-[#94A3B8] tracking-wide">
+          {row2Text}
+        </span>
+      </div>
+    </div>
+  )}
+
+  {!showPropertyTypes && (
+    <!-- Sources row (non-landing pages only) -->
+    <div class="overflow-hidden">
+      <div class="ticker-ltr flex gap-16 whitespace-nowrap">
+        <span class="ticker-content flex gap-16 text-[12px] font-medium text-[#94A3B8] tracking-wide">
+          <span>NTR — Nekilnojamojo turto registras</span>
+          <span class="text-[#E2E8F0]">·</span>
+          <span>Registrų centras — sandoriai ir rinkos kainos</span>
+          <span class="text-[#E2E8F0]">·</span>
+          <span>PENS — energinio naudingumo sertifikatai</span>
+          <span class="text-[#E2E8F0]">·</span>
+          <span>Kadastras — techniniai ir kadastriniai duomenys</span>
+          <span class="text-[#E2E8F0]">·</span>
+          <span class="text-[#0D7377]">Duomenys iš oficialių Lietuvos registrų</span>
+          <span class="text-[#E2E8F0]">·</span>
+        </span>
+        <span class="ticker-content flex gap-16 text-[12px] font-medium text-[#94A3B8] tracking-wide">
+          <span>NTR — Nekilnojamojo turto registras</span>
+          <span class="text-[#E2E8F0]">·</span>
+          <span>Registrų centras — sandoriai ir rinkos kainos</span>
+          <span class="text-[#E2E8F0]">·</span>
+          <span>PENS — energinio naudingumo sertifikatai</span>
+          <span class="text-[#E2E8F0]">·</span>
+          <span>Kadastras — techniniai ir kadastriniai duomenys</span>
+          <span class="text-[#E2E8F0]">·</span>
+          <span class="text-[#0D7377]">Duomenys iš oficialių Lietuvos registrų</span>
+          <span class="text-[#E2E8F0]">·</span>
+        </span>
+      </div>
+    </div>
+  )}
+
 </div>
 
 <style>
-  .ticker-track {
-    animation: ticker 84s linear infinite;
+  .ticker-ltr {
+    animation: ticker-ltr 84s linear infinite;
     display: inline-flex;
   }
-  @keyframes ticker {
+  .ticker-rtl {
+    animation: ticker-rtl 84s linear infinite;
+    display: inline-flex;
+  }
+  @keyframes ticker-ltr {
     0%   { transform: translateX(0); }
     100% { transform: translateX(-50%); }
   }
-  .ticker-track:hover {
+  @keyframes ticker-rtl {
+    0%   { transform: translateX(-50%); }
+    100% { transform: translateX(0); }
+  }
+  .ticker-ltr:hover,
+  .ticker-rtl:hover {
     animation-play-state: paused;
   }
 </style>

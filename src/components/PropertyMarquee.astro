@@ -1,0 +1,73 @@
+---
+const row1 = [
+  'Namai','Kotedžai','Dvibučiai','Sublokuoti namai','Sodų namai','Butai','Daugiabučiai','Bendrabučiai','Loftai','Studijos','Biurai','Ofisai','Administracinės patalpos','Mokyklos','Darželiai','Universitetai','Kolegijos','Gimnazijos','Mokslo patalpos','Klinikos','Poliklinikos','Gydymo patalpos','Restoranai','Kavinės','Maitinimo patalpos','Parduotuvės','Prekybos centrai','Prekybos patalpos','Sporto salės','Arenos',
+];
+const row2 = [
+  'Sporto patalpos','Baseinai','Teatrai','Muziejai','Bibliotekos','Kultūros patalpos','Garažai','Gamyklos','Cechai','Industrinės patalpos','Sandėliai','Logistikos centrai','Sandėliavimo patalpos','Viešbučiai','Svečių namai','Apgyvendinimo patalpos','Paslaugų patalpos','Salonai','Stotys','Terminalai','Transporto patalpos','Poilsio namai','Sanatorijos','Poilsio patalpos','Specialiosios patalpos','Nauji projektai','Komercinės patalpos','Žemės sklypai','Sodų sklypai','Parkavimo vietos','Parkavimo aikštelės',
+];
+---
+
+<div>
+  <p class="text-[13px] font-semibold uppercase tracking-[0.1em] text-[#64748B] text-center mb-4">
+    Analizuojame visų tipų nekilnojamąjį turtą
+  </p>
+
+  <div class="flex flex-col gap-3">
+    <!-- Row 1: right-to-left -->
+    <div class="overflow-hidden">
+      <div class="marquee-row-ltr flex gap-3 w-max">
+        {[...row1, ...row1].map(pill => (
+          <span class="pill">{pill}</span>
+        ))}
+      </div>
+    </div>
+
+    <!-- Row 2: left-to-right -->
+    <div class="overflow-hidden">
+      <div class="marquee-row-rtl flex gap-3 w-max">
+        {[...row2, ...row2].map(pill => (
+          <span class="pill">{pill}</span>
+        ))}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .pill {
+    display: inline-block;
+    background: #E8F4F8;
+    color: #1E3A5F;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .marquee-row-ltr {
+    animation: scroll-ltr 84s linear infinite;
+  }
+  .marquee-row-rtl {
+    animation: scroll-rtl 84s linear infinite;
+  }
+
+  @keyframes scroll-ltr {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes scroll-rtl {
+    from { transform: translateX(-50%); }
+    to { transform: translateX(0); }
+  }
+
+  @media (max-width: 768px) {
+    .pill {
+      font-size: 13px;
+      padding: 6px 12px;
+    }
+  }
+</style>
