@@ -1,0 +1,80 @@
+---
+const scenarios = [
+  { title: "Perkate ir lyginate kelis variantus", desc: "Objektyvus palyginimas pagal faktinius duomenis, ne nuotraukas." },
+  { title: "Radote objektą — norite būti tikri", desc: "Tikrosios sąnaudos, komfortas ir teisinės rizikos — prieš sprendimą." },
+  { title: "Ruošiatės deryboms", desc: "Kaip objektas atrodo rinkos kontekste. Argumentai, paremti duomenimis." },
+  { title: "Vertinate vystytojo projektą", desc: "Nepriklausomas įvertinimas — ne vien pagal brošiūrą." },
+  { title: "Perkate žemės sklypą", desc: "Aplinkos rizikos, teisiniai suvaržymai ir kainos tendencijos rajone." },
+  { title: "Nuomojate ir lyginate variantus", desc: "Kur šildymo sąskaitos mažesnės ir komfortas didesnis." },
+  { title: "Ruošiatės pasirašyti nuomos sutartį", desc: "Ar nuomos kaina pagrįsta ir ar nėra teisinių problemų." },
+  { title: "Parduodate būstą", desc: "Skaidrus skelbimas su nepriklausoma ataskaita kelia pasitikėjimą." },
+  { title: "Nuomojate savo būstą", desc: "Ataskaita rodo, kad nėra ko slėpti. Nuomininkas greičiau apsisprendžia." },
+  { title: "Esate NT agentas", desc: "Profesionalesnė paslauga su nepriklausomais duomenimis prie objektų." },
+  { title: "Esate vystytojas", desc: "Nepriklausomas kokybės patvirtinimas — pirkėjas pasitiki labiau." },
+  { title: "Paveldėjote turtą", desc: "Objekto vertė ir būklė — prieš sprendimą parduoti, nuomoti ar naudoti." },
+  { title: "Refinansuojate paskolą", desc: "Nepriklausomi duomenys apie objektą prieš kreipiantis į banką." },
+];
+// Duplicate for seamless loop
+const allCards = [...scenarios, ...scenarios];
+---
+
+<div class="why-chain hidden md:flex items-center justify-end w-full">
+  <div class="why-viewport">
+    <div class="why-strip">
+      {allCards.map((s) => (
+        <div class="scenario-card">
+          <div class="scenario-title">{s.title}</div>
+          <div class="scenario-desc">{s.desc}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+
+<style is:global>
+  .why-viewport {
+    max-width: 420px;
+    width: 100%;
+    height: 460px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .why-strip {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: scroll-scenarios-up 120s linear infinite;
+  }
+
+  .why-chain:hover .why-strip {
+    animation-play-state: paused;
+  }
+
+  @keyframes scroll-scenarios-up {
+    from { transform: translateY(0); }
+    to { transform: translateY(-50%); }
+  }
+
+  .scenario-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 20px 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    flex-shrink: 0;
+  }
+
+  .scenario-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1E3A5F;
+    margin-bottom: 6px;
+  }
+
+  .scenario-desc {
+    font-size: 14px;
+    color: #64748B;
+    line-height: 1.5;
+  }
+</style>

@@ -1,8 +1,8 @@
 ---
-import ReportCarousel from './ReportCarousel.astro';
+import WhyScenariosCarousel from './WhyScenariosCarousel.astro';
 
 ---
-<section class="flex flex-col px-8 pb-28 max-w-[1400px] mx-auto" style="min-height: calc(100vh - 64px);">
+<section class="flex flex-col px-8 pt-[72px] pb-6 max-w-[1400px] mx-auto relative">
   <div class="flex-1 flex items-center">
   <div class="grid gap-12 items-center w-full" style="grid-template-columns: 3fr minmax(0, 2fr);">
 
@@ -12,7 +12,7 @@ import ReportCarousel from './ReportCarousel.astro';
         Nekilnojamojo turto duomenys<br />iš oficialių Lietuvos registrų
       </h1>
 
-      <p class="text-[21px] text-[#64748B] font-light leading-relaxed mb-20">
+      <p class="text-[21px] text-[#64748B] font-light leading-relaxed mb-10">
         Analitika ir aiškios įžvalgos. Visų tipų nekilnojamas turtas.
       </p>
 
@@ -36,46 +36,14 @@ import ReportCarousel from './ReportCarousel.astro';
       </div>
     </div>
 
-    <!-- Right: Rotating report preview carousel -->
+    <!-- Right: Why scenarios carousel -->
     <div class="flex items-center justify-end">
-      <ReportCarousel />
+      <WhyScenariosCarousel />
     </div>
 
   </div>
   </div>
 
-  <!-- Scroll indicator — stacked cascading chevrons -->
-  <a href="#below-hero" class="scroll-indicator flex flex-col items-center mt-auto pt-4 cursor-pointer group">
-    <svg class="chevron chevron-1 w-10 h-6 text-[#0D7377]" fill="none" viewBox="0 0 40 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M8 8 L20 18 L32 8" />
-    </svg>
-    <svg class="chevron chevron-2 w-10 h-6 text-[#0D7377] -mt-2" fill="none" viewBox="0 0 40 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M8 8 L20 18 L32 8" />
-    </svg>
-    <svg class="chevron chevron-3 w-10 h-6 text-[#0D7377] -mt-2" fill="none" viewBox="0 0 40 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M8 8 L20 18 L32 8" />
-    </svg>
-  </a>
 
 </section>
 
-<style>
-  .chevron {
-    opacity: 0;
-    animation: chevron-cascade 2s ease-in-out infinite;
-  }
-  .chevron-1 { animation-delay: 0s; }
-  .chevron-2 { animation-delay: 0.15s; }
-  .chevron-3 { animation-delay: 0.3s; }
-
-  @keyframes chevron-cascade {
-    0%   { opacity: 0; transform: translateY(-6px); }
-    30%  { opacity: 1; transform: translateY(0); }
-    60%  { opacity: 1; transform: translateY(4px); }
-    100% { opacity: 0; transform: translateY(10px); }
-  }
-
-  .scroll-indicator:hover .chevron {
-    color: #1E3A5F;
-  }
-</style>

@@ -1,50 +1,67 @@
-# Design Fix: Hero Spacing — Fill Empty Areas
+# Design Fix: Hero Bottom Spacing + "Ką gausite" Title Visible on First Screen
 
 **Repo:** ~/dev/ntd
+**Path:** ~/dev/ntd/docs/tasks/design-fix-hero-spacing.md
 **Branch:** block1-e2e
-**Scope:** Fix two spacing issues in the Hero section
+**Scope:** Tighten spacing so "Ką gausite ataskaitoje" heading is visible on the first screen; move scroll indicator to bottom-right
 
 ---
 
-## Problem 1: Empty space above and to the left of hero content
+## Problem
 
-The hero content (headline + value story) starts too far down from the header, and too far from the left edge. There's a large empty region above the headline and to its left that wastes above-the-fold real estate.
+1. There is a **massive empty gap** between the hero section and the next content (the "Ką gausite ataskaitoje" mini-mockup grid or situation cards). The visitor sees nothing but white space after scrolling past the hero.
 
-**Fix:**
-- Reduce the hero section's top padding significantly. The headline should start closer to the header — aim for ~40–60px gap between the bottom of the header bar and the top of the headline (currently appears to be 100px+).
-- Ensure the left column content starts at the left edge of the content grid (max-width 1200px container). There should not be extra indentation beyond the normal grid padding.
-- The hero section does NOT need to be full viewport height. Let the content determine the height naturally. Remove any `min-height: 100vh` or similar if present.
+2. The "Ką gausite ataskaitoje" heading should be **visible at the bottom of the first screen** (above the property types marquee), teasing the visitor that there's more valuable content below — encouraging them to scroll.
 
-## Problem 2: Too much empty space inside the rotating card
+3. The scroll-down chevron indicator (≫) is currently centered below the hero text. It should be in the **bottom-right corner** instead.
 
-The card has a fixed height but the content (title + metric + description + supporting detail) doesn't fill it vertically. There's a large gap between the description text and the bottom footer line.
+---
 
-**Fix — choose ONE of these approaches:**
+## Fix 1: Reduce hero bottom padding / eliminate the gap
 
-**Option A (preferred): Reduce card height to fit content snugly.**
-- Remove the fixed height constraint (or reduce it from ~280px to ~220px). Let the card height be determined by content + consistent padding.
-- Keep vertical padding comfortable (16–20px top/bottom inside the content area) but don't force extra space.
-- If different slides have slightly different content heights, use a `min-height` that fits the tallest slide rather than a large fixed height.
+The hero section likely has excessive bottom padding or margin, or there's an empty container between the hero and the next content block.
 
-**Option B: Add more content to fill the space.**
-- Add a second supporting detail line to each slide, or increase the description to 2 lines.
-- Only use this if Option A makes the card feel too short relative to the left column.
+**Action:**
+- Reduce the hero section's bottom padding to **20–30px** (just enough space before the next section)
+- Remove any empty container/div between the hero and the "Ką gausite ataskaitoje" section
+- The "Ką gausite ataskaitoje" section's top padding should be **40px** (not 80px — we want it close to the hero)
+
+The goal: when the page loads, the visitor sees the hero content (text + scenario cards) filling most of the viewport, and at the very bottom — just above the marquee — the heading "Ką gausite ataskaitoje" is partially or fully visible, inviting them to scroll down.
+
+## Fix 2: Move scroll-down indicator to bottom-right
+
+The scroll-down chevron (the ≫ animated arrows currently centered at ~y=660) should move to:
+
+- **Position:** bottom-right corner of the hero section
+- **Right offset:** 40px from the right edge
+- **Bottom offset:** 20px above the marquee
+- **Size:** keep current size, or slightly smaller (the indicator is secondary, not primary UI)
+- **Keep the animation** (pulsing/bouncing chevrons)
+
+## Fix 3: Eliminate massive gap between sections
+
+If there are empty sections or excessive padding between the hero and the pricing section, collapse them. The page should flow tightly:
+
+hero → "Ką gausite ataskaitoje" → situation cards → comparison cards → pricing → footer
+
+No full-viewport empty gaps between any sections.
 
 ---
 
 ## What NOT to change
 
-- Hero text content (the copy itself) — untouched
-- Rotating card content (slide text, metrics) — untouched
-- Card horizontal sizing, colors, borders, animation — untouched
-- Header, footer, other sections — untouched
+- Hero left column text — untouched
+- Scenario cards chain — untouched
+- Property types marquee — untouched (stays at bottom of page)
+- "Ką gausite ataskaitoje" content — untouched (just its position/spacing changes)
+- Pricing section — untouched
+- Footer — untouched
 
 ---
 
 ## Verification
 
-1. `npm run dev` — hero headline should be noticeably closer to the header
-2. No large empty region above or to the left of the headline
-3. The rotating card should have no large internal whitespace gap
-4. The overall hero should feel tighter and more content-dense
-5. Left column and right column should feel vertically balanced
+1. On page load: hero text + scenario cards visible, AND the heading "Ką gausite ataskaitoje" is visible at the bottom of the viewport (just above the marquee)
+2. Scroll-down indicator is in the bottom-right corner, not centered
+3. No massive empty gap when scrolling — sections flow tightly one after another
+4. The page feels dense and informative, not sparse

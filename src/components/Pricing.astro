@@ -1,4 +1,5 @@
 ---
+import ReportCarousel from './ReportCarousel.astro';
 ---
 <section id="pricing-section" class="py-16 border-t border-[#E2E8F0]">
   <div class="max-w-[1200px] mx-auto px-16">
@@ -50,19 +51,9 @@
         </button>
       </div>
 
-      <!-- Right: Context -->
-      <div>
-        <h2 class="text-[32px] font-semibold text-[#1E3A5F] leading-[1.2] mb-6">
-          Mažiau nei 0,1 %<br />pirkinio vertės.
-        </h2>
-        <p class="text-[15px] text-[#64748B] leading-[1.7] mb-6">
-          Objekto ekspertizė pas specialistą kainuoja šimtus eurų ir trunka dienas.
-          NTD pateikia duomenis ir įžvalgas per 24 val. — kad žinotumėte,
-          ar šis objektas vertas tolesnio jūsų laiko ir investicijos.
-        </p>
-        <p class="text-[15px] text-[#64748B] leading-[1.7]">
-          Mokate tik tada, kai sistema tiksliai identifikuoja jūsų norimą objektą. Ne anksčiau.
-        </p>
+      <!-- Right: Report blocks carousel (what you get for 79€) -->
+      <div class="flex items-center justify-end">
+        <ReportCarousel />
       </div>
 
     </div>
