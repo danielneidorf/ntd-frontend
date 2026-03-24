@@ -1,0 +1,80 @@
+<section class="py-20 bg-[#FAFBFC]">
+  <div class="max-w-[900px] mx-auto px-8">
+    <h2 class="text-[32px] font-semibold text-[#1A1A2E] text-center mb-12">Kaip tai palyginti</h2>
+
+    <div class="comparison-table bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="bg-[#F0F4F8]">
+              <th class="px-5 py-4 text-[14px] font-medium text-[#1A1A2E]">Kriterijus</th>
+              <th class="px-5 py-4 text-[14px] font-semibold text-[#0D7377] bg-[#E8F4F8]">NTD ataskaita</th>
+              <th class="px-5 py-4 text-[14px] font-medium text-[#1A1A2E]">NT ekspertas / patikra</th>
+              <th class="px-5 py-4 text-[14px] font-medium text-[#1A1A2E]">Tikrinti pačiam</th>
+            </tr>
+          </thead>
+          <tbody class="text-[15px] text-[#1A1A2E]">
+            <tr class="border-t border-[#E2E8F0]">
+              <td class="px-5 py-4 font-medium">Kaina</td>
+              <td class="px-5 py-4 bg-[#E8F4F8] font-medium">79 €</td>
+              <td class="px-5 py-4">250–700 €</td>
+              <td class="px-5 py-4">Nemokama</td>
+            </tr>
+            <tr class="border-t border-[#E2E8F0]">
+              <td class="px-5 py-4 font-medium">Trukmė</td>
+              <td class="px-5 py-4 bg-[#E8F4F8] font-medium">&lt;24 val.</td>
+              <td class="px-5 py-4">3–5 d.d.</td>
+              <td class="px-5 py-4">Valandos–dienos</td>
+            </tr>
+            <tr class="border-t border-[#E2E8F0]">
+              <td class="px-5 py-4 font-medium">Vizitas vietoje</td>
+              <td class="px-5 py-4 bg-[#E8F4F8] font-medium">Nereikalingas</td>
+              <td class="px-5 py-4">Būtinas</td>
+              <td class="px-5 py-4">—</td>
+            </tr>
+            <tr class="border-t border-[#E2E8F0]">
+              <td class="px-5 py-4 font-medium">Duomenų šaltiniai</td>
+              <td class="px-5 py-4 bg-[#E8F4F8] font-medium">6 oficialūs registrai</td>
+              <td class="px-5 py-4">Ekspertinis vertinimas</td>
+              <td class="px-5 py-4">Portalai, EPC PDF</td>
+            </tr>
+            <tr class="border-t border-[#E2E8F0]">
+              <td class="px-5 py-4 font-medium">Rezultatas</td>
+              <td class="px-5 py-4 bg-[#E8F4F8] font-medium">PDF su 8 blokais</td>
+              <td class="px-5 py-4">Rašytinė išvada</td>
+              <td class="px-5 py-4">Fragmentiški duomenys</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .comparison-table {
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+  }
+  .comparison-table.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
+
+<script>
+  const table = document.querySelector('.comparison-table');
+  if (table) {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          table.classList.add('visible');
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.2 }
+    );
+    observer.observe(table);
+  }
+</script>

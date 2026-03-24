@@ -1,0 +1,109 @@
+<section class="py-20 bg-[#FAFBFC]">
+  <div class="max-w-[900px] mx-auto px-8">
+    <h2 class="text-[32px] font-semibold text-[#1A1A2E] text-center mb-12">Tai jums, jei...</h2>
+
+    <div class="target-checklist grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+
+      <div class="checklist-item flex items-start gap-3">
+        <span class="flex-shrink-0 w-5 h-5 rounded-full bg-[#0D7377] flex items-center justify-center mt-0.5">
+          <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        </span>
+        <span class="text-[16px] text-[#1A1A2E]">Ketinate pirkti butą ar namą ir norite žinoti tikrąsias energijos sąnaudas</span>
+      </div>
+
+      <div class="checklist-item flex items-start gap-3">
+        <span class="flex-shrink-0 w-5 h-5 rounded-full bg-[#0D7377] flex items-center justify-center mt-0.5">
+          <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        </span>
+        <span class="text-[16px] text-[#1A1A2E]">Žiūrite skelbimus ir norite greitai palyginti objektus</span>
+      </div>
+
+      <div class="checklist-item flex items-start gap-3">
+        <span class="flex-shrink-0 w-5 h-5 rounded-full bg-[#0D7377] flex items-center justify-center mt-0.5">
+          <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        </span>
+        <span class="text-[16px] text-[#1A1A2E]">Norite patikrinti, ar kaina atitinka rinką — prieš derybas</span>
+      </div>
+
+      <div class="checklist-item flex items-start gap-3">
+        <span class="flex-shrink-0 w-5 h-5 rounded-full bg-[#0D7377] flex items-center justify-center mt-0.5">
+          <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        </span>
+        <span class="text-[16px] text-[#1A1A2E]">Reikia nepriklausomų duomenų — ne iš brokerio ar pardavėjo</span>
+      </div>
+
+      <div class="checklist-item flex items-start gap-3">
+        <span class="flex-shrink-0 w-5 h-5 rounded-full bg-[#0D7377] flex items-center justify-center mt-0.5">
+          <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        </span>
+        <span class="text-[16px] text-[#1A1A2E]">Svarstote naują projektą ir norite įvertinti būsimą komfortą</span>
+      </div>
+
+      <div class="checklist-item flex items-start gap-3">
+        <span class="flex-shrink-0 w-5 h-5 rounded-full bg-[#0D7377] flex items-center justify-center mt-0.5">
+          <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        </span>
+        <span class="text-[16px] text-[#1A1A2E]">Nuomojate ir norite suprasti, ar nuomos kaina pagrįsta</span>
+      </div>
+
+      <div class="checklist-item flex items-start gap-3">
+        <span class="flex-shrink-0 w-5 h-5 rounded-full bg-[#0D7377] flex items-center justify-center mt-0.5">
+          <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        </span>
+        <span class="text-[16px] text-[#1A1A2E]">Norite patikrinti teisines rizikas — areštus, servitutus, paveldą</span>
+      </div>
+
+      <div class="checklist-item flex items-start gap-3">
+        <span class="flex-shrink-0 w-5 h-5 rounded-full bg-[#0D7377] flex items-center justify-center mt-0.5">
+          <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        </span>
+        <span class="text-[16px] text-[#1A1A2E]">Neturite laiko ar biudžeto pilnai ekspertizei, bet norite faktų</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<style>
+  .target-checklist {
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+  }
+  .target-checklist.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .target-checklist.visible .checklist-item {
+    animation: fadeSlideIn 0.4s ease-out both;
+  }
+  .target-checklist.visible .checklist-item:nth-child(1) { animation-delay: 0s; }
+  .target-checklist.visible .checklist-item:nth-child(2) { animation-delay: 0.06s; }
+  .target-checklist.visible .checklist-item:nth-child(3) { animation-delay: 0.12s; }
+  .target-checklist.visible .checklist-item:nth-child(4) { animation-delay: 0.18s; }
+  .target-checklist.visible .checklist-item:nth-child(5) { animation-delay: 0.24s; }
+  .target-checklist.visible .checklist-item:nth-child(6) { animation-delay: 0.30s; }
+  .target-checklist.visible .checklist-item:nth-child(7) { animation-delay: 0.36s; }
+  .target-checklist.visible .checklist-item:nth-child(8) { animation-delay: 0.42s; }
+
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<script>
+  const checklist = document.querySelector('.target-checklist');
+  if (checklist) {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          checklist.classList.add('visible');
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.2 }
+    );
+    observer.observe(checklist);
+  }
+</script>
