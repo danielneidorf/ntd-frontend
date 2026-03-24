@@ -1,8 +1,9 @@
-# Design: Four New Landing Page Sections
+# Design: Three New Landing Page Sections
 
 **Repo:** ~/dev/ntd
+**Path:** ~/dev/ntd/docs/tasks/design-new-sections.md
 **Branch:** block1-e2e
-**Scope:** Add four new sections and reorder one existing section on the landing page
+**Scope:** Add three new sections and reorder one existing section on the landing page
 
 ---
 
@@ -12,11 +13,10 @@
 2. Property types marquee at bottom (existing — untouched)
 3. **NEW — Section A: Mini-mockup grid** ("Ką gausite ataskaitoje")
 4. Situation cards (existing — MOVES DOWN, after mini-mockups)
-5. **NEW — Section B: Stats strip**
-6. **NEW — Section C: "Tai jums, jei..."**
-7. **NEW — Section D: Comparison cards**
-8. Pricing section (existing — untouched)
-9. Footer (existing — untouched)
+5. **NEW — Section B: "Tai jums, jei..."**
+6. **NEW — Section C: Comparison cards**
+7. Pricing section (existing — untouched)
+8. Footer (existing — untouched)
 
 **Key change:** The existing situation cards section moves below the new mini-mockup grid.
 
@@ -89,29 +89,7 @@
 
 ---
 
-## Section B: Stats Strip
-
-### Layout
-- Full-width band, background: #F0F4F8
-- Content centered in 1200px container
-- 4 stats horizontal, evenly spaced
-- Padding: 48px top/bottom
-- Mobile: 2×2 grid
-
-### Stats
-
-| Number (28px semibold, #1E3A5F) | Label (14px regular, #64748B) |
-|---|---|
-| **6** | oficialių registrų šaltinių |
-| **8** | duomenų blokai ataskaitoje |
-| **<24 val.** | pristatymas el. paštu |
-| **0,1 %** | pirkinio vertės |
-
-Optional thin vertical hairlines (#E2E8F0) between stats.
-
----
-
-## Section C: "Tai jums, jei..."
+## Section B: "Tai jums, jei..."
 
 ### Layout
 - Heading: **"Tai jums, jei..."** — 32px semibold, #1A1A2E, centered
@@ -130,14 +108,11 @@ Optional thin vertical hairlines (#E2E8F0) between stats.
 7. ✓ Norite patikrinti teisines rizikas — areštus, servitutus, paveldą
 8. ✓ Neturite laiko ar biudžeto pilnai ekspertizei, bet norite faktų
 
-Row gap: 16px. Checkmark-to-text gap: 12px. Background: page default.
+Row gap: 16px. Checkmark-to-text gap: 12px. Background: page default (#FAFBFC).
 
 ---
 
-## Section D: Comparison Cards ("Kaip tai palyginti")
-
-### Purpose
-Three floating cards side by side, each representing one way to get property data. Easy to compare at a glance. NTD card is visually highlighted.
+## Section C: Comparison Cards ("Kaip tai palyginti")
 
 ### Layout
 - Heading: **"Kaip tai palyginti"** — 32px semibold, #1A1A2E, centered
@@ -149,80 +124,66 @@ Three floating cards side by side, each representing one way to get property dat
 
 ### Card 1 — NTD ataskaita (HIGHLIGHTED)
 
-**Visual treatment — this card stands out:**
+**Visual treatment — stands out:**
 - Background: #FFFFFF
-- Border: **2px solid #0D7377** (teal border, thicker than others)
+- Border: **2px solid #0D7377** (teal, thicker)
 - Top accent: **4px solid #0D7377** teal bar at top edge
-- Shadow: **0 8px 32px rgba(13, 115, 119, 0.12)** (teal-tinted shadow, more prominent)
-- A small badge/label at top: **"Rekomenduojama"** — 11px uppercase, white text on #0D7377 teal background, pill-shaped, positioned at the top-right corner or centered above the card title
+- Shadow: **0 8px 32px rgba(13, 115, 119, 0.12)** (teal-tinted, prominent)
+- Badge at top: **"Rekomenduojama"** — 11px uppercase, white on #0D7377 teal, pill-shaped
 
-**Content (top to bottom, each on its own line with comfortable spacing):**
-
-- Card title: **"NTD ataskaita"** — 20px semibold, #0D7377 teal
-- Divider: 1px line #E2E8F0
+**Content:**
+- Title: **"NTD ataskaita"** — 20px semibold, #0D7377
+- Divider: 1px #E2E8F0
 - **Kaina:** "79 €" — 28px semibold, #1E3A5F
 - **Trukmė:** "<24 val." — 16px regular, #1A1A2E
 - **Vizitas:** "Nereikalingas" — 16px regular, #1A1A2E
 - **Šaltiniai:** "6 oficialūs registrai" — 16px regular, #1A1A2E
 - **Rezultatas:** "PDF su 8 duomenų blokais" — 16px regular, #1A1A2E
-- Divider: 1px line #E2E8F0
-- CTA button: **"Užsakyti ataskaitą"** — navy button (#1E3A5F), white text, full card width, 14px medium, padding 12px, border-radius 8px
+- Divider: 1px #E2E8F0
+- CTA: **"Užsakyti ataskaitą"** — navy button, full width, 14px medium, padding 12px, border-radius 8px
 
-### Card 2 — Ekspertinis patikrinimas
+### Card 2 — Ekspertinis patikrinimas (neutral)
 
-**Visual treatment — neutral:**
-- Background: #FFFFFF
-- Border: 1px solid #E2E8F0 (standard)
-- Shadow: 0 2px 12px rgba(0,0,0,0.04) (subtle)
+- Border: 1px solid #E2E8F0
+- Shadow: 0 2px 12px rgba(0,0,0,0.04)
 - No badge, no accent
+- Title: **"Ekspertinis patikrinimas"** — 20px semibold, #1A1A2E
+- **Kaina:** "250–700 €"
+- **Trukmė:** "3–5 darbo dienos"
+- **Vizitas:** "Būtinas"
+- **Šaltiniai:** "Ekspertinis vertinimas"
+- **Rezultatas:** "Rašytinė išvada"
+- No CTA button
 
-**Content (same structure/labels as Card 1):**
+### Card 3 — Tikrinti pačiam (neutral)
 
-- Card title: **"Ekspertinis patikrinimas"** — 20px semibold, #1A1A2E
-- Divider
-- **Kaina:** "250–700 €" — 28px semibold, #1E3A5F
-- **Trukmė:** "3–5 darbo dienos" — 16px regular, #1A1A2E
-- **Vizitas:** "Būtinas" — 16px regular, #1A1A2E
-- **Šaltiniai:** "Ekspertinis vertinimas" — 16px regular, #1A1A2E
-- **Rezultatas:** "Rašytinė išvada" — 16px regular, #1A1A2E
-- No CTA button at bottom
-
-### Card 3 — Tikrinti pačiam
-
-**Visual treatment — neutral (same as Card 2):**
-- Same border, shadow, no badge
-
-**Content:**
-
-- Card title: **"Tikrinti pačiam"** — 20px semibold, #1A1A2E
-- Divider
-- **Kaina:** "Nemokama" — 28px semibold, #1E3A5F
-- **Trukmė:** "Valandos–dienos" — 16px regular, #1A1A2E
-- **Vizitas:** "—" — 16px regular, #64748B
-- **Šaltiniai:** "Portalai, EPC PDF" — 16px regular, #1A1A2E
-- **Rezultatas:** "Fragmentiški duomenys" — 16px regular, #1A1A2E
-- No CTA button at bottom
+- Same styling as Card 2
+- Title: **"Tikrinti pačiam"** — 20px semibold, #1A1A2E
+- **Kaina:** "Nemokama"
+- **Trukmė:** "Valandos–dienos"
+- **Vizitas:** "—" (#64748B)
+- **Šaltiniai:** "Portalai, EPC PDF"
+- **Rezultatas:** "Fragmentiški duomenys"
+- No CTA button
 
 ### Card shared styling
 
-- Border-radius: 16px (all three)
+- Border-radius: 16px
 - Padding: 32px
-- Each data row has a small label above the value:
-  - Label: 12px uppercase, #64748B, letter-spacing 0.05em (e.g., "KAINA", "TRUKMĖ", "VIZITAS", "ŠALTINIAI", "REZULTATAS")
-  - Value: as specified above
-  - Row spacing: 20px between each label+value pair
+- Each data row: small label (12px uppercase, #64748B, tracking 0.05em: "KAINA", "TRUKMĖ", "VIZITAS", "ŠALTINIAI", "REZULTATAS") + value below
+- Row spacing: 20px between label+value pairs
 - Cards equal height (flex/grid stretch)
-- Hover on Card 1: translateY(-3px), shadow grows. Cards 2 and 3: no hover effect (they're not clickable)
+- Hover on Card 1 only: translateY(-3px), shadow grows
 
 ---
 
-## Animation (all four sections)
+## Animation (all sections)
 
 Each section fades in on scroll (Intersection Observer):
 - fade-in + translateY(12px → 0), 0.5s ease-out
 - Mini-mockup grid: cards stagger 50ms each
 - Checklist: items stagger 60ms each
-- Stats and comparison cards: single fade-in per section
+- Comparison cards: single fade-in
 
 ---
 
@@ -239,12 +200,11 @@ Each section fades in on scroll (Intersection Observer):
 
 ## Verification
 
-1. Page flow: hero → marquee → mini-mockups → situation cards → stats → checklist → **comparison cards** → pricing
-2. Mini-mockup cards have data-like visualizations
-3. Stats strip shows 4 numbers on grey band
-4. Checklist has 8 items with teal checkmarks
-5. **Three comparison cards float side by side** — NTD card has teal border, "Rekomenduojama" badge, and CTA button; other two are neutral
-6. NTD card is visually dominant without being aggressive
-7. Comparison criteria (Kaina, Trukmė, Vizitas, Šaltiniai, Rezultatas) align across all three cards at the same vertical position
-8. All sections animate on scroll
-9. Responsive on mobile (grids collapse, cards stack)
+1. Page flow: hero → marquee → mini-mockups → situation cards → checklist → comparison cards → pricing
+2. **No stats strip anywhere** — it does not exist
+3. Situation cards appear AFTER the mini-mockup grid
+4. Mini-mockup cards have data-like visualizations
+5. Checklist has 8 items with teal checkmarks
+6. Three comparison cards float side by side — NTD highlighted with teal border, badge, and CTA
+7. All sections animate on scroll
+8. Responsive on mobile
