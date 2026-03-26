@@ -65,9 +65,17 @@ export interface QuickScanState {
   discount_token: string | null;
 }
 
-const initialState = (): QuickScanState => ({
+const initialState = (): QuickScanState => {
+  let case_type: CaseType | null = null;
+  if (typeof window !== 'undefined') {
+    const param = new URLSearchParams(window.location.search).get('case');
+    if (param === 'existing_object' || param === 'new_build_project' || param === 'land_only') {
+      case_type = param;
+    }
+  }
+  return {
   step: 1,
-  case_type: null,
+  case_type,
   ntr_unique_number: null,
   address_text: null,
   geo: null,
@@ -89,7 +97,8 @@ const initialState = (): QuickScanState => ({
   discount_token: typeof window !== 'undefined'
     ? new URLSearchParams(window.location.search).get('token')
     : null,
-});
+};
+};
 
 const BREADCRUMB_STEPS = [
   { step: 1, label: '1 Vieta' },
@@ -103,6 +112,17 @@ export default function QuickScanFlow() {
     { place_id: string; description: string; main_text: string; secondary_text: string }[]
   >([]);
   const [sessionToken] = useState(() => crypto.randomUUID());
+
+  // Redirect to landing page if no ?case= param
+  useEffect(() => {
+    if (!state.case_type) {
+      window.location.href = '/#pasirinkite';
+    }
+  }, []);
+
+  if (!state.case_type) {
+    return <p className="text-sm text-[#64748B]">Nukreipiame...</p>;
+  }
 
   return (
     <div>
@@ -360,45 +380,8 @@ function Screen1({
           animation: fadeSlideIn 0.35s ease forwards;
         }
       `}</style>
-      {/* Case selection */}
-      {!state.case_type && (
-        <>
-          <h1 className="text-2xl font-bold text-[#1E3A5F] mb-1">Ką tiksliai norite įvertinti?</h1>
-          <p className="text-sm text-[#64748B] mb-6">Tai padeda parinkti tinkamiausią logiką jūsų situacijai.</p>
-        </>
-      )}
-
-      {!state.case_type ? (
-        <div className="flex flex-col gap-3 mb-6">
-          {CASE_OPTIONS.map((opt) => (
-            <div
-              key={opt.value}
-              onClick={() => setState((s) => ({ ...s, case_type: opt.value }))}
-              className={`cursor-pointer rounded-xl border-2 px-5 py-4 transition-all
-                ${state.case_type === opt.value
-                  ? 'border-[#0D7377] bg-[#EEF9F9]'
-                  : 'border-[#E2E8F0] bg-white hover:border-[#0D7377]/40'}`}
-            >
-              <p className="text-sm font-semibold text-[#1E3A5F]">{opt.label}</p>
-              <p className="text-xs text-[#64748B] mt-1">{opt.hint}</p>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="flex items-center gap-3 mb-6 ml-auto w-fit px-4 py-2 rounded-lg border border-[#E2E8F0] bg-[#F1F5F9]">
-          <span className="text-sm text-[#64748B]">✓ {CASE_LABELS[state.case_type]}</span>
-          <button
-            onClick={() => setState(s => ({ ...s, case_type: null }))}
-            className="text-xs text-[#94A3B8] hover:text-[#1E3A5F] underline transition-colors whitespace-nowrap"
-          >
-            Keisti
-          </button>
-        </div>
-      )}
-
-      {/* Location block — visible only after case is selected */}
-      {state.case_type && (
-        <div key={state.case_type} className="fade-slide-in mb-8">
+      {/* Location block */}
+      <div className="mb-8">
           <h2 className="text-base font-semibold text-[#1E3A5F] mb-1">
             {LOCATION_TITLES[state.case_type]}
           </h2>
@@ -542,8 +525,7 @@ function Screen1({
             )}
 
           </div>
-        </div>
-      )}
+      </div>
 
       {/* New-build project inputs — card 2 only */}
       {selected === 'new_build_project' && (
@@ -614,26 +596,24 @@ function Screen1({
       {resolveError && (
         <p className="text-sm text-[#DC3545] mb-3">{resolveError}</p>
       )}
-      {state.case_type && (
-        <button
-          onClick={handleTesti}
-          disabled={!canProceed || resolving}
-          className={`px-8 py-3 rounded-lg text-sm font-semibold transition-all flex items-center gap-2
-            ${canProceed && !resolving
-              ? 'bg-[#0D7377] text-white hover:bg-[#0B6268] cursor-pointer'
-              : 'bg-[#CBD5E1] text-white cursor-not-allowed'}`}
-        >
-          {resolving ? (
-            <>
-              <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-              </svg>
-              Ieškoma...
-            </>
-          ) : 'Tęsti'}
-        </button>
-      )}
+      <button
+        onClick={handleTesti}
+        disabled={!canProceed || resolving}
+        className={`px-8 py-3 rounded-lg text-sm font-semibold transition-all flex items-center gap-2
+          ${canProceed && !resolving
+            ? 'bg-[#0D7377] text-white hover:bg-[#0B6268] cursor-pointer'
+            : 'bg-[#CBD5E1] text-white cursor-not-allowed'}`}
+      >
+        {resolving ? (
+          <>
+            <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+            </svg>
+            Ieškoma...
+          </>
+        ) : 'Tęsti'}
+      </button>
 
       {/* Fullscreen map overlay — rendered outside fade-slide-in to avoid transform containing block */}
       {mapExpanded && (
