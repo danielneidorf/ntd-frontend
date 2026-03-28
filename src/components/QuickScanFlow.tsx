@@ -907,6 +907,24 @@ function Screen2({
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const stripeRef = useRef<any>(null);
   const cardElementRef = useRef<any>(null);
+  const invoiceSectionRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll when invoice fields expand — ensure all fields visible above marquee
+  useEffect(() => {
+    if ((state.invoice_requested || state.invoice_is_company) && invoiceSectionRef.current) {
+      setTimeout(() => {
+        const el = invoiceSectionRef.current;
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        const marqueeHeight = 60;
+        const desiredGap = 100;
+        const viewportBottom = window.innerHeight - marqueeHeight - desiredGap;
+        if (rect.bottom > viewportBottom) {
+          window.scrollBy({ top: rect.bottom - viewportBottom + 40, behavior: 'smooth' });
+        }
+      }, 350);
+    }
+  }, [state.invoice_requested, state.invoice_is_company]);
 
   const resolver = state.resolver_result;
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email);
@@ -1124,144 +1142,195 @@ function Screen2({
 
   const quote = state.quote;
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      {/* LEFT COLUMN — Object confirmation */}
-      <div>
-        <h1 className="text-xl font-bold text-[#1E3A5F] mb-1">Patvirtinkite objektą</h1>
-        <p className="text-sm text-[#64748B] mb-4">Radome atitinkantį įrašą. Patikrinkite, ar tai tas pats objektas.</p>
+  const REPORT_BLOCKS = [
+    { emoji: '🌡️', name: 'Šiluminis komfortas', heatedOnly: true },
+    { emoji: '⚡', name: 'Energijos sąnaudos', heatedOnly: true },
+    { emoji: '📊', name: '10 metų išlaidos', heatedOnly: true },
+    { emoji: '🌿', name: 'Oro ir vandens tarša', heatedOnly: false },
+    { emoji: '🔇', name: 'Triukšmo tarša', heatedOnly: false },
+    { emoji: '💰', name: 'Kainos pagrįstumas', heatedOnly: false },
+    { emoji: '⚖️', name: 'Teisinės rizikos', heatedOnly: false },
+    { emoji: '🎯', name: 'Derybų strategija', heatedOnly: false },
+  ];
 
-        {/* Proof card */}
-        <div className={`rounded-xl border px-6 py-5 mb-4 transition-all ${objectConfirmed ? 'border-[#059669] bg-[#F0FDF4]' : 'border-[#E2E8F0] bg-white'}`}>
+  const caseType = state.case_type;
+
+  return (
+    <div className="max-w-[1100px] mx-auto px-8 pb-[120px]" style={{ minHeight: 'calc(100vh - 160px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'auto auto', gap: '24px', width: '100%' }}>
+
+      {/* TOP-LEFT — Proof card */}
+      <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" style={{ gridColumn: 1, gridRow: 1 }}>
+        <h2 className="text-[18px] font-semibold text-[#1A1A2E] mb-1">Patvirtinkite objektą</h2>
+        <p className="text-[14px] text-[#64748B] mb-4">Radome atitinkantį įrašą. Patikrinkite, ar tai tas pats objektas.</p>
+
+        <div className={`rounded-lg border px-5 py-4 mb-4 transition-all ${objectConfirmed ? 'border-[#059669] bg-[#F0FDF4]' : 'border-[#E2E8F0] bg-[#FAFBFC]'}`}
+          style={objectConfirmed ? { position: 'sticky', top: 80, zIndex: 5 } : undefined}>
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-lg font-bold text-[#1E3A5F] mb-2">{candidate.address}</p>
-              {candidate.ntr_unique_number && <p className="text-sm text-[#64748B] mb-1">Unikalus Nr.: {candidate.ntr_unique_number}</p>}
-              {candidate.municipality && <p className="text-sm text-[#64748B] mb-1">Savivaldybė: {candidate.municipality}</p>}
-              {candidate.bundle_items.length > 0 && <p className="text-sm text-[#94A3B8] mt-2">Komplekte yra papildomų objektų.</p>}
+              <p className="text-[16px] font-bold text-[#1E3A5F] mb-2">{candidate.address}</p>
+              {candidate.ntr_unique_number && <p className="text-[14px] text-[#64748B] mb-1">Unikalus Nr.: {candidate.ntr_unique_number}</p>}
+              {candidate.municipality && <p className="text-[14px] text-[#64748B] mb-1">Savivaldybė: {candidate.municipality}</p>}
+              {candidate.bundle_items.length > 0 && <p className="text-[14px] text-[#94A3B8] mt-2">Komplekte taip pat yra: {candidate.bundle_items.map((b: any) => b.kind || b.address).join(', ')}.</p>}
             </div>
             {objectConfirmed && (
               <div className="w-8 h-8 rounded-full bg-[#059669] flex items-center justify-center flex-shrink-0">
-                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
+                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
               </div>
             )}
           </div>
-          <p className="text-xs text-[#94A3B8] mt-3 pt-3 border-t border-[#F1F5F9]">
-            Vertinimas taikomas pagrindiniam šildomam objektui.
-          </p>
+          <p className="text-[13px] text-[#94A3B8] mt-3 pt-3 border-t border-[#F1F5F9]">Vertinimas taikomas pagrindiniam šildomam objektui.</p>
         </div>
 
-        {/* Confirm / reject buttons */}
         {!objectConfirmed && (
-          <div className="flex gap-3 mb-4">
+          <div className="flex gap-3">
             <button onClick={handleConfirmObject} disabled={quoting}
-              className={`px-6 py-3 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${quoting ? 'bg-[#CBD5E1] text-white cursor-not-allowed' : 'bg-[#0D7377] text-white hover:bg-[#0B6268] cursor-pointer'}`}>
-              {quoting ? (
-                <><svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Tikrinama…</>
-              ) : 'Taip, teisingas'}
+              className={`px-6 py-3 rounded-lg text-[14px] font-semibold transition-all flex items-center gap-2 ${quoting ? 'bg-[#CBD5E1] text-white cursor-not-allowed' : 'bg-[#0D7377] text-white hover:bg-[#0B6268] cursor-pointer'}`}>
+              {quoting ? (<><svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Tikrinama…</>) : 'Taip, teisingas'}
             </button>
             <button onClick={() => setState(s => ({ ...s, step: 1 }))}
-              className="px-6 py-3 rounded-lg border border-[#E2E8F0] text-sm text-[#64748B] hover:border-[#1E3A5F] transition-all">
+              className="px-6 py-3 rounded-lg border border-[#E2E8F0] text-[14px] text-[#64748B] hover:border-[#1E3A5F] transition-all">
               Ne, ieškoti kito
             </button>
           </div>
         )}
-
         {quoteError && (
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex items-center gap-3 mt-3">
             <p className="text-sm text-[#DC3545]">{quoteError}</p>
             <button onClick={handleConfirmObject} className="text-sm text-[#0D7377] underline">Bandyti dar kartą</button>
           </div>
         )}
-
-        {/* EPC moved to Screen 1 — no longer shown here */}
       </div>
 
-      {/* RIGHT COLUMN — Payment */}
-      <div>
-        {/* Quote card — shows after confirmation */}
+      {/* TOP-RIGHT — Report blocks card */}
+      <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" style={{ gridColumn: 2, gridRow: 1 }}>
+        <h2 className="text-[18px] font-semibold text-[#1A1A2E] mb-4">
+          {caseType === 'new_build_project'
+            ? 'Šie duomenų blokai bus įtraukti į ataskaitą. Kadangi projektas gali būti dar neregistruotas, dalis vertinimų remiasi projekto duomenimis:'
+            : caseType === 'land_only'
+            ? 'Šie duomenų blokai bus įtraukti į ataskaitą. Šiluminio komforto blokai taikomi tik šildomiems pastatams:'
+            : 'Šie duomenų blokai bus įtraukti į ataskaitą:'}
+        </h2>
+
+        <div className="flex flex-col gap-1">
+          {REPORT_BLOCKS.map((block, i) => {
+            const isDisabled = caseType === 'land_only' && block.heatedOnly;
+            const isProjectData = caseType === 'new_build_project' && block.heatedOnly;
+            return (
+              <div key={i} className={`flex items-center gap-2 py-1.5 ${isDisabled ? 'opacity-40' : ''}`}>
+                <span className="text-[14px]">{isDisabled ? '—' : '✅'}</span>
+                <span className="text-[18px]">{block.emoji}</span>
+                <span className={`text-[14px] font-medium ${isDisabled ? 'text-[#C4C4C4]' : 'text-[#1A1A2E]'}`}>{block.name}</span>
+                {isDisabled && <span className="text-[12px] text-[#C4C4C4] ml-1">(netaikoma)</span>}
+                {isProjectData && <span className="text-[12px] text-[#94A3B8] ml-1">(pagal projekto duomenis)</span>}
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="text-[13px] text-[#64748B] mt-4 pt-3 border-t border-[#F1F5F9]">
+          PDF ataskaita bus išsiųsta el. paštu per 1 val.
+        </p>
+      </div>
+
+      {/* BOTTOM — Payment card (full width) */}
+      <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" style={{ gridColumn: '1 / -1', gridRow: 2 }}>
         {quote ? (
           <>
-            <div className="rounded-xl border border-[#E2E8F0] bg-white px-6 py-5 mb-4">
-              <div className="flex items-baseline gap-3 mb-3">
-                {quote.special_discount_applied && <span className="text-lg text-[#94A3B8] line-through">{quote.base_price_eur} €</span>}
-                <span className="text-3xl font-bold text-[#1E3A5F]">{quote.final_price_eur} €</span>
-                <span className="flex items-center gap-1 text-xs font-medium text-[#0D7377] bg-[#EEF9F9] px-2 py-0.5 rounded-full">
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                  {quote.pricing_label}
-                </span>
+            <div className="grid grid-cols-[auto_1fr_auto] gap-8 items-start">
+              {/* Left — Price */}
+              <div className="flex flex-col items-start">
+                <span className="text-[32px] font-semibold text-[#1E3A5F]">{quote.final_price_eur} €</span>
+                <span className="text-[14px] text-[#64748B]">/ objektas</span>
               </div>
-              <p className="text-xs text-[#64748B]">{candidate.address}</p>
-            </div>
 
-            {/* Email + consent + invoice */}
-            <div className="rounded-xl border border-[#E2E8F0] bg-white px-6 py-5 mb-4 flex flex-col gap-4">
+              {/* Center — Email */}
               <div>
-                <label className="block text-xs font-medium text-[#1E3A5F] mb-1">El. pašto adresas</label>
+                <label className="block text-[14px] font-medium text-[#1A1A2E] mb-1">El. pašto adresas</label>
                 <input type="email" value={state.email}
                   onChange={e => setState(s => ({ ...s, email: e.target.value }))}
                   onBlur={() => setEmailTouched(true)}
                   placeholder="vardas@pastas.lt"
-                  className={['w-full px-3 py-2 rounded-md border text-sm outline-none focus:border-[#0D7377] transition-all', emailTouched && !emailValid ? 'border-[#DC3545]' : 'border-[#E2E8F0]'].join(' ')} />
+                  className={`w-full px-4 py-3 rounded-lg border text-[16px] outline-none focus:border-[#0D7377] transition-all ${emailTouched && !emailValid ? 'border-[#DC3545]' : 'border-[#E2E8F0]'}`} />
                 {emailTouched && !emailValid && <p className="text-xs text-[#DC3545] mt-1">Įveskite teisingą el. pašto adresą.</p>}
-                <p className="text-xs text-[#94A3B8] mt-1">Ataskaitą išsiųsime šiuo adresu.</p>
+                <p className="text-[13px] text-[#64748B] mt-1">Ataskaitą išsiųsime šiuo adresu.</p>
               </div>
 
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={state.consent_accepted}
-                  onChange={e => setState(s => ({ ...s, consent_accepted: e.target.checked }))}
-                  className="w-4 h-4 accent-[#0D7377]" />
-                <span className="text-sm text-[#64748B]">
-                  Sutinku su <a href="/salygos" className="text-[#0D7377] underline">paslaugos teikimo sąlygomis</a> ir <a href="/privatumas" className="text-[#0D7377] underline">privatumo nuostatomis</a>.
-                </span>
-              </label>
+              {/* Right — Consent + button */}
+              <div className="flex flex-col gap-3 min-w-[280px]">
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input type="checkbox" checked={state.consent_accepted}
+                    onChange={e => setState(s => ({ ...s, consent_accepted: e.target.checked }))}
+                    className="w-4 h-4 mt-0.5 accent-[#0D7377] flex-shrink-0" />
+                  <span className="text-[14px] text-[#64748B]">
+                    Sutinku su <a href="/salygos" className="text-[#0D7377] underline">sąlygomis</a> ir <a href="/privatumas" className="text-[#0D7377] underline">privatumu</a>.
+                  </span>
+                </label>
 
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={state.invoice_requested}
-                  onChange={e => setState(s => ({ ...s, invoice_requested: e.target.checked }))}
-                  className="w-4 h-4 accent-[#0D7377]" />
-                <span className="text-sm text-[#1E3A5F]">Reikia sąskaitos faktūros</span>
-              </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={state.invoice_requested}
+                    onChange={e => setState(s => ({ ...s, invoice_requested: e.target.checked }))}
+                    className="w-4 h-4 accent-[#0D7377]" />
+                  <span className="text-[14px] text-[#1E3A5F] font-medium">Reikia sąskaitos faktūros</span>
+                </label>
 
-              {state.invoice_requested && (
-                <div className="flex flex-col gap-3 pl-6 border-l-2 border-[#E2E8F0]">
-                  <div className="flex gap-2">
-                    <button onClick={() => setState(s => ({ ...s, invoice_is_company: false }))}
-                      className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${!state.invoice_is_company ? 'bg-[#0D7377] text-white border-[#0D7377]' : 'border-[#E2E8F0] text-[#64748B] hover:border-[#0D7377]'}`}>
-                      Fizinis asmuo
-                    </button>
-                    <button onClick={() => setState(s => ({ ...s, invoice_is_company: true }))}
-                      className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${state.invoice_is_company ? 'bg-[#0D7377] text-white border-[#0D7377]' : 'border-[#E2E8F0] text-[#64748B] hover:border-[#0D7377]'}`}>
-                      Juridinis asmuo
-                    </button>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-[#1E3A5F] mb-1">{state.invoice_is_company ? 'Kontaktinis asmuo' : 'Vardas, pavardė'}</label>
-                    <input type="text" value={state.invoice_name} onChange={e => setState(s => ({ ...s, invoice_name: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-md border border-[#E2E8F0] text-sm outline-none focus:border-[#0D7377] transition-all" />
-                  </div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={state.invoice_is_company}
+                    onChange={e => setState(s => ({ ...s, invoice_is_company: e.target.checked, invoice_requested: e.target.checked ? true : state.invoice_requested }))}
+                    className="w-4 h-4 accent-[#0D7377]" />
+                  <span className="text-[14px] text-[#1E3A5F] font-medium">Juridinis asmuo</span>
+                </label>
+
+                {!clientSecret && (
+                  <button onClick={handlePayment} disabled={!canPay}
+                    className={`w-full py-3 rounded-lg text-[16px] font-semibold transition-all flex items-center justify-center gap-2 ${canPay ? 'bg-[#1E3A5F] text-white hover:bg-[#0D7377] cursor-pointer' : 'bg-[#CBD5E1] text-white cursor-not-allowed'}`}>
+                    {paying ? (<><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Kraunama…</>) : 'Mokėti ir gauti ataskaitą'}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Invoice section — progressive disclosure */}
+            {(state.invoice_requested || state.invoice_is_company) && (
+            <div className="mt-4 pt-4 border-t border-[#F1F5F9]" ref={invoiceSectionRef}>
+                <div className="flex flex-col gap-4">
+                  {/* Company fields — only when juridinis */}
                   {state.invoice_is_company && (
-                    <div>
-                      <label className="block text-xs font-medium text-[#1E3A5F] mb-1">Įmonės pavadinimas</label>
-                      <input type="text" value={state.invoice_company_name} onChange={e => setState(s => ({ ...s, invoice_company_name: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-md border border-[#E2E8F0] text-sm outline-none focus:border-[#0D7377] transition-all" />
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-[13px] font-medium text-[#1A1A2E] mb-1">Įmonės pavadinimas</label>
+                        <input type="text" value={state.invoice_company_name} onChange={e => setState(s => ({ ...s, invoice_company_name: e.target.value }))}
+                          className="w-full px-4 py-3 rounded-lg border border-[#E2E8F0] text-[16px] outline-none focus:border-[#0D7377] transition-all" />
+                      </div>
+                      <div>
+                        <label className="block text-[13px] font-medium text-[#1A1A2E] mb-1">Įmonės kodas</label>
+                        <input type="text" value={state.invoice_name} onChange={e => setState(s => ({ ...s, invoice_name: e.target.value }))}
+                          className="w-full px-4 py-3 rounded-lg border border-[#E2E8F0] text-[16px] outline-none focus:border-[#0D7377] transition-all" />
+                      </div>
+                      <div>
+                        <label className="block text-[13px] font-medium text-[#1A1A2E] mb-1">PVM mokėtojo kodas</label>
+                        <input type="text" placeholder="LT..."
+                          className="w-full px-4 py-3 rounded-lg border border-[#E2E8F0] text-[16px] outline-none focus:border-[#0D7377] transition-all" />
+                        <p className="text-[13px] text-[#64748B] mt-1">Jei esate PVM mokėtojas</p>
+                      </div>
                     </div>
                   )}
+
+                  {/* Invoice email — available for both fizinis and juridinis */}
                   <div>
-                    <label className="block text-xs font-medium text-[#1E3A5F] mb-1">Sąskaitos el. paštas</label>
-                    <input type="email" value={state.invoice_email || state.email} onChange={e => setState(s => ({ ...s, invoice_email: e.target.value }))}
+                    <label className="block text-[13px] font-medium text-[#1A1A2E] mb-1">Sąskaitos el. paštas</label>
+                    <input type="email" value={state.invoice_email} onChange={e => setState(s => ({ ...s, invoice_email: e.target.value }))}
                       placeholder={state.email || 'vardas@pastas.lt'}
-                      className="w-full px-3 py-2 rounded-md border border-[#E2E8F0] text-sm outline-none focus:border-[#0D7377] transition-all" />
+                      className="w-full px-4 py-3 rounded-lg border border-[#E2E8F0] text-[16px] outline-none focus:border-[#0D7377] transition-all" />
+                    <p className="text-[13px] text-[#64748B] mt-1">Įveskite, jeigu norite sąskaitą gauti kitu el. pašto adresu</p>
                   </div>
                 </div>
-              )}
             </div>
+            )}
 
             {/* Stripe card element */}
             {clientSecret && (
-              <div className="rounded-xl border border-[#E2E8F0] bg-white px-6 py-5 mb-4">
+              <div className="mt-4 pt-4 border-t border-[#F1F5F9]">
                 <p className="text-xs font-medium text-[#1E3A5F] mb-3">Mokėjimo duomenys</p>
                 <div id="stripe-card-element" className="py-2" />
                 {payError && <p className="text-xs text-[#DC3545] mt-2">{payError}</p>}
@@ -1273,25 +1342,19 @@ function Screen2({
             )}
 
             {payError && payError !== 'expired' && !clientSecret && (
-              <p className="text-sm text-[#DC3545] mb-4">{payError}</p>
-            )}
-
-            {/* Payment button */}
-            {!clientSecret && (
-              <button onClick={handlePayment} disabled={!canPay}
-                className={`w-full py-3 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${canPay ? 'bg-[#0D7377] text-white hover:bg-[#0B6268] cursor-pointer' : 'bg-[#CBD5E1] text-white cursor-not-allowed'}`}>
-                {paying ? (<><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Kraunama…</>) : 'Mokėti ir gauti ataskaitą'}
-              </button>
+              <p className="text-sm text-[#DC3545] mt-3">{payError}</p>
             )}
           </>
         ) : (
-          <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-6 py-8 text-center">
-            <p className="text-sm text-[#94A3B8]">
+          <div className="text-center py-4">
+            <p className="text-[14px] text-[#94A3B8]">
               {quoting ? 'Skaičiuojame kainą...' : 'Patvirtinkite objektą, kad matytumėte kainą ir galėtumėte užsakyti.'}
             </p>
           </div>
         )}
       </div>
+
+    </div>
     </div>
   );
 }
