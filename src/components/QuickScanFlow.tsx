@@ -156,7 +156,21 @@ const CASE_LABELS: Record<CaseType, string> = {
 
 const NTR_REGEX = /^\d{4}-\d{4}-\d{4}(:\d{1,6})?$/;
 
-const LOCATION_TITLE = 'Nurodykite objekto vietą';
+const LOCATION_TITLE = 'Ką norite patikrinti?';
+
+const URL_HELPERS: Record<string, string> = {
+  existing_object: 'Jei turite skelbimo nuorodą — padės patikslinti objekto duomenis.',
+  new_build_project: '⭐ Nauji projektai registruose dažnai dar nematomi — jūsų nuoroda yra svarbiausias duomenų šaltinis tiksliam vertinimui.',
+  land_only: 'Jei turite skelbimo nuorodą — padės identifikuoti sklypą.',
+  '': 'Skelbimas portale, projekto svetainė ar kitas šaltinis.',
+};
+
+const PDF_HELPERS: Record<string, string> = {
+  existing_object: 'Energijos naudingumo sertifikatas ar kitas dokumentas. Jei turite — padės patikslinti vertinimą.',
+  new_build_project: '⭐ Projekto brošiūra, techninis projektas ar sertifikatas — tai pagrindinė medžiaga, iš kurios sistema atliks vertinimą.',
+  land_only: 'Sklypo dokumentas ar planavimo medžiaga.',
+  '': 'Energijos sertifikatas, projekto aprašymas ar kitas dokumentas.',
+};
 
 const API_BASE = import.meta.env.PUBLIC_API_BASE ?? 'http://127.0.0.1:8100';
 
@@ -390,12 +404,12 @@ function Screen1({
           </h2>
 
           {/* Case toggle */}
-          <p className="text-[16px] font-semibold text-[#1E3A5F] mb-3">Ką norite patikrinti?</p>
+          <p className="text-[16px] font-semibold text-[#1E3A5F] mb-3">Nurodykite objektą</p>
           <div className="grid grid-cols-3 gap-2 mb-6">
             {([
-              { value: 'existing_object' as CaseType, emoji: '🏠', label: 'Pastatas / patalpos' },
-              { value: 'new_build_project' as CaseType, emoji: '🏗️', label: 'Naujas projektas' },
-              { value: 'land_only' as CaseType, emoji: '🌿', label: 'Žemės sklypas' },
+              { value: 'existing_object' as CaseType, emoji: '🏠', label: 'Esamą pastatą ar patalpas' },
+              { value: 'new_build_project' as CaseType, emoji: '🏗️', label: 'Naujai statomą, nebaigtą projektą' },
+              { value: 'land_only' as CaseType, emoji: '🌿', label: 'Tik žemės sklypą' },
             ]).map((opt) => (
               <button
                 key={opt.value}
@@ -419,11 +433,11 @@ function Screen1({
             ))}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 items-start" style={{ gap: '28px' }}>
+          <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: '24px' }}>
 
-          {/* Left column — Tabbed location card */}
-          <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col">
-            <p className="text-[15px] font-medium text-[#1A1A2E] mb-3">Pakanka vieno iš šių būdų:</p>
+          {/* Top-left — Tabbed location card */}
+          <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col" style={{ gridColumn: '1', gridRow: '1' }}>
+            <p className="text-[15px] font-medium text-[#1A1A2E] mb-3">Nurodykite vietą jums tinkamiausiu būdu</p>
 
             {/* Tab headers */}
             <div className="flex border-b border-[#E2E8F0] mb-0">
@@ -570,13 +584,10 @@ function Screen1({
             </div>
           </div>
 
-          {/* Right column — URL + Document */}
-          <div className="rounded-xl border border-[#E2E8F0] bg-white p-8 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col">
-
-            {/* URL */}
-            <div className="mb-8">
+          {/* Top-right — URL card */}
+          <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col" style={{ gridColumn: '2', gridRow: '1' }}>
               <label className="block text-[15px] font-medium text-[#1A1A2E] mb-2">
-                Skelbimo ar projekto nuoroda
+                Pridėkite skelbimo ar projekto nuorodą (jeigu turite)
               </label>
               <input
                 type="url"
@@ -587,17 +598,17 @@ function Screen1({
                 className="w-full px-4 rounded-lg border border-[#E2E8F0] bg-white text-[16px] outline-none focus:border-[#0D7377] transition-all"
                 style={{ height: '48px' }}
               />
-              <p className="text-[14px] text-[#64748B] mt-2">
-                Skelbimas portale, projekto svetainė ar kitas šaltinis — sistema identifikuos objektą ir bandys ištraukti duomenis.
+              <p className={`text-[14px] mt-2 transition-all duration-200 ${state.case_type === 'new_build_project' ? 'text-[#0D7377] font-medium' : 'text-[#64748B]'}`}>
+                {URL_HELPERS[state.case_type ?? '']}
               </p>
-            </div>
+          </div>
 
-            {/* PDF upload */}
-            <div>
+          {/* Bottom — PDF upload card (full width) */}
+          <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col" style={{ gridColumn: '1 / -1', gridRow: '2' }}>
               <label className="block text-[15px] font-medium text-[#1A1A2E] mb-2">
-                Įkelti dokumentą (PDF)
+                Įkelkite dokumentą
               </label>
-              <label className="flex items-center justify-center gap-3 px-4 rounded-lg border border-dashed border-[#CBD5E1] bg-[#FAFBFC] cursor-pointer hover:border-[#0D7377] hover:bg-[#F0FAFA] transition-all" style={{ minHeight: '80px' }}>
+              <label className="flex items-center justify-center gap-3 px-4 rounded-lg border border-dashed border-[#E2E8F0] bg-[#FAFBFC] cursor-pointer hover:border-[#0D7377] hover:bg-[#F0FAFA] transition-all" style={{ minHeight: '64px' }}>
                 <span className="text-[#0D7377] text-2xl">📄</span>
                 <span className="text-[14px] text-[#64748B]">
                   {state.project_doc_id
@@ -628,10 +639,9 @@ function Screen1({
                   }}
                 />
               </label>
-              <p className="text-[14px] text-[#64748B] mt-2">
-                Energijos sertifikatas, projekto aprašymas ar kitas dokumentas. Nebūtina.
+              <p className={`text-[14px] mt-2 transition-all duration-200 ${state.case_type === 'new_build_project' ? 'text-[#0D7377] font-medium' : 'text-[#64748B]'}`}>
+                {PDF_HELPERS[state.case_type ?? '']}
               </p>
-            </div>
           </div>
 
           </div>

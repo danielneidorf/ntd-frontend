@@ -1,19 +1,9 @@
-# Design Fix: Vieta Screen — Tabbed Location Card (FINAL)
+# Design Fix: Vieta Screen — Three-Card Layout with Case-Dependent Helpers (FINAL)
 
 **Repo:** ~/dev/ntd
 **Path:** ~/dev/ntd/docs/tasks/design-fix-vieta-tabs.md
 **Branch:** block1-e2e
-**Scope:** Remove step indicator; tabbed location card; natural card heights (no stretch); no map previews; Žemėlapis opens full-screen; no right card title
-
----
-
-## ⚠️ PREVIOUS IMPLEMENTATION ISSUES
-
-1. Static map images in Adresas/NTR tabs are **billed per Google Maps API call** — every render, every tab switch. No revenue return for a preview placeholder. **Remove all static map images.**
-2. Empty CSS placeholder boxes look bad — don't replace maps with gray boxes.
-3. Žemėlapis tab must open the **full-screen overlay**, not render inline.
-
-**Solution: drop `align-items: stretch`. Use `align-items: start` (top-aligned, natural height). No filler content needed.**
+**Scope:** Remove step indicator; three-card inverted-T layout; updated Lithuanian labels; case-dependent helper texts
 
 ---
 
@@ -23,23 +13,66 @@ Remove "1 Vieta → 2 Patvirtinimas ir apmokėjimas" entirely.
 
 ---
 
-## Fix 2: Tabbed location card (left column)
+## Fix 2: Page title and case toggle
 
-### Card wrapper
+### Page title (above everything)
+
+**"Ką norite patikrinti?"** — 32px semibold, #1A1A2E
+
+### Case toggle prompt
+
+**"Nurodykite objektą"** — 16px semibold, #1E3A5F, above the three toggle segments
+
+### Three toggle segments (unchanged styling from design-fix-case-toggle.md)
+
+| Segment | Label | Maps to |
+|---|---|---|
+| 1 | 🏠 Pastatas / patalpos | `existing_object` |
+| 2 | 🏗️ Naujas projektas | `new_build_project` |
+| 3 | 🌿 Žemės sklypas | `land_only` |
+
+No default when from "Objekto paieška" (`/quickscan/` without `?case=`). Pre-selected when from landing page situation card.
+
+---
+
+## Fix 3: Three-card inverted-T layout
+
+### Grid
 
 ```css
-.tabbed-card {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+.vieta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
+
+.tabbed-card { grid-column: 1; grid-row: 1; }
+.url-card    { grid-column: 2; grid-row: 1; }
+.pdf-card    { grid-column: 1 / -1; grid-row: 2; }
 ```
+
+Mobile (<768px): single column, all stacked.
+
+### All three cards — same wrapper styling
+
+```css
+background: #FFFFFF;
+border: 1px solid #E2E8F0;
+border-radius: 12px;
+padding: 24px;
+box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+```
+
+---
+
+## Card 1 (top-left): Tabbed location card
 
 ### Helper text inside card, above tabs
 
-**"Pakanka vieno iš šių būdų:"** — 15px medium, #1A1A2E
+**"Nurodykite vietą jums tinkamiausiu būdu"** — 15px medium, #1A1A2E
 
 ### Tab headers
 
@@ -51,86 +84,94 @@ Inactive tab: transparent, border-bottom 2px transparent, color #64748B, font-we
 
 Inactive hover: background #FAFBFC, color #1A1A2E
 
-1px bottom border (#E2E8F0) under all tabs; active tab's 2px teal overlaps it.
-
 ### "Tiksliausias" badge
 
 Next to "Unikalus Nr.": 10px uppercase, letter-spacing 0.05em, #0D7377, background #E8F4F8, padding 1px 5px, border-radius 3px
 
-### Tab content — ONLY the input, nothing else
+### Tab content
 
 **Tab 1 — Adresas (default):**
 - Input: "Pradėkite rašyti adresą (gatvė, numeris, miestas)...", 48px, 16px
 - Helper: "Pasirinkite adresą iš pasiūlymų — sistema ras objektą automatiškai."
-- **No map preview. No placeholder. Nothing else.**
 
 **Tab 2 — Unikalus Nr.:**
 - Input: "pvz., 1234-5678-9012", 48px, 16px
 - Helper: "Tiksliausias būdas — kiekvienas objektas turi unikalų numerį Nekilnojamojo turto registre."
 - Teal link: "Kur rasti unikalų numerį? ↗" → `https://www.registrucentras.lt/ntr/p/` (new tab)
-- **No map preview. No placeholder. Nothing else.**
 
 **Tab 3 — Žemėlapis:**
-- A clickable trigger area that opens the **full-screen map overlay** (same overlay as before — search bar, close ✕ button, full viewport, pin drop, dragging, confirmation):
+- Clickable trigger that opens the **full-screen map overlay** (same as before)
+- Trigger: 📍 icon + "Spustelėkite, kad atidarytumėte žemėlapį" (14px, #64748B)
+- Background #F0F4F8, hover #E8F4F8, cursor pointer
 
-```css
-.map-open-trigger {
-  min-height: 100px;
-  border-radius: 8px;
-  background: #F0F4F8;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.map-open-trigger:hover {
-  background: #E8F4F8;
-}
-```
-
-Content: map pin icon (📍, ~32px) + "Spustelėkite, kad atidarytumėte žemėlapį" (14px, #64748B)
-
-Clicking opens the **existing full-screen map overlay**. The overlay code stays untouched — just triggered from here.
-
-After confirming a location in the overlay: show "✓ Vieta pasirinkta" + reverse-geocoded address inside the trigger area.
-
-### Switching tabs preserves entered data
+Switching tabs preserves entered data. No map previews, no static map images.
 
 ---
 
-## Fix 3: Grid layout — natural heights, NOT stretched
+## Card 2 (top-right): URL card
 
-```css
-.vieta-two-column {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 28px;
-  align-items: start;   /* natural height — NOT stretch */
-}
-```
+### Card title
 
-Both cards sit at their natural content height, top-aligned. The left card (tabbed) will be shorter than the right card (URL + PDF upload). **This is fine** — it looks clean and intentional. No empty space to fill, no expensive map previews, no gray placeholder boxes.
+**"Pridėkite skelbimo ar projekto nuorodą (jeigu turite)"** — 15px medium, #1A1A2E
+
+### Input
+
+Height 48px, font 16px, placeholder "pvz., https://www.aruodas.lt/..."
+
+### Helper text — CHANGES BASED ON SELECTED CASE TOGGLE
+
+| Selected case | Helper text |
+|---|---|
+| **existing_object** | "Jei turite skelbimo nuorodą — padės patikslinti objekto duomenis." |
+| **new_build_project** | "Nauji projektai registruose dažnai dar nematomi — jūsų pateikta nuoroda labai padės tiksliau įvertinti." |
+| **land_only** | "Jei turite skelbimo nuorodą — padės identifikuoti sklypą." |
+| **No case selected** | "Skelbimas portale, projekto svetainė ar kitas šaltinis." |
+
+Helper text: 14px, #64748B. Transitions smoothly (opacity fade) when case toggle changes.
 
 ---
 
-## Fix 4: Remove right card title and subtitle
+## Card 3 (bottom, full width): PDF upload card
 
-Remove:
-- ~~"Nuoroda ar dokumentas"~~ — removed
-- ~~"Pasirinktinai — padės greičiau ir tiksliau identifikuoti objektą."~~ — removed
+### Card title
 
-Right card starts directly with:
-1. **"Skelbimo ar projekto nuoroda"** — label 15px medium
-2. Input — 48px, placeholder "pvz., https://www.aruodas.lt/..."
-3. Helper — 14px, #64748B
-4. **Gap 24px**
-5. **"Įkelti dokumentą (PDF)"** — label 15px medium
-6. Upload area — dashed border, #FAFBFC background, min-height 120px
-7. Helper — 14px, #64748B
+**"Įkelkite dokumentą"** — 15px medium, #1A1A2E
 
-The right card is taller because of the PDF upload area. The left card is shorter. Both top-aligned. Clean.
+### Upload area
+
+- Border: 1px dashed #E2E8F0
+- Background: #FAFBFC
+- Border-radius: 8px
+- Min-height: 64px
+- Centered: 📄 icon + "Pasirinkite PDF failą arba nutempkite čia" (14px, #64748B)
+- Cursor: pointer
+
+### Helper text — CHANGES BASED ON SELECTED CASE TOGGLE
+
+| Selected case | Helper text |
+|---|---|
+| **existing_object** | "Energijos naudingumo sertifikatas ar kitas dokumentas. Jei turite — padės patikslinti vertinimą. Nebūtina." |
+| **new_build_project** | "Projekto brošiūra, techninis projektas ar energijos sertifikatas — padės tiksliau įvertinti, nes registruose šio projekto duomenų gali nebūti." |
+| **land_only** | "Sklypo dokumentas ar planavimo medžiaga. Nebūtina." |
+| **No case selected** | "Energijos sertifikatas, projekto aprašymas ar kitas dokumentas. Nebūtina." |
+
+Helper text: 14px, #64748B. Same smooth transition as the URL card.
+
+---
+
+## "Tęsti" button
+
+Below the PDF card. Enabled when: (a) case toggle selected AND (b) at least one location method valid. Disabled otherwise.
+
+---
+
+## Why the helpers change by case — documentation basis
+
+Per project documentation (Block-1 Detailed Plan Phase 6, sections 2.3.3, Decision D13, D14):
+
+- **existing_object:** System has registry data (NTR, PENS, Kadastras). User documents are supplementary — nice to have, not critical. EPC merge order: registry → user.
+- **new_build_project:** Registries often have NO data for new builds. Project documents and URLs are the **primary data sources** (D14: "derive as much as possible from project hints, documents, websites"). EPC merge order is **reversed**: project docs/URLs → user → registry. The helper text must actively encourage the user to provide these.
+- **land_only:** Block-1 thermal comfort is not applicable (D6). Documents are least useful. Helper text is minimal.
 
 ---
 
@@ -138,28 +179,32 @@ The right card is taller because of the PDF upload area. The left card is shorte
 
 - Step indicator
 - Three separate location cards → one tabbed card
-- Right card title and subtitle
-- **All static map images / map preview attempts** — no Google Maps Static API calls
-- **All CSS placeholder boxes** in Adresas/NTR tabs
+- Old right card title and subtitle
+- All static map images
+- Old page title "Nurodykite objekto vietą"
 
 ## What NOT to change
 
-- Case toggle at top — untouched
-- Full-screen map overlay code — untouched (just triggered from Žemėlapis tab)
-- "Tęsti" button — untouched
+- Case toggle styling (from design-fix-case-toggle.md) — untouched
+- Full-screen map overlay — untouched
+- "Tęsti" button logic — untouched
 - Backend — untouched
 
 ---
 
 ## Verification
 
-1. No step indicator
-2. Tabbed card with Adresas / Unikalus Nr. (Tiksliausias) / Žemėlapis
-3. "Pakanka vieno iš šių būdų:" visible above tabs
-4. Adresas tab shows ONLY: input + helper text. **No map preview, no placeholder box**
-5. NTR tab shows ONLY: input + helper + "Kur rasti?" link. **No map preview, no placeholder box**
-6. Žemėlapis tab shows clickable trigger that opens **full-screen map overlay** (NOT inline map)
-7. **No Google Maps Static API calls** on the page
-8. Left card is shorter than right card — both top-aligned (`align-items: start`)
-9. No title/subtitle on right card
-10. "Tęsti" visible without scrolling
+1. Page title is **"Ką norite patikrinti?"**
+2. Case toggle prompt is **"Nurodykite objektą"**
+3. Three cards: tabbed location (top-left), URL (top-right), PDF (bottom full-width)
+4. Tabbed card helper: **"Nurodykite vietą jums tinkamiausiu būdu"**
+5. URL card title: **"Pridėkite skelbimo ar projekto nuorodą (jeigu turite)"**
+6. PDF card title: **"Įkelkite dokumentą"**
+7. Select "Pastatas / patalpos" → URL helper shows "Jei turite skelbimo nuorodą — padės patikslinti..."
+8. Select "Naujas projektas" → URL helper shows "Nauji projektai registruose dažnai dar nematomi..." (stronger encouragement)
+9. Select "Žemės sklypas" → URL helper shows "Jei turite skelbimo nuorodą — padės identifikuoti sklypą."
+10. Same pattern for PDF card helpers
+11. Helper text transitions smoothly when switching case toggles
+12. Žemėlapis tab opens full-screen overlay
+13. No Google Maps Static API calls
+14. "Tęsti" visible without scrolling
