@@ -65,23 +65,53 @@ export interface QuickScanState {
   discount_token: string | null;
 }
 
+// Dev mock data for ?step=2 bypass
+const DEV_MOCK_RESOLVER: ResolveResponse = {
+  status: 'resolved',
+  candidates: [{
+    candidate_id: 'dev-mock-001',
+    address: 'Vilnius, Žirmūnų g. 12',
+    ntr_unique_number: '4400-1234-5678',
+    municipality: 'Vilniaus m. sav.',
+    kind: 'whole_building',
+    confidence: 'high',
+    primary_object: { purpose: 'Gyvenamoji', area_m2: 68, year_built: 1985, heated: true },
+    bundle_items: [
+      { kind: 'garage', address: 'Žirmūnų g. 12 (garažas)' },
+      { kind: 'shed', address: 'Žirmūnų g. 12 (sandėliukas)' },
+    ],
+    bundle_confidence: 'HIGH',
+  }],
+  message_lt: null,
+};
+
 const initialState = (): QuickScanState => {
   let case_type: CaseType | null = null;
+  let step: 1 | 2 = 1;
+  let resolver_result: ResolveResponse | null = null;
+
   if (typeof window !== 'undefined') {
-    const param = new URLSearchParams(window.location.search).get('case');
-    if (param === 'existing_object' || param === 'new_build_project' || param === 'land_only') {
-      case_type = param;
+    const params = new URLSearchParams(window.location.search);
+    const caseParam = params.get('case');
+    if (caseParam === 'existing_object' || caseParam === 'new_build_project' || caseParam === 'land_only') {
+      case_type = caseParam;
+    }
+    // Dev bypass: ?step=2 forces Screen 2 with mock data
+    if (params.get('step') === '2') {
+      step = 2;
+      resolver_result = DEV_MOCK_RESOLVER;
+      if (!case_type) case_type = 'existing_object';
     }
   }
   return {
-  step: 1,
+  step,
   case_type,
   ntr_unique_number: null,
   address_text: null,
   geo: null,
   project_website_url: null,
   project_doc_id: null,
-  resolver_result: null,
+  resolver_result,
   selected_candidate_id: null,
   user_epc: null,
   quote: null,
@@ -170,6 +200,13 @@ const PDF_HELPERS: Record<string, string> = {
   new_build_project: '⭐ Projekto brošiūra, techninis projektas ar sertifikatas — tai pagrindinė medžiaga, iš kurios sistema atliks vertinimą.',
   land_only: 'Sklypo dokumentas ar planavimo medžiaga.',
   '': 'Energijos sertifikatas, projekto aprašymas ar kitas dokumentas.',
+};
+
+const KWH_HELPERS: Record<string, string> = {
+  existing_object: 'Jei žinote faktines sąnaudas iš sąskaitų ar skaitiklių — įveskite čia. Padės tiksliau įvertinti komfortą.',
+  new_build_project: 'Jei žinote planuojamas projekto energijos sąnaudas — įveskite čia.',
+  land_only: 'Šiam objektui energijos sąnaudos netaikomos.',
+  '': 'Faktinės arba planuojamos energijos sąnaudos.',
 };
 
 const API_BASE = import.meta.env.PUBLIC_API_BASE ?? 'http://127.0.0.1:8100';
@@ -603,12 +640,13 @@ function Screen1({
               </p>
           </div>
 
-          {/* Bottom — PDF upload card (full width) */}
-          <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col" style={{ gridColumn: '1 / -1', gridRow: '2' }}>
+          {/* Bottom row — PDF card (spans full or half) + kWh card (existing_object only) */}
+          <div className={`rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col transition-all duration-300`}
+            style={{ gridColumn: state.case_type === 'existing_object' ? undefined : '1 / -1' }}>
               <label className="block text-[15px] font-medium text-[#1A1A2E] mb-2">
                 Įkelkite dokumentą
               </label>
-              <label className="flex items-center justify-center gap-3 px-4 rounded-lg border border-dashed border-[#E2E8F0] bg-[#FAFBFC] cursor-pointer hover:border-[#0D7377] hover:bg-[#F0FAFA] transition-all" style={{ minHeight: '64px' }}>
+              <label className="flex-1 flex items-center justify-center gap-3 px-4 rounded-lg border border-dashed border-[#E2E8F0] bg-[#FAFBFC] cursor-pointer hover:border-[#0D7377] hover:bg-[#F0FAFA] transition-all" style={{ minHeight: '64px' }}>
                 <span className="text-[#0D7377] text-2xl">📄</span>
                 <span className="text-[14px] text-[#64748B]">
                   {state.project_doc_id
@@ -643,6 +681,44 @@ function Screen1({
                 {PDF_HELPERS[state.case_type ?? '']}
               </p>
           </div>
+
+          {/* kWh card — existing_object only, fades in/out */}
+          {state.case_type === 'existing_object' && (
+          <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col"
+            style={{ animation: 'fadeSlideIn 0.3s ease forwards' }}>
+              <label className="block text-[15px] font-medium text-[#1A1A2E] mb-2">
+                Faktinės energijos sąnaudos
+              </label>
+              <div className="flex gap-3 items-center mb-3">
+                <input
+                  type="number"
+                  value={state.user_epc?.kwhm2_year ?? ''}
+                  onChange={e => setState(s => ({ ...s, user_epc: { ...s.user_epc, kwhm2_year: e.target.value ? Number(e.target.value) : undefined } }))}
+                  placeholder="pvz., 120"
+                  className="w-full px-4 rounded-lg border border-[#E2E8F0] bg-white text-[16px] outline-none focus:border-[#0D7377] transition-all"
+                  style={{ height: '48px' }}
+                />
+                <span className="text-[14px] text-[#64748B] whitespace-nowrap">kWh/m² per metus</span>
+              </div>
+              {/* Scope selector */}
+              <div className="flex flex-col gap-2 mb-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="kwh-scope-s1" value="heating" className="accent-[#0D7377]" defaultChecked />
+                  <span className="text-[14px] text-[#64748B]">Tik šildymas</span>
+                </label>
+                <div>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="kwh-scope-s1" value="all" className="accent-[#0D7377]" />
+                    <span className="text-[14px] text-[#64748B]">Visas komfortas (šildymas + karštas vanduo + vėsinimas)</span>
+                  </label>
+                  <p className="text-[13px] text-[#94A3B8] mt-1 ml-6">Bendra energija patalpų šildymui, karšto vandens ruošimui ir vėsinimui.</p>
+                </div>
+              </div>
+              <p className="text-[14px] text-[#64748B]">
+                Jei žinote faktines sąnaudas iš sąskaitų ar skaitiklių — įveskite čia. Padės tiksliau įvertinti komfortą.
+              </p>
+          </div>
+          )}
 
           </div>
       </div>
@@ -1052,8 +1128,8 @@ function Screen2({
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       {/* LEFT COLUMN — Object confirmation */}
       <div>
-        <h1 className="text-xl font-bold text-[#1E3A5F] mb-1">Ar tai teisingas objektas?</h1>
-        <p className="text-sm text-[#64748B] mb-4">Radome atitinkantį įrašą. Patikrinkite.</p>
+        <h1 className="text-xl font-bold text-[#1E3A5F] mb-1">Patvirtinkite objektą</h1>
+        <p className="text-sm text-[#64748B] mb-4">Radome atitinkantį įrašą. Patikrinkite, ar tai tas pats objektas.</p>
 
         {/* Proof card */}
         <div className={`rounded-xl border px-6 py-5 mb-4 transition-all ${objectConfirmed ? 'border-[#059669] bg-[#F0FDF4]' : 'border-[#E2E8F0] bg-white'}`}>
@@ -1100,10 +1176,7 @@ function Screen2({
           </div>
         )}
 
-        {/* EPC card — hidden for land_only */}
-        {state.case_type !== 'land_only' && (
-          <EpcCard state={state} setState={setState} />
-        )}
+        {/* EPC moved to Screen 1 — no longer shown here */}
       </div>
 
       {/* RIGHT COLUMN — Payment */}
