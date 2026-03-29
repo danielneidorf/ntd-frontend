@@ -37,7 +37,7 @@ export interface QuoteData {
 }
 
 export interface QuickScanState {
-  step: 1 | 2;
+  step: 1 | 2 | 'success';
   case_type: CaseType | null;
   ntr_unique_number: string | null;
   address_text: string | null;
@@ -87,8 +87,10 @@ const DEV_MOCK_RESOLVER: ResolveResponse = {
 
 const initialState = (): QuickScanState => {
   let case_type: CaseType | null = null;
-  let step: 1 | 2 = 1;
+  let step: 1 | 2 | 'success' = 1;
   let resolver_result: ResolveResponse | null = null;
+  let email = '';
+  let payment_complete = false;
 
   if (typeof window !== 'undefined') {
     const params = new URLSearchParams(window.location.search);
@@ -96,10 +98,19 @@ const initialState = (): QuickScanState => {
     if (caseParam === 'existing_object' || caseParam === 'new_build_project' || caseParam === 'land_only') {
       case_type = caseParam;
     }
+    const stepParam = params.get('step');
     // Dev bypass: ?step=2 forces Screen 2 with mock data
-    if (params.get('step') === '2') {
+    if (stepParam === '2') {
       step = 2;
       resolver_result = DEV_MOCK_RESOLVER;
+      if (!case_type) case_type = 'existing_object';
+    }
+    // Dev bypass: ?step=success forces success screen with mock data
+    if (stepParam === 'success') {
+      step = 'success';
+      resolver_result = DEV_MOCK_RESOLVER;
+      email = 'vardas@pastas.lt';
+      payment_complete = true;
       if (!case_type) case_type = 'existing_object';
     }
   }
@@ -112,10 +123,10 @@ const initialState = (): QuickScanState => {
   project_website_url: null,
   project_doc_id: null,
   resolver_result,
-  selected_candidate_id: null,
+  selected_candidate_id: resolver_result ? resolver_result.candidates[0]?.candidate_id ?? null : null,
   user_epc: null,
   quote: null,
-  email: '',
+  email,
   consent_accepted: false,
   invoice_requested: false,
   invoice_name: '',
@@ -123,7 +134,7 @@ const initialState = (): QuickScanState => {
   invoice_company_name: '',
   invoice_email: '',
   order_id: null,
-  payment_complete: false,
+  payment_complete,
   discount_token: typeof window !== 'undefined'
     ? new URLSearchParams(window.location.search).get('token')
     : null,
@@ -154,6 +165,7 @@ export default function QuickScanFlow() {
         />
       )}
       {state.step === 2 && <Screen2 state={state} setState={setState} />}
+      {state.step === 'success' && <SuccessScreen state={state} />}
     </div>
   );
 }
@@ -1103,7 +1115,7 @@ function Screen2({
       const { client_secret, order_id } = json.data;
       const pubKey = import.meta.env.PUBLIC_STRIPE_PUBLISHABLE_KEY;
       if (client_secret.startsWith('pi_stub') || client_secret === 'stub' || !pubKey) {
-        setState(s => ({ ...s, order_id, payment_complete: true }));
+        setState(s => ({ ...s, order_id, payment_complete: true, step: 'success' as const }));
         return;
       }
       setState(s => ({ ...s, order_id }));
@@ -1124,7 +1136,7 @@ function Screen2({
         payment_method: { card: cardElementRef.current },
       });
       if (result.error) { setPayError(result.error.message); }
-      else if (result.paymentIntent?.status === 'succeeded') { setState(s => ({ ...s, payment_complete: true })); }
+      else if (result.paymentIntent?.status === 'succeeded') { setState(s => ({ ...s, payment_complete: true, step: 'success' as const })); }
     } finally { setPaying(false); }
   };
 
@@ -1355,6 +1367,99 @@ function Screen2({
       </div>
 
     </div>
+    </div>
+  );
+}
+
+// ─── Success Screen ───────────────────────────────────────────────────
+const SUCCESS_BLOCKS = [
+  { emoji: '🌡️', name: 'Šiluminis komfortas', heatedOnly: true },
+  { emoji: '⚡', name: 'Energijos sąnaudos', heatedOnly: true },
+  { emoji: '📊', name: '10 metų išlaidos', heatedOnly: true },
+  { emoji: '🌿', name: 'Oro ir vandens tarša', heatedOnly: false },
+  { emoji: '🔇', name: 'Triukšmo tarša', heatedOnly: false },
+  { emoji: '💰', name: 'Kainos pagrįstumas', heatedOnly: false },
+  { emoji: '⚖️', name: 'Teisinės rizikos', heatedOnly: false },
+  { emoji: '🎯', name: 'Derybų strategija', heatedOnly: false },
+];
+
+function SuccessScreen({ state }: { state: QuickScanState }) {
+  const candidate = state.resolver_result?.candidates?.[0];
+  const caseType = state.case_type;
+  const isLand = caseType === 'land_only';
+  const isNewBuild = caseType === 'new_build_project';
+
+  return (
+    <div className="max-w-[1100px] mx-auto px-8 pb-[120px]" style={{ minHeight: 'calc(100vh - 160px)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+
+      {/* Green banner */}
+      <div className="rounded-xl border border-[#34D399] bg-[#E8F8EE] p-6 mb-6">
+        <div className="flex items-center gap-3 mb-2">
+          <span className="text-[24px]">✅</span>
+          <span className="text-[20px] font-semibold text-[#1A1A2E]">Užsakymas priimtas.</span>
+        </div>
+        <p className="text-[15px] text-[#1A1A2E] leading-relaxed">
+          Pradėjome informacijos paiešką registruose, duomenų tikrinimą ir visų blokų skaičiavimus. Ataskaitą el. paštu paprastai išsiunčiame greitai, bet gali užtrukti iki 1 valandos.
+        </p>
+      </div>
+
+      {/* Two-column grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        {/* Left — Order summary */}
+        <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+          <h3 className="text-[18px] font-semibold text-[#1A1A2E] mb-4">Jūsų užsakymas</h3>
+
+          {candidate && (
+            <div className="mb-5">
+              <p className="text-[16px] font-semibold text-[#1E3A5F] mb-1">{candidate.address}</p>
+              {candidate.ntr_unique_number && (
+                <p className="text-[14px] text-[#64748B]">Unikalus Nr.: {candidate.ntr_unique_number}</p>
+              )}
+              {candidate.municipality && (
+                <p className="text-[14px] text-[#64748B]">Savivaldybė: {candidate.municipality}</p>
+              )}
+              {candidate.bundle_items && candidate.bundle_items.length > 0 && (
+                <div className="mt-3 text-[14px] text-[#64748B]">
+                  <p className="font-medium text-[#1A1A2E] mb-1">Namų ūkio komplektas:</p>
+                  <p>Pagrindinis objektas: {candidate.kind === 'whole_building' ? 'Gyvenamasis pastatas' : candidate.kind === 'unit_in_building' ? 'Patalpa pastate' : 'Žemės sklypas'}</p>
+                  <p>Komplekte: {candidate.bundle_items.map((b: any) => b.kind || b.address).join(', ')}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Right — Delivery info */}
+        <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col">
+          <h3 className="text-[18px] font-semibold text-[#1A1A2E] mb-4">Pristatymas</h3>
+
+          <div className="flex-1">
+            <p className="text-[14px] text-[#64748B] mb-1">Ataskaita bus išsiųsta adresu:</p>
+            <p className="text-[16px] font-semibold text-[#1A1A2E] mb-4">{state.email || 'vardas@pastas.lt'}</p>
+
+            <p className="text-[14px] text-[#64748B] leading-relaxed">
+              Jei laiško nematysite per 1 valandą, patikrinkite „Šlamštas" (Spam) ar „Reklamos" (Promotions) aplankus.
+            </p>
+          </div>
+
+          <div className="mt-8 flex flex-col gap-3">
+            <a
+              href="/"
+              className="block w-full text-center bg-[#1E3A5F] text-white text-[15px] font-medium py-3 rounded-lg hover:bg-[#0D7377] transition-colors"
+            >
+              Grįžti į pradžią
+            </a>
+            <a
+              href="/quickscan/"
+              className="text-center text-[14px] text-[#0D7377] hover:text-[#0B6268] transition-colors"
+            >
+              Peržiūrėti dar vieną objektą →
+            </a>
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }
