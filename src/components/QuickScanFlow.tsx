@@ -37,7 +37,7 @@ export interface QuoteData {
 }
 
 export interface QuickScanState {
-  step: 1 | 2 | 'success';
+  step: 1 | 2 | 'success' | 'resolver-loading' | 'resolver-failure' | 'resolver-nomatch';
   case_type: CaseType | null;
   ntr_unique_number: string | null;
   address_text: string | null;
@@ -87,7 +87,7 @@ const DEV_MOCK_RESOLVER: ResolveResponse = {
 
 const initialState = (): QuickScanState => {
   let case_type: CaseType | null = null;
-  let step: 1 | 2 | 'success' = 1;
+  let step: 1 | 2 | 'success' | 'resolver-loading' | 'resolver-failure' | 'resolver-nomatch' = 1;
   let resolver_result: ResolveResponse | null = null;
   let email = '';
   let payment_complete = false;
@@ -111,6 +111,11 @@ const initialState = (): QuickScanState => {
       resolver_result = DEV_MOCK_RESOLVER;
       email = 'vardas@pastas.lt';
       payment_complete = true;
+      if (!case_type) case_type = 'existing_object';
+    }
+    // Dev bypass: resolver states
+    if (stepParam === 'resolver-loading' || stepParam === 'resolver-failure' || stepParam === 'resolver-nomatch') {
+      step = stepParam;
       if (!case_type) case_type = 'existing_object';
     }
   }
@@ -166,6 +171,9 @@ export default function QuickScanFlow() {
       )}
       {state.step === 2 && <Screen2 state={state} setState={setState} />}
       {state.step === 'success' && <SuccessScreen state={state} />}
+      {state.step === 'resolver-loading' && <ResolverLoading />}
+      {state.step === 'resolver-failure' && <ResolverFailure setState={setState} />}
+      {state.step === 'resolver-nomatch' && <ResolverNoMatch setState={setState} />}
     </div>
   );
 }
@@ -1459,6 +1467,93 @@ function SuccessScreen({ state }: { state: QuickScanState }) {
           </div>
         </div>
 
+      </div>
+    </div>
+  );
+}
+
+// ─── Resolver State Screens (dev preview + production use) ────────────
+
+function ResolverLoading() {
+  const STEPS = [
+    { label: 'Adresas rastas registruose', delay: 500 },
+    { label: 'Unikalus Nr.: 4400-1234-5678', delay: 1200 },
+    { label: 'Paskirtis: Gyvenamoji', delay: 1800 },
+    { label: 'Plotas: 68 m²', delay: 2500 },
+    { label: 'Statybos metai: 1985', delay: 3000 },
+  ];
+
+  const [visibleSteps, setVisibleSteps] = useState<number>(0);
+
+  useEffect(() => {
+    let cycle = 0;
+    const run = () => {
+      setVisibleSteps(0);
+      STEPS.forEach((s, i) => {
+        setTimeout(() => setVisibleSteps(i + 1), s.delay);
+      });
+    };
+    run();
+    const interval = setInterval(() => { cycle++; run(); }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div style={{ maxWidth: 500, margin: '120px auto 0' }}>
+      <div className="rounded-xl border border-[#E2E8F0] bg-white p-10 shadow-[0_2px_8px_rgba(0,0,0,0.04)] text-center">
+        <p className="text-[16px] font-semibold text-[#1A1A2E] mb-6">Ieškome jūsų objekto...</p>
+        <div className="flex flex-col gap-2 text-left">
+          {STEPS.slice(0, visibleSteps).map((s, i) => (
+            <div key={i} className="flex items-center gap-2 text-[14px] text-[#1A1A2E]" style={{ animation: 'fadeSlideIn 0.3s ease forwards' }}>
+              <span className="text-[#059669]">✓</span>
+              <span>{s.label}</span>
+            </div>
+          ))}
+          <div className="flex items-center gap-2 text-[14px] text-[#94A3B8]">
+            <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+            </svg>
+            <span>Ieškoma energijos duomenų...</span>
+          </div>
+        </div>
+      </div>
+      <p className="text-[13px] text-[#94A3B8] text-center mt-4">Tai paprastai trunka kelias sekundes.</p>
+    </div>
+  );
+}
+
+function ResolverFailure({ setState }: { setState: React.Dispatch<React.SetStateAction<QuickScanState>> }) {
+  return (
+    <div style={{ maxWidth: 500, margin: '120px auto 0' }}>
+      <div className="rounded-xl border border-[#E2E8F0] bg-white p-10 shadow-[0_2px_8px_rgba(0,0,0,0.04)] text-center">
+        <div className="text-[24px] mb-4">⚠️</div>
+        <p className="text-[16px] font-semibold text-[#1A1A2E] mb-2">Registrų paieška užtrunka ilgiau nei įprasta.</p>
+        <p className="text-[14px] text-[#64748B] mb-6">Prašome palaukti arba bandyti vėliau.</p>
+        <button
+          onClick={() => setState(s => ({ ...s, step: 'resolver-loading' as const }))}
+          className="px-6 py-2.5 rounded-lg border border-[#1E3A5F] text-[14px] text-[#1E3A5F] font-medium hover:bg-[#1E3A5F] hover:text-white transition-colors"
+        >
+          Bandyti dar kartą
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ResolverNoMatch({ setState }: { setState: React.Dispatch<React.SetStateAction<QuickScanState>> }) {
+  return (
+    <div style={{ maxWidth: 500, margin: '120px auto 0' }}>
+      <div className="rounded-xl border border-[#E2E8F0] bg-white p-10 shadow-[0_2px_8px_rgba(0,0,0,0.04)] text-center">
+        <div className="text-[24px] mb-4">🔍</div>
+        <p className="text-[16px] font-semibold text-[#1A1A2E] mb-2">Nepavyko rasti objekto pagal pateiktus duomenis.</p>
+        <p className="text-[14px] text-[#64748B] mb-6">Prašome patikslinti arba pabandyti kitą identifikavimo būdą.</p>
+        <button
+          onClick={() => setState(s => ({ ...s, step: 1 }))}
+          className="px-6 py-2.5 rounded-lg border border-[#1E3A5F] text-[14px] text-[#1E3A5F] font-medium hover:bg-[#1E3A5F] hover:text-white transition-colors"
+        >
+          ← Grįžti
+        </button>
       </div>
     </div>
   );

@@ -13,9 +13,19 @@
     <!-- Nav -->
     <nav class="flex items-center gap-8">
       <a href="/quickscan/" class="text-[14px] text-white/70 hover:text-white transition-colors">Objekto paieška</a>
-      <a href="/quickscan/?case=existing_object&step=2" class="text-[14px] italic text-[#E8A040] hover:text-[#F0B860] transition-colors">Patvirtinimas ⚙️</a>
-      <a href="/quickscan/?case=existing_object&step=success" class="text-[14px] italic text-[#E8A040] hover:text-[#F0B860] transition-colors">Sėkmė ⚙️</a>
       <a href="/#pricing-section" class="text-[14px] text-white/70 hover:text-white transition-colors">Kaina</a>
+      <div class="dev-dropdown relative inline-block">
+        <button class="text-[14px] italic text-[#E8A040] hover:text-[#F0B860] transition-colors cursor-pointer bg-transparent border-none" id="dev-trigger">Dev ⚙️</button>
+        <div class="dev-dropdown-menu hidden absolute top-full right-0 mt-2 bg-[#1E3A5F] border border-[#E8A040] rounded-lg py-2 min-w-[260px] z-[100] shadow-[0_4px_16px_rgba(0,0,0,0.2)]" id="dev-menu">
+          <a href="/quickscan/?case=existing_object" class="block px-4 py-2 text-[13px] italic text-[#E8A040] no-underline hover:bg-[rgba(232,160,64,0.1)]">Vieta (Screen 1)</a>
+          <a href="/quickscan/?case=existing_object&step=2" class="block px-4 py-2 text-[13px] italic text-[#E8A040] no-underline hover:bg-[rgba(232,160,64,0.1)]">Patvirtinimas (Screen 2)</a>
+          <a href="/quickscan/?case=existing_object&step=success" class="block px-4 py-2 text-[13px] italic text-[#E8A040] no-underline hover:bg-[rgba(232,160,64,0.1)]">Sėkmė (Success)</a>
+          <div class="border-t border-[#E8A040]/30 my-1"></div>
+          <a href="/quickscan/?case=existing_object&step=resolver-loading" class="block px-4 py-2 text-[13px] italic text-[#E8A040] no-underline hover:bg-[rgba(232,160,64,0.1)]">R-A: Ieškoma...</a>
+          <a href="/quickscan/?case=existing_object&step=resolver-failure" class="block px-4 py-2 text-[13px] italic text-[#E8A040] no-underline hover:bg-[rgba(232,160,64,0.1)]">R-B: Klaida</a>
+          <a href="/quickscan/?case=existing_object&step=resolver-nomatch" class="block px-4 py-2 text-[13px] italic text-[#E8A040] no-underline hover:bg-[rgba(232,160,64,0.1)]">R-C: Nerasta</a>
+        </div>
+      </div>
       <a href="/#pasirinkite" class="text-[14px] text-white font-semibold border border-white/40 px-4 py-2 rounded-sm hover:bg-white hover:text-[#1E3A5F] transition-colors">
         Užsakyti ataskaitą
       </a>
@@ -23,3 +33,16 @@
 
   </div>
 </header>
+
+<script>
+  const trigger = document.getElementById('dev-trigger');
+  const menu = document.getElementById('dev-menu');
+  if (trigger && menu) {
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      menu.classList.toggle('hidden');
+    });
+    document.addEventListener('click', () => menu.classList.add('hidden'));
+    menu.addEventListener('click', (e) => e.stopPropagation());
+  }
+</script>
