@@ -1257,28 +1257,30 @@ function Screen2({
       <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" style={{ gridColumn: '1 / -1', gridRow: 2 }}>
         {quote ? (
           <>
-            <div className="grid grid-cols-[auto_1fr_auto] gap-8 items-start">
-              {/* Left — Price */}
-              <div className="flex flex-col items-start">
+            {/* Two-column: price left, vertical flow right */}
+            <div className="grid grid-cols-[auto_1fr] gap-8">
+              {/* Left — Price (fixed) */}
+              <div className="flex flex-col items-start pt-1">
                 <span className="text-[32px] font-semibold text-[#1E3A5F]">{quote.final_price_eur} €</span>
                 <span className="text-[14px] text-[#64748B]">/ objektas</span>
               </div>
 
-              {/* Center — Email */}
-              <div>
-                <label className="block text-[14px] font-medium text-[#1A1A2E] mb-1">El. pašto adresas</label>
-                <input type="email" value={state.email}
-                  onChange={e => setState(s => ({ ...s, email: e.target.value }))}
-                  onBlur={() => setEmailTouched(true)}
-                  placeholder="vardas@pastas.lt"
-                  className={`w-full px-4 py-3 rounded-lg border text-[16px] outline-none focus:border-[#0D7377] transition-all ${emailTouched && !emailValid ? 'border-[#DC3545]' : 'border-[#E2E8F0]'}`} />
-                {emailTouched && !emailValid && <p className="text-xs text-[#DC3545] mt-1">Įveskite teisingą el. pašto adresą.</p>}
-                <p className="text-[13px] text-[#64748B] mt-1">Ataskaitą išsiųsime šiuo adresu.</p>
-              </div>
+              {/* Right — vertical flow */}
+              <div className="flex flex-col" ref={invoiceSectionRef}>
+                {/* Email */}
+                <div className="mb-4">
+                  <label className="block text-[14px] font-medium text-[#1A1A2E] mb-1">El. pašto adresas</label>
+                  <input type="email" value={state.email}
+                    onChange={e => setState(s => ({ ...s, email: e.target.value }))}
+                    onBlur={() => setEmailTouched(true)}
+                    placeholder="vardas@pastas.lt"
+                    className={`w-full px-4 py-3 rounded-lg border text-[16px] outline-none focus:border-[#0D7377] transition-all ${emailTouched && !emailValid ? 'border-[#DC3545]' : 'border-[#E2E8F0]'}`} />
+                  {emailTouched && !emailValid && <p className="text-xs text-[#DC3545] mt-1">Įveskite teisingą el. pašto adresą.</p>}
+                  <p className="text-[13px] text-[#64748B] mt-1">Ataskaitą išsiųsime šiuo adresu.</p>
+                </div>
 
-              {/* Right — Consent + button */}
-              <div className="flex flex-col gap-3 min-w-[280px]">
-                <label className="flex items-start gap-2 cursor-pointer">
+                {/* Consent checkbox */}
+                <label className="flex items-start gap-2 cursor-pointer mb-3">
                   <input type="checkbox" checked={state.consent_accepted}
                     onChange={e => setState(s => ({ ...s, consent_accepted: e.target.checked }))}
                     className="w-4 h-4 mt-0.5 accent-[#0D7377] flex-shrink-0" />
@@ -1287,83 +1289,86 @@ function Screen2({
                   </span>
                 </label>
 
-                <label className="flex items-center gap-2 cursor-pointer">
+                {/* Invoice checkbox */}
+                <label className="flex items-center gap-2 cursor-pointer mb-1">
                   <input type="checkbox" checked={state.invoice_requested}
                     onChange={e => setState(s => ({ ...s, invoice_requested: e.target.checked }))}
                     className="w-4 h-4 accent-[#0D7377]" />
                   <span className="text-[14px] text-[#1E3A5F] font-medium">Reikia sąskaitos faktūros</span>
                 </label>
 
-                <label className="flex items-center gap-2 cursor-pointer">
+                {/* Invoice fields — expand below */}
+                {state.invoice_requested && (
+                  <div className="ml-6 mt-2 mb-2 flex flex-col gap-3">
+                    <div>
+                      <label className="block text-[13px] font-medium text-[#1A1A2E] mb-1">Sąskaitos el. paštas</label>
+                      <input type="email" value={state.invoice_email} onChange={e => setState(s => ({ ...s, invoice_email: e.target.value }))}
+                        placeholder={state.email || 'vardas@pastas.lt'}
+                        className="w-full px-4 py-3 rounded-lg border border-[#E2E8F0] text-[16px] outline-none focus:border-[#0D7377] transition-all" />
+                      <p className="text-[13px] text-[#64748B] mt-1">Įveskite, jeigu norite sąskaitą gauti kitu el. pašto adresu</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Juridinis checkbox */}
+                <label className="flex items-center gap-2 cursor-pointer mb-1 mt-1">
                   <input type="checkbox" checked={state.invoice_is_company}
                     onChange={e => setState(s => ({ ...s, invoice_is_company: e.target.checked, invoice_requested: e.target.checked ? true : state.invoice_requested }))}
                     className="w-4 h-4 accent-[#0D7377]" />
                   <span className="text-[14px] text-[#1E3A5F] font-medium">Juridinis asmuo</span>
                 </label>
 
-                {!clientSecret && (
-                  <button onClick={handlePayment} disabled={!canPay}
-                    className={`w-full py-3 rounded-lg text-[16px] font-semibold transition-all flex items-center justify-center gap-2 ${canPay ? 'bg-[#1E3A5F] text-white hover:bg-[#0D7377] cursor-pointer' : 'bg-[#CBD5E1] text-white cursor-not-allowed'}`}>
-                    {paying ? (<><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Kraunama…</>) : 'Mokėti ir gauti ataskaitą'}
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Invoice section — progressive disclosure */}
-            {(state.invoice_requested || state.invoice_is_company) && (
-            <div className="mt-4 pt-4 border-t border-[#F1F5F9]" ref={invoiceSectionRef}>
-                <div className="flex flex-col gap-4">
-                  {/* Company fields — only when juridinis */}
-                  {state.invoice_is_company && (
-                    <div className="grid grid-cols-3 gap-3">
-                      <div>
-                        <label className="block text-[13px] font-medium text-[#1A1A2E] mb-1">Įmonės pavadinimas</label>
-                        <input type="text" value={state.invoice_company_name} onChange={e => setState(s => ({ ...s, invoice_company_name: e.target.value }))}
-                          className="w-full px-4 py-3 rounded-lg border border-[#E2E8F0] text-[16px] outline-none focus:border-[#0D7377] transition-all" />
-                      </div>
-                      <div>
-                        <label className="block text-[13px] font-medium text-[#1A1A2E] mb-1">Įmonės kodas</label>
-                        <input type="text" value={state.invoice_name} onChange={e => setState(s => ({ ...s, invoice_name: e.target.value }))}
-                          className="w-full px-4 py-3 rounded-lg border border-[#E2E8F0] text-[16px] outline-none focus:border-[#0D7377] transition-all" />
-                      </div>
-                      <div>
-                        <label className="block text-[13px] font-medium text-[#1A1A2E] mb-1">PVM mokėtojo kodas</label>
-                        <input type="text" placeholder="LT..."
-                          className="w-full px-4 py-3 rounded-lg border border-[#E2E8F0] text-[16px] outline-none focus:border-[#0D7377] transition-all" />
-                        <p className="text-[13px] text-[#64748B] mt-1">Jei esate PVM mokėtojas</p>
-                      </div>
+                {/* Company fields — expand below */}
+                {state.invoice_is_company && (
+                  <div className="ml-6 mt-2 mb-2 flex flex-col gap-3">
+                    <div>
+                      <label className="block text-[13px] font-medium text-[#1A1A2E] mb-1">Įmonės pavadinimas</label>
+                      <input type="text" value={state.invoice_company_name} onChange={e => setState(s => ({ ...s, invoice_company_name: e.target.value }))}
+                        className="w-full px-4 py-3 rounded-lg border border-[#E2E8F0] text-[16px] outline-none focus:border-[#0D7377] transition-all" />
                     </div>
-                  )}
-
-                  {/* Invoice email — available for both fizinis and juridinis */}
-                  <div>
-                    <label className="block text-[13px] font-medium text-[#1A1A2E] mb-1">Sąskaitos el. paštas</label>
-                    <input type="email" value={state.invoice_email} onChange={e => setState(s => ({ ...s, invoice_email: e.target.value }))}
-                      placeholder={state.email || 'vardas@pastas.lt'}
-                      className="w-full px-4 py-3 rounded-lg border border-[#E2E8F0] text-[16px] outline-none focus:border-[#0D7377] transition-all" />
-                    <p className="text-[13px] text-[#64748B] mt-1">Įveskite, jeigu norite sąskaitą gauti kitu el. pašto adresu</p>
+                    <div>
+                      <label className="block text-[13px] font-medium text-[#1A1A2E] mb-1">Įmonės kodas</label>
+                      <input type="text" value={state.invoice_name} onChange={e => setState(s => ({ ...s, invoice_name: e.target.value }))}
+                        className="w-full px-4 py-3 rounded-lg border border-[#E2E8F0] text-[16px] outline-none focus:border-[#0D7377] transition-all" />
+                    </div>
+                    <div>
+                      <label className="block text-[13px] font-medium text-[#1A1A2E] mb-1">PVM mokėtojo kodas</label>
+                      <input type="text" placeholder="LT..."
+                        className="w-full px-4 py-3 rounded-lg border border-[#E2E8F0] text-[16px] outline-none focus:border-[#0D7377] transition-all" />
+                      <p className="text-[13px] text-[#64748B] mt-1">Jei esate PVM mokėtojas</p>
+                    </div>
                   </div>
+                )}
+
+                {/* Stripe card input (appears on button click) */}
+                {clientSecret && (
+                  <div className="mt-4 pt-4 border-t border-[#F1F5F9] mb-4">
+                    <p className="text-[14px] font-medium text-[#1E3A5F] mb-3">Kortelės duomenys</p>
+                    <div id="stripe-card-element" className="py-2 px-3 border border-[#E2E8F0] rounded-lg" />
+                    {payError && <p className="text-[14px] text-[#EF4444] mt-2">{payError}</p>}
+                  </div>
+                )}
+
+                {payError && payError !== 'expired' && !clientSecret && (
+                  <p className="text-[14px] text-[#EF4444] mb-3 mt-2">{payError}</p>
+                )}
+
+                {/* Pay button — always at the bottom */}
+                <div className="mt-6">
+                  {clientSecret ? (
+                    <button onClick={handleStripeConfirm} disabled={paying}
+                      className={`w-full py-3 rounded-lg text-[16px] font-semibold transition-all flex items-center justify-center gap-2 ${paying ? 'bg-[#CBD5E1] text-white cursor-not-allowed' : 'bg-[#1E3A5F] text-white hover:bg-[#0D7377] cursor-pointer'}`}>
+                      {paying ? (<><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Kraunama…</>) : `Patvirtinti mokėjimą ${quote.final_price_eur} €`}
+                    </button>
+                  ) : (
+                    <button onClick={handlePayment} disabled={!canPay}
+                      className={`w-full py-3 rounded-lg text-[16px] font-semibold transition-all flex items-center justify-center gap-2 ${canPay ? 'bg-[#1E3A5F] text-white hover:bg-[#0D7377] cursor-pointer' : 'bg-[#CBD5E1] text-white cursor-not-allowed'}`}>
+                      {paying ? (<><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Kraunama…</>) : 'Mokėti ir gauti ataskaitą'}
+                    </button>
+                  )}
                 </div>
-            </div>
-            )}
-
-            {/* Stripe card element */}
-            {clientSecret && (
-              <div className="mt-4 pt-4 border-t border-[#F1F5F9]">
-                <p className="text-xs font-medium text-[#1E3A5F] mb-3">Mokėjimo duomenys</p>
-                <div id="stripe-card-element" className="py-2" />
-                {payError && <p className="text-xs text-[#DC3545] mt-2">{payError}</p>}
-                <button onClick={handleStripeConfirm} disabled={paying}
-                  className={`mt-4 w-full py-3 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${paying ? 'bg-[#CBD5E1] text-white cursor-not-allowed' : 'bg-[#0D7377] text-white hover:bg-[#0B6268] cursor-pointer'}`}>
-                  {paying ? (<><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Kraunama…</>) : 'Patvirtinti mokėjimą'}
-                </button>
               </div>
-            )}
-
-            {payError && payError !== 'expired' && !clientSecret && (
-              <p className="text-sm text-[#DC3545] mt-3">{payError}</p>
-            )}
+            </div>
           </>
         ) : (
           <div className="text-center py-4">
