@@ -1,3 +1,5 @@
+> ⚠️ SUPERSEDED by design-fix-vieta-tabs.md. Do not implement this version.
+
 # Design Fix: Right Column Card — Better Content Distribution
 
 **Repo:** ~/dev/ntd

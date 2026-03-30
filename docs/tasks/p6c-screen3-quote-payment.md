@@ -1,3 +1,5 @@
+> ⚠️ SUPERSEDED by design-fix-screen2-redesign.md. Do not implement this version.
+
 # Task Brief: P6-C Screen 3 — Quote Display, Email/Consent, Payment, Reassurance
 
 **Repo:** `~/dev/ntd` (frontend)  

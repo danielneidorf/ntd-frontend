@@ -1,3 +1,5 @@
+> ⚠️ SUPERSEDED by feature-unified-vieta-screen.md. Do not implement this version.
+
 # Design Fix: New-Build Vieta Screen — Two-Column Layout
 
 **Repo:** ~/dev/ntd

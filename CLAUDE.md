@@ -5,67 +5,59 @@
 NTD (NT Duomenys) — Lithuanian proptech platform at ntd.lt.
 Brand: **NTD**. Never use "Būsto DNR" (deprecated).
 Colors: #1E3A5F (deep navy), #0D7377 (teal), #FAFBFC (background).
-Font: Inter.
+Font: Inter. Max-width: 1200px.
 
 ## Stack
 
-Astro v5 · Tailwind CSS · TypeScript · React islands.
+Astro v5 · Tailwind CSS v4 · TypeScript · React 19 islands.
 Deploy: Hostinger (static HTML + JS islands).
-Backend API: api.staging.bustodnr.lt (CORS-enabled).
+Backend API: api.staging.bustodnr.lt (CORS-enabled), branch block1-e2e.
+Payment: Stripe (cards, Apple Pay, Google Pay, PayPal) + Paysera PIS (Lithuanian bank links).
+
+## Screens
+
+Landing → Screen 1 (Vieta, case toggle + tabbed location) → Resolver states (R-A loading, R-B failure, R-C no-match, R-D chooser) → Screen 2 (Patvirtinimas + payment, merged) → Payment method grid → Success.
 
 ## Critical Rules
 
 - **NTD branding only.** Never output "Būsto DNR" in any component or copy.
-- **Lithuanian copy guidelines:**
-  - Avoid "ataskaita" → use "įžvalgos", "duomenų rinkinys", "objekto profilis"
-  - Avoid "pirkti" → use "prieiga", "gauti"
-  - Avoid "patikrinkite" → use "gauti duomenis", "gauti įžvalgas"
-  - Never imply NTD is a government registry. Use "iš oficialių registrų", not "oficialus registras".
 - **Astro islands**: use `client:load` for interactive components, `client:visible` for below-fold.
-- **All API calls** go through `src/lib/api.ts` — never call the backend directly from components.
-- **NTD design principles**: light theme, institutional aesthetic, generous spacing (100–140px sections), subtle animations only.
+- **NTD design principles**: light theme, institutional aesthetic, generous spacing, subtle animations only.
+- **Dev ⚙️ dropdown** in header is TEMPORARY — remove before production deploy.
 
 ## Documentation
 
-Project planning happens in Claude Chat, which produces **task briefs** — self-contained .md files with everything needed for a specific coding task. These are placed in `docs/tasks/`.
+Task briefs in `docs/tasks/` (46 briefs from March 2026 sessions).
+Full design reference: `docs/NTD_Frontend_Design_As_Implemented.docx`.
+Phase 6 status: `docs/phase6_frontend_status.md`.
 
-Most product documentation (specs, annexes, decisions) lives in the **backend repo** (`~/dev/bustodnr/docs/`). Read those only when a task brief points you to a specific file.
+## Key Files
 
-## What Exists
-
-### Landing page (index.astro)
-Scroll page: Header → Hero → HowItWorks → Sources → Pricing → Footer.
-Hero contains input field + "Gauti įžvalgas" CTA.
-
-### QuickScan flow (/quickscan route)
-`quickscan.astro` → renders `QuickScanFlow.tsx` (React island).
-Implements Screens 1→2→3 for the QuickScan-Lite purchase flow.
-Test file: `src/components/__tests__/QuickScanFlow.test.tsx`.
-
-### Component inventory
-| Component | Type | Purpose |
-|-----------|------|---------|
-| Header.astro | Static | Nav bar with NTD logo + CTA |
-| Hero.astro | Static | Two-column: headline + data blocks preview |
-| HowItWorks.astro | Static | 3-step strip (01→02→03) |
-| Sources.astro | Static | Registry source logos (NTR, RC, Kadastras, PENS) |
-| Pricing.astro | Static | "Nuo 79 €" pricing section |
-| Footer.astro | Static | NTD branding + links |
-| AddressLookup.astro | Island | Object type cards + location inputs (Screen 1 seed) |
-| QuickScanFlow.tsx | Island | Full Screen 1→2→3 React component |
+| File | Purpose |
+|------|---------|
+| `src/components/QuickScanFlow.tsx` | Main React component (~1,700 lines) — all screens |
+| `src/lib/stripe.ts` | Lazy Stripe.js loader |
+| `src/lib/paysera.ts` | Paysera redirect helper |
+| `src/components/Header.astro` | Nav bar + Dev dropdown |
+| `src/components/Hero.astro` | Landing hero + WhyScenariosCarousel |
+| `src/components/MiniMockupGrid.astro` | 8-block report preview grid |
+| `src/components/SituationCards.astro` | 3 case type entry cards |
+| `src/components/ComparisonTable.astro` | NTD vs alternatives cards |
+| `src/components/Pricing.astro` | Pricing card + ReportCarousel |
+| `src/components/Sources.astro` | Property types marquee / sources ticker |
 
 ## Repo Layout
 
 ```
 src/
 ├── components/          # Astro + React components
-│   └── __tests__/       # Component tests
 ├── layouts/             # BaseLayout.astro
 ├── pages/               # index.astro, quickscan.astro
-├── lib/                 # api.ts (backend client)
+├── lib/                 # stripe.ts, paysera.ts
 └── styles/              # Tailwind + global CSS
 docs/
-└── tasks/               # ★ Task briefs from Claude Chat (read these first)
+├── tasks/               # ★ Task briefs (read these first)
+└── NTD_Frontend_Design_As_Implemented.docx
 ```
 
 ## Common Commands

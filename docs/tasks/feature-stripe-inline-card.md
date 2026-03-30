@@ -1,3 +1,5 @@
+> ⚠️ SUPERSEDED by feature-payment-providers.md. Do not implement this version.
+
 # Feature: Inline Stripe Elements Card Input
 
 **Repo:** ~/dev/ntd

@@ -1,3 +1,5 @@
+> ⚠️ SUPERSEDED by design-carousel-swap.md. Do not implement this version.
+
 # Design: Hero — Rotating Block Carousel (All 8 Blocks)
 
 **Repo:** ~/dev/ntd

@@ -1,3 +1,5 @@
+> ⚠️ SUPERSEDED by design-carousel-swap.md. Do not implement this version.
+
 # Design: Hero Report Preview Animation
 
 **Repo:** ~/dev/ntd
