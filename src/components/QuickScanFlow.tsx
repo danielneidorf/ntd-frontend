@@ -753,9 +753,10 @@ function Screen1({
           {state.case_type === 'existing_object' && (
           <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col"
             style={{ animation: 'fadeSlideIn 0.3s ease forwards' }}>
-              <label className="block text-[15px] font-medium text-[#1A1A2E] mb-2">
+              <label className="block text-[15px] font-medium text-[#1A1A2E] mb-1">
                 Faktinės energijos sąnaudos
               </label>
+              <p className="text-[14px] text-[#64748B] mb-2">Jei žinote faktines sąnaudas iš sąskaitų ar skaitiklių — įveskite čia. Padės tiksliau įvertinti komfortą.</p>
               <div className="flex gap-3 items-center mb-3">
                 <input
                   type="number"
@@ -781,9 +782,6 @@ function Screen1({
                   <p className="text-[13px] text-[#94A3B8] mt-1 ml-6">Bendra energija patalpų šildymui, karšto vandens ruošimui ir vėsinimui.</p>
                 </div>
               </div>
-              <p className="text-[14px] text-[#64748B]">
-                Jei žinote faktines sąnaudas iš sąskaitų ar skaitiklių — įveskite čia. Padės tiksliau įvertinti komfortą.
-              </p>
           </div>
           )}
 
