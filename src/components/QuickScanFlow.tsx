@@ -122,6 +122,21 @@ const initialState = (): QuickScanState => {
         expires_at: '2099-12-31T23:59:59Z', has_active_discount: true, discount_context: null,
       };
     }
+    // Dev bypass: ?step=duplicate shows Screen 2 with duplicate warning
+    if (stepParam === 'duplicate') {
+      step = 2;
+      resolver_result = DEV_MOCK_RESOLVER;
+      if (!case_type) case_type = 'existing_object';
+      email = 'vardas@pastas.lt';
+      consent_accepted = true;
+      quote = {
+        quote_id: 'dev-quote-001', bundle_id: 'dev-mock-001',
+        base_price_eur: 49, final_price_eur: 39, discount_amount_eur: 10,
+        pricing_label: 'Beta kaina', pricing_version: 'v1', currency: 'EUR',
+        special_discount_applied: true, ui_explanation_block: [],
+        expires_at: '2099-12-31T23:59:59Z', has_active_discount: true, discount_context: null,
+      };
+    }
     // Dev bypass: ?step=success forces success screen with mock data
     if (stepParam === 'success') {
       step = 'success';
@@ -950,17 +965,25 @@ function Screen2({
   state: QuickScanState;
   setState: React.Dispatch<React.SetStateAction<QuickScanState>>;
 }) {
-  // Dev: detect ?step=2-payment for pre-filled payment state
-  const isDevPayment = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('step') === '2-payment';
+  // Dev: detect ?step= for pre-filled states
+  const devStep = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('step') : null;
+  const isDevPayment = devStep === '2-payment';
+  const isDevDuplicate = devStep === 'duplicate';
 
-  const [objectConfirmed, setObjectConfirmed] = useState(isDevPayment);
+  const [objectConfirmed, setObjectConfirmed] = useState(isDevPayment || isDevDuplicate);
   const [quoting, setQuoting] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
   const [emailTouched, setEmailTouched] = useState(false);
-  const [clientSecret, setClientSecret] = useState<string | null>(isDevPayment ? 'pi_dev_mock_secret' : null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [stripeCardReady, setStripeCardReady] = useState(false);
+  const [duplicateInfo, setDuplicateInfo] = useState<{ order_id: string; paid_at: string; address: string } | null>(
+    isDevDuplicate ? { order_id: 'dev-dup-001', paid_at: '2026-03-30T10:15:00Z', address: 'Vilnius, Žirmūnų g. 12' } : null
+  );
+  const [resendDone, setResendDone] = useState(false);
+  const [showMethodSelector, setShowMethodSelector] = useState(isDevPayment);
+  const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const stripeRef = useRef<any>(null);
   const elementsRef = useRef<any>(null);
   const cardMountRef = useRef<HTMLDivElement>(null);
@@ -1137,6 +1160,14 @@ function Screen2({
       });
       const json = await r.json();
       if (!json.ok) {
+        if (json.error_code === 'duplicate_order' && json.data) {
+          setDuplicateInfo({
+            order_id: json.data.existing_order_id,
+            paid_at: json.data.paid_at,
+            address: json.data.address,
+          });
+          return;
+        }
         if (json.error_code === 'quote_expired') {
           setPayError('Kainos galiojimas baigėsi. Prašome grįžti ir patvirtinti objektą iš naujo.');
         } else {
@@ -1240,6 +1271,65 @@ function Screen2({
     } finally {
       setPaying(false);
     }
+  };
+
+  const PAYMENT_METHODS = [
+    { id: 'swedbank', label: 'Swedbank', logo: '/images/payment/swedbank.svg', provider: 'paysera' },
+    { id: 'seb', label: 'SEB', logo: '/images/payment/seb.svg', provider: 'paysera' },
+    { id: 'luminor', label: 'Luminor', logo: '/images/payment/luminor.svg', provider: 'paysera' },
+    { id: 'citadele', label: 'Citadele', logo: '/images/payment/citadele.svg', provider: 'paysera' },
+    { id: 'revolut', label: 'Revolut', logo: '/images/payment/revolut.svg', provider: 'paysera' },
+    { id: 'paysera', label: 'Paysera', logo: '/images/payment/paysera.svg', provider: 'paysera' },
+    { id: 'card', label: 'Visa / MC', logo: '/images/payment/visa-mastercard.svg', provider: 'stripe' },
+    { id: 'apple-pay', label: 'Apple Pay', logo: '/images/payment/apple-pay.svg', provider: 'stripe' },
+    { id: 'google-pay', label: 'Google Pay', logo: '/images/payment/google-pay.svg', provider: 'stripe' },
+    { id: 'paypal', label: 'PayPal', logo: '/images/payment/paypal.svg', provider: 'stripe' },
+  ] as const;
+
+  const handlePayseraPayment = async (bankCode: string) => {
+    if (!canPay || !state.quote) return;
+    setPaying(true);
+    setPayError(null);
+    try {
+      const r = await fetch(`${API_BASE}/v1/quickscan-lite/payment-init-paysera`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quote_id: state.quote.quote_id,
+          customer_email: state.email,
+          invoice_requested: state.invoice_requested,
+          consent_flags: { terms_accepted: true, privacy_accepted: true, marketing_consent: false, timestamp: new Date().toISOString() },
+          bundle_signature: state.selected_candidate_id ?? state.quote.bundle_id ?? '',
+          bank_code: bankCode,
+        }),
+      });
+      const json = await r.json();
+      if (!json.ok) {
+        if (json.error_code === 'duplicate_order' && json.data) {
+          setDuplicateInfo({ order_id: json.data.existing_order_id, paid_at: json.data.paid_at, address: json.data.address });
+          return;
+        }
+        if (json.error_code === 'quote_expired') { setPayError('Kainos galiojimas baigėsi. Prašome grįžti ir patvirtinti objektą iš naujo.'); }
+        else { setPayError('Mokėjimo klaida. Bandykite dar kartą arba pasirinkite kitą banką.'); }
+        return;
+      }
+      const { redirect_url, order_id } = json.data;
+      setState(s => ({ ...s, order_id }));
+      const { redirectToPaysera } = await import('../lib/paysera');
+      redirectToPaysera(redirect_url);
+    } catch {
+      setPayError('Mokėjimo klaida. Bandykite dar kartą.');
+    } finally {
+      setPaying(false);
+    }
+  };
+
+  const handleMethodConfirm = () => {
+    if (!selectedMethod) return;
+    const method = PAYMENT_METHODS.find(m => m.id === selectedMethod);
+    if (!method) return;
+    if (method.provider === 'paysera') handlePayseraPayment(method.id);
+    else handlePayment(); // Stripe path for card, Apple Pay, Google Pay, PayPal
   };
 
   if (false) { // expired error now shown inline
@@ -1465,21 +1555,99 @@ function Screen2({
                   <p className="text-[14px] text-[#EF4444] mb-3 mt-2">{payError}</p>
                 )}
 
-                {/* Pay button — always at the bottom */}
-                <div className="mt-6">
-                  {clientSecret ? (
-                    <button onClick={handleStripeConfirm} disabled={paying || !stripeCardReady}
-                      className={`w-full py-3 rounded-lg text-[16px] font-semibold transition-all flex items-center justify-center gap-2 ${paying || !stripeCardReady ? 'bg-[#CBD5E1] text-white cursor-not-allowed' : 'bg-[#1E3A5F] text-white hover:bg-[#0D7377] cursor-pointer'}`}>
-                      {paying ? (<><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Apdorojamas mokėjimas...</>) : `Patvirtinti mokėjimą ${quote.final_price_eur} €`}
-                    </button>
-                  ) : (
-                    <button onClick={handlePayment} disabled={!canPay}
-                      className={`w-full py-3 rounded-lg text-[16px] font-semibold transition-all flex items-center justify-center gap-2 ${canPay ? 'bg-[#1E3A5F] text-white hover:bg-[#0D7377] cursor-pointer' : 'bg-[#CBD5E1] text-white cursor-not-allowed'}`}>
-                      {paying ? (<><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Ruošiamas mokėjimas...</>) : 'Mokėti ir gauti ataskaitą'}
-                    </button>
-                  )}
-                  <p className="text-[12px] text-[#94A3B8] text-center mt-3">Kortelės duomenys NTD sistemoje nesaugomi.</p>
-                </div>
+                {/* Duplicate purchase warning */}
+                {duplicateInfo && (
+                  <div className="mt-4 rounded-lg p-6" style={{ background: '#FEF3C7', border: '1px solid #F59E0B', animation: 'slideDown 0.3s ease' }}>
+                    <div className="flex items-start gap-3 mb-3">
+                      <span className="text-[24px]">⚠️</span>
+                      <p className="text-[16px] font-semibold" style={{ color: '#92400E' }}>
+                        Panašu, kad neseniai jau užsakėte ataskaitą šiam objektui.
+                      </p>
+                    </div>
+                    <p className="text-[15px] font-semibold text-[#1A1A2E] mb-1">{duplicateInfo.address}</p>
+                    <p className="text-[14px] mb-4" style={{ color: '#92400E' }}>
+                      Užsakyta: {new Date(duplicateInfo.paid_at).toLocaleDateString('lt-LT')}, {new Date(duplicateInfo.paid_at).toLocaleTimeString('lt-LT', { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                    {resendDone ? (
+                      <p className="text-[15px] font-medium text-[#059669]">✓ Ataskaita išsiųsta iš naujo</p>
+                    ) : (
+                      <div className="flex gap-3">
+                        <button
+                          onClick={async () => {
+                            try {
+                              await fetch(`${API_BASE}/v1/quickscan-lite/resend-report`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ order_id: duplicateInfo.order_id }),
+                              });
+                            } catch { /* silent */ }
+                            setResendDone(true);
+                          }}
+                          className="flex-1 py-2.5 rounded-lg border text-[14px] font-medium transition-colors"
+                          style={{ borderColor: '#F59E0B', color: '#D97706' }}
+                        >
+                          Persiųsti paskutinę ataskaitą
+                        </button>
+                        <button
+                          onClick={() => {
+                            setDuplicateInfo(null);
+                            // Re-trigger payment with force flag
+                            handlePayment();
+                          }}
+                          className="flex-1 py-2.5 rounded-lg bg-[#1E3A5F] text-white text-[14px] font-medium hover:bg-[#0D7377] transition-colors"
+                        >
+                          Vis tiek užsakyti iš naujo
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Payment flow — hidden when duplicate warning shown */}
+                {!duplicateInfo && (
+                  <div className="mt-6">
+                    {clientSecret ? (
+                      /* Stripe card input mounted — show confirm button */
+                      <button onClick={handleStripeConfirm} disabled={paying || !stripeCardReady}
+                        className={`w-full py-3 rounded-lg text-[16px] font-semibold transition-all flex items-center justify-center gap-2 ${paying || !stripeCardReady ? 'bg-[#CBD5E1] text-white cursor-not-allowed' : 'bg-[#1E3A5F] text-white hover:bg-[#0D7377] cursor-pointer'}`}>
+                        {paying ? (<><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Apdorojamas mokėjimas...</>) : `Patvirtinti mokėjimą ${quote.final_price_eur} €`}
+                      </button>
+                    ) : showMethodSelector ? (
+                      /* Flat payment method grid */
+                      <div style={{ animation: 'slideDown 0.3s ease' }}>
+                        <p className="text-[15px] font-medium text-[#1A1A2E] mb-3">Pasirinkite mokėjimo būdą:</p>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 mb-4">
+                          {PAYMENT_METHODS.map(m => (
+                            <div
+                              key={m.id}
+                              onClick={() => setSelectedMethod(m.id)}
+                              className={`flex items-center justify-center min-h-[56px] px-2 py-3.5 rounded-lg border-2 cursor-pointer transition-all ${selectedMethod === m.id ? 'border-[#0D7377] bg-[#E8F4F8] shadow-[0_0_0_1px_#0D7377]' : 'border-[#E2E8F0] bg-white hover:border-[#0D7377] hover:bg-[#FAFBFC] hover:-translate-y-px hover:shadow-[0_2px_6px_rgba(0,0,0,0.06)]'}`}
+                            >
+                              <img
+                                src={m.logo}
+                                alt={m.label}
+                                className="max-h-7 max-w-[80px] object-contain"
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden'); }}
+                              />
+                              <span className="hidden text-[14px] font-medium text-[#1A1A2E]">{m.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <button onClick={handleMethodConfirm} disabled={!selectedMethod || paying}
+                          className={`w-full py-3 rounded-lg text-[16px] font-semibold transition-all flex items-center justify-center gap-2 ${selectedMethod && !paying ? 'bg-[#1E3A5F] text-white hover:bg-[#0D7377] cursor-pointer' : 'bg-[#CBD5E1] text-white cursor-not-allowed'}`}>
+                          {paying ? (<><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Ruošiamas mokėjimas...</>) : `Patvirtinti mokėjimą ${quote.final_price_eur} €`}
+                        </button>
+                      </div>
+                    ) : (
+                      /* Initial pay button — opens method selector */
+                      <button onClick={() => { if (canPay) setShowMethodSelector(true); }} disabled={!canPay}
+                        className={`w-full py-3 rounded-lg text-[16px] font-semibold transition-all flex items-center justify-center gap-2 ${canPay ? 'bg-[#1E3A5F] text-white hover:bg-[#0D7377] cursor-pointer' : 'bg-[#CBD5E1] text-white cursor-not-allowed'}`}>
+                        Mokėti ir gauti ataskaitą
+                      </button>
+                    )}
+                    <p className="text-[12px] text-[#94A3B8] text-center mt-3">Kortelės duomenys NTD sistemoje nesaugomi.</p>
+                  </div>
+                )}
               </div>
             </div>
           </>
