@@ -37,7 +37,7 @@ export interface QuoteData {
 }
 
 export interface QuickScanState {
-  step: 1 | 2 | 'success' | 'resolver-loading' | 'resolver-failure' | 'resolver-nomatch';
+  step: 1 | 2 | 'success' | 'resolver-loading' | 'resolver-failure' | 'resolver-nomatch' | 'resolver-chooser';
   case_type: CaseType | null;
   ntr_unique_number: string | null;
   address_text: string | null;
@@ -91,6 +91,8 @@ const initialState = (): QuickScanState => {
   let resolver_result: ResolveResponse | null = null;
   let email = '';
   let payment_complete = false;
+  let consent_accepted = false;
+  let quote: QuickScanState['quote'] = null;
 
   if (typeof window !== 'undefined') {
     const params = new URLSearchParams(window.location.search);
@@ -105,6 +107,21 @@ const initialState = (): QuickScanState => {
       resolver_result = DEV_MOCK_RESOLVER;
       if (!case_type) case_type = 'existing_object';
     }
+    // Dev bypass: ?step=2-payment forces Screen 2 with card input visible
+    if (stepParam === '2-payment') {
+      step = 2;
+      resolver_result = DEV_MOCK_RESOLVER;
+      if (!case_type) case_type = 'existing_object';
+      email = 'vardas@pastas.lt';
+      consent_accepted = true;
+      quote = {
+        quote_id: 'dev-quote-001', bundle_id: 'dev-mock-001',
+        base_price_eur: 49, final_price_eur: 39, discount_amount_eur: 10,
+        pricing_label: 'Beta kaina', pricing_version: 'v1', currency: 'EUR',
+        special_discount_applied: true, ui_explanation_block: [],
+        expires_at: '2099-12-31T23:59:59Z', has_active_discount: true, discount_context: null,
+      };
+    }
     // Dev bypass: ?step=success forces success screen with mock data
     if (stepParam === 'success') {
       step = 'success';
@@ -118,6 +135,20 @@ const initialState = (): QuickScanState => {
       step = stepParam;
       if (!case_type) case_type = 'existing_object';
     }
+    // Dev bypass: ?step=resolver-chooser shows chooser with 3 mock candidates
+    if (stepParam === 'resolver-chooser') {
+      step = 'resolver-chooser';
+      if (!case_type) case_type = 'existing_object';
+      resolver_result = {
+        status: 'ambiguous',
+        candidates: [
+          { candidate_id: 'cand-001', address: 'Vilnius, Žirmūnų g. 12', ntr_unique_number: '4400-1234-5678', municipality: 'Vilniaus m. sav.', kind: 'whole_building', confidence: 'high', primary_object: { purpose: 'Gyvenamoji', area_m2: 120, year_built: 1985 }, bundle_items: [{ kind: 'garage' }, { kind: 'shed' }], bundle_confidence: 'HIGH' },
+          { candidate_id: 'cand-002', address: 'Vilnius, Minties g. 3', ntr_unique_number: '4400-2345-6789', municipality: 'Vilniaus m. sav.', kind: 'unit_in_building', confidence: 'medium', primary_object: { purpose: 'Gyvenamoji', area_m2: 68, year_built: 2005 }, bundle_items: [], bundle_confidence: 'HIGH' },
+          { candidate_id: 'cand-003', address: 'Vilnius, Žirmūnų g. 8', ntr_unique_number: '4400-3456-7890', municipality: 'Vilniaus m. sav.', kind: 'whole_building', confidence: 'medium', primary_object: { purpose: 'Gyvenamoji', area_m2: 95, year_built: 1972 }, bundle_items: [{ kind: 'garage' }], bundle_confidence: 'HIGH' },
+        ],
+        message_lt: null,
+      };
+    }
   }
   return {
   step,
@@ -130,9 +161,9 @@ const initialState = (): QuickScanState => {
   resolver_result,
   selected_candidate_id: resolver_result ? resolver_result.candidates[0]?.candidate_id ?? null : null,
   user_epc: null,
-  quote: null,
+  quote,
   email,
-  consent_accepted: false,
+  consent_accepted,
   invoice_requested: false,
   invoice_name: '',
   invoice_is_company: false,
@@ -174,6 +205,7 @@ export default function QuickScanFlow() {
       {state.step === 'resolver-loading' && <ResolverLoading />}
       {state.step === 'resolver-failure' && <ResolverFailure setState={setState} />}
       {state.step === 'resolver-nomatch' && <ResolverNoMatch setState={setState} />}
+      {state.step === 'resolver-chooser' && <ResolverChooser state={state} setState={setState} />}
     </div>
   );
 }
@@ -918,15 +950,20 @@ function Screen2({
   state: QuickScanState;
   setState: React.Dispatch<React.SetStateAction<QuickScanState>>;
 }) {
-  const [objectConfirmed, setObjectConfirmed] = useState(false);
+  // Dev: detect ?step=2-payment for pre-filled payment state
+  const isDevPayment = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('step') === '2-payment';
+
+  const [objectConfirmed, setObjectConfirmed] = useState(isDevPayment);
   const [quoting, setQuoting] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
   const [emailTouched, setEmailTouched] = useState(false);
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(isDevPayment ? 'pi_dev_mock_secret' : null);
+  const [stripeCardReady, setStripeCardReady] = useState(false);
   const stripeRef = useRef<any>(null);
-  const cardElementRef = useRef<any>(null);
+  const elementsRef = useRef<any>(null);
+  const cardMountRef = useRef<HTMLDivElement>(null);
   const invoiceSectionRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll when invoice fields expand — ensure all fields visible above marquee
@@ -949,28 +986,6 @@ function Screen2({
   const resolver = state.resolver_result;
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email);
   const canPay = objectConfirmed && state.quote && emailValid && state.consent_accepted && !paying;
-
-  // Mount Stripe card when clientSecret is set (non-stub path)
-  useEffect(() => {
-    if (!clientSecret) return;
-    const pubKey = import.meta.env.PUBLIC_STRIPE_PUBLISHABLE_KEY;
-    if (!pubKey) return;
-    const mountCard = () => {
-      const stripe = (window as any).Stripe(pubKey);
-      stripeRef.current = stripe;
-      const elements = stripe.elements();
-      const card = elements.create('card');
-      card.mount('#stripe-card-element');
-      cardElementRef.current = card;
-    };
-    if ((window as any).Stripe) { mountCard(); }
-    else {
-      const script = document.createElement('script');
-      script.src = 'https://js.stripe.com/v3/';
-      script.onload = mountCard;
-      document.head.appendChild(script);
-    }
-  }, [clientSecret]);
 
   if (!resolver) return null;
 
@@ -1111,23 +1126,91 @@ function Screen2({
           quote_id: state.quote.quote_id,
           customer_email: state.email,
           invoice_requested: state.invoice_requested,
+          consent_flags: {
+            terms_accepted: true,
+            privacy_accepted: true,
+            marketing_consent: false,
+            timestamp: new Date().toISOString(),
+          },
           bundle_signature: state.selected_candidate_id ?? state.quote.bundle_id ?? '',
         }),
       });
       const json = await r.json();
       if (!json.ok) {
-        if (json.error_code === 'quote_expired') { setPayError('expired'); }
-        else { setPayError('Mokėjimo klaida. Bandykite dar kartą.'); }
+        if (json.error_code === 'quote_expired') {
+          setPayError('Kainos galiojimas baigėsi. Prašome grįžti ir patvirtinti objektą iš naujo.');
+        } else {
+          setPayError('Mokėjimo klaida. Bandykite dar kartą.');
+        }
         return;
       }
       const { client_secret, order_id } = json.data;
-      const pubKey = import.meta.env.PUBLIC_STRIPE_PUBLISHABLE_KEY;
-      if (client_secret.startsWith('pi_stub') || client_secret === 'stub' || !pubKey) {
+      setState(s => ({ ...s, order_id }));
+
+      // Stub mode — skip Stripe, go to success
+      if (client_secret.startsWith('pi_stub') || client_secret === 'stub') {
+        await new Promise(r => setTimeout(r, 500));
         setState(s => ({ ...s, order_id, payment_complete: true, step: 'success' as const }));
         return;
       }
-      setState(s => ({ ...s, order_id }));
+
+      // Load Stripe lazily
+      const { getStripe } = await import('../lib/stripe');
+      const stripe = await getStripe();
+      if (!stripe) {
+        // No publishable key — stub mode fallback
+        await new Promise(r => setTimeout(r, 500));
+        setState(s => ({ ...s, order_id, payment_complete: true, step: 'success' as const }));
+        return;
+      }
+
+      stripeRef.current = stripe;
       setClientSecret(client_secret);
+
+      // Mount Payment Element after state update
+      requestAnimationFrame(() => {
+        const elements = stripe.elements({
+          clientSecret: client_secret,
+          appearance: {
+            theme: 'stripe' as const,
+            variables: {
+              colorPrimary: '#1E3A5F',
+              colorBackground: '#FFFFFF',
+              colorText: '#1A1A2E',
+              colorDanger: '#EF4444',
+              fontFamily: 'Inter, system-ui, sans-serif',
+              borderRadius: '8px',
+              fontSizeBase: '16px',
+            },
+            rules: {
+              '.Input': { border: '1px solid #E2E8F0', padding: '12px 16px', boxShadow: 'none' },
+              '.Input:focus': { border: '1px solid #0D7377', boxShadow: '0 0 0 1px #0D7377' },
+              '.Label': { fontWeight: '500', marginBottom: '6px' },
+            },
+          },
+          locale: 'lt',
+        });
+        elementsRef.current = elements;
+
+        const paymentElement = elements.create('payment', { layout: 'tabs' });
+        if (cardMountRef.current) {
+          paymentElement.mount(cardMountRef.current);
+        }
+
+        paymentElement.on('change', (event: any) => {
+          setStripeCardReady(event.complete);
+          if (event.error) {
+            setPayError(event.error.message);
+          } else {
+            setPayError(null);
+          }
+        });
+
+        // Auto-scroll to show card input
+        setTimeout(() => {
+          cardMountRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 400);
+      });
     } catch {
       setPayError('Mokėjimo klaida. Bandykite dar kartą.');
     } finally {
@@ -1136,19 +1219,30 @@ function Screen2({
   };
 
   const handleStripeConfirm = async () => {
-    if (!stripeRef.current || !cardElementRef.current || !clientSecret) return;
+    if (!stripeRef.current || !elementsRef.current || !clientSecret) return;
     setPaying(true);
     setPayError(null);
     try {
-      const result = await stripeRef.current.confirmCardPayment(clientSecret, {
-        payment_method: { card: cardElementRef.current },
+      const { error, paymentIntent } = await stripeRef.current.confirmPayment({
+        elements: elementsRef.current,
+        confirmParams: {},
+        redirect: 'if_required',
       });
-      if (result.error) { setPayError(result.error.message); }
-      else if (result.paymentIntent?.status === 'succeeded') { setState(s => ({ ...s, payment_complete: true, step: 'success' as const })); }
-    } finally { setPaying(false); }
+      if (error) {
+        if (error.type === 'card_error' || error.type === 'validation_error') {
+          setPayError(error.message);
+        } else {
+          setPayError('Mokėjimo klaida. Bandykite dar kartą.');
+        }
+      } else if (paymentIntent?.status === 'succeeded') {
+        setState(s => ({ ...s, payment_complete: true, step: 'success' as const }));
+      }
+    } finally {
+      setPaying(false);
+    }
   };
 
-  if (payError === 'expired') {
+  if (false) { // expired error now shown inline
     return (
       <div className="max-w-2xl">
         <p className="text-sm text-[#64748B] mb-4">Jūsų užklausa pasibaigė. Grįžkite ir pradėkite iš naujo.</p>
@@ -1340,32 +1434,51 @@ function Screen2({
                   </div>
                 )}
 
-                {/* Stripe card input (appears on button click) */}
+                {/* Stripe Payment Element (slides in after /payment-intent) */}
                 {clientSecret && (
-                  <div className="mt-4 pt-4 border-t border-[#F1F5F9] mb-4">
-                    <p className="text-[14px] font-medium text-[#1E3A5F] mb-3">Kortelės duomenys</p>
-                    <div id="stripe-card-element" className="py-2 px-3 border border-[#E2E8F0] rounded-lg" />
-                    {payError && <p className="text-[14px] text-[#EF4444] mt-2">{payError}</p>}
+                  <div className="mt-4 pt-4 border-t border-[#F1F5F9] mb-4" style={{ animation: 'slideDown 0.3s ease' }}>
+                    {clientSecret === 'pi_dev_mock_secret' ? (
+                      /* Dev mock: visual representation of Stripe card input */
+                      <div className="rounded-lg bg-[#FAFBFC] border border-[#E2E8F0] p-4">
+                        <p className="text-[13px] font-medium text-[#1E3A5F] mb-3">Kortelės duomenys</p>
+                        <div className="flex gap-3">
+                          <div className="flex-1">
+                            <div className="px-4 py-3 rounded-lg border border-[#E2E8F0] bg-white text-[16px] text-[#94A3B8]">4242 4242 4242 4242</div>
+                          </div>
+                          <div className="w-24">
+                            <div className="px-4 py-3 rounded-lg border border-[#E2E8F0] bg-white text-[16px] text-[#94A3B8]">12/28</div>
+                          </div>
+                          <div className="w-20">
+                            <div className="px-4 py-3 rounded-lg border border-[#E2E8F0] bg-white text-[16px] text-[#94A3B8]">123</div>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-[#E8A040] italic mt-2">⚙️ Dev mock — tikras Stripe Elements bus rodomas su pk_test_ raktu</p>
+                      </div>
+                    ) : (
+                      <div ref={cardMountRef} className="py-2 px-1 rounded-lg bg-[#FAFBFC] border border-[#E2E8F0] p-4" />
+                    )}
                   </div>
                 )}
 
-                {payError && payError !== 'expired' && !clientSecret && (
+                {/* Payment errors */}
+                {payError && (
                   <p className="text-[14px] text-[#EF4444] mb-3 mt-2">{payError}</p>
                 )}
 
                 {/* Pay button — always at the bottom */}
                 <div className="mt-6">
                   {clientSecret ? (
-                    <button onClick={handleStripeConfirm} disabled={paying}
-                      className={`w-full py-3 rounded-lg text-[16px] font-semibold transition-all flex items-center justify-center gap-2 ${paying ? 'bg-[#CBD5E1] text-white cursor-not-allowed' : 'bg-[#1E3A5F] text-white hover:bg-[#0D7377] cursor-pointer'}`}>
-                      {paying ? (<><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Kraunama…</>) : `Patvirtinti mokėjimą ${quote.final_price_eur} €`}
+                    <button onClick={handleStripeConfirm} disabled={paying || !stripeCardReady}
+                      className={`w-full py-3 rounded-lg text-[16px] font-semibold transition-all flex items-center justify-center gap-2 ${paying || !stripeCardReady ? 'bg-[#CBD5E1] text-white cursor-not-allowed' : 'bg-[#1E3A5F] text-white hover:bg-[#0D7377] cursor-pointer'}`}>
+                      {paying ? (<><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Apdorojamas mokėjimas...</>) : `Patvirtinti mokėjimą ${quote.final_price_eur} €`}
                     </button>
                   ) : (
                     <button onClick={handlePayment} disabled={!canPay}
                       className={`w-full py-3 rounded-lg text-[16px] font-semibold transition-all flex items-center justify-center gap-2 ${canPay ? 'bg-[#1E3A5F] text-white hover:bg-[#0D7377] cursor-pointer' : 'bg-[#CBD5E1] text-white cursor-not-allowed'}`}>
-                      {paying ? (<><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Kraunama…</>) : 'Mokėti ir gauti ataskaitą'}
+                      {paying ? (<><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Ruošiamas mokėjimas...</>) : 'Mokėti ir gauti ataskaitą'}
                     </button>
                   )}
+                  <p className="text-[12px] text-[#94A3B8] text-center mt-3">Kortelės duomenys NTD sistemoje nesaugomi.</p>
                 </div>
               </div>
             </div>
@@ -1559,6 +1672,152 @@ function ResolverNoMatch({ setState }: { setState: React.Dispatch<React.SetState
         >
           ← Grįžti
         </button>
+      </div>
+    </div>
+  );
+}
+
+const CONFIDENCE_BADGES: Record<string, { label: string; text: string; bg: string }> = {
+  high: { label: 'Aukštas', text: '#059669', bg: '#E8F8EE' },
+  medium: { label: 'Vidutinis', text: '#D97706', bg: '#FEF3C7' },
+  low: { label: 'Žemas', text: '#DC2626', bg: '#FEE2E2' },
+};
+
+const KIND_GROUPS: Record<string, string> = {
+  whole_building: 'Pastatai',
+  unit_in_building: 'Patalpos pastate',
+  land_plot: 'Žemės sklypai',
+};
+
+function ResolverChooser({
+  state,
+  setState,
+}: {
+  state: QuickScanState;
+  setState: React.Dispatch<React.SetStateAction<QuickScanState>>;
+}) {
+  const candidates = state.resolver_result?.candidates ?? [];
+  // Pre-select highest confidence
+  const highestConfidence = candidates.reduce((best, c) =>
+    (c.confidence === 'high' && best.confidence !== 'high') ? c : best, candidates[0]);
+  const [selectedId, setSelectedId] = useState(highestConfidence?.candidate_id ?? null);
+
+  // Group candidates by kind
+  const groups: Record<string, typeof candidates> = {};
+  for (const c of candidates) {
+    const key = c.kind;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(c);
+  }
+
+  const handleContinue = () => {
+    if (!selectedId) return;
+    setState(s => ({
+      ...s,
+      selected_candidate_id: selectedId,
+      resolver_result: s.resolver_result ? { ...s.resolver_result, status: 'resolved' as const } : null,
+      step: 2,
+    }));
+  };
+
+  return (
+    <div style={{ maxWidth: 1100, margin: '80px auto 0', padding: '0 32px' }}>
+      <h2 className="text-[24px] font-semibold text-[#1A1A2E] mb-1">Pasirinkite tikslų objektą</h2>
+      <p className="text-[15px] text-[#64748B] mb-6">Radome kelis galimus atitikmenis. Pasirinkite vieną.</p>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Left: Map placeholder */}
+        <div className="rounded-xl border border-[#E2E8F0] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-6 flex flex-col">
+          <div className="flex-1 rounded-lg bg-[#F0F4F8] flex items-center justify-center min-h-[300px] relative">
+            {/* Pin placeholders */}
+            {candidates.map((c, i) => (
+              <div key={c.candidate_id}
+                className={`absolute w-7 h-7 rounded-full flex items-center justify-center text-white text-[12px] font-semibold cursor-pointer transition-all ${selectedId === c.candidate_id ? 'bg-[#0D7377] scale-110 shadow-lg' : 'bg-[#1E3A5F]'}`}
+                style={{ top: `${30 + i * 25}%`, left: `${25 + i * 20}%` }}
+                onClick={() => setSelectedId(c.candidate_id)}
+              >
+                {i + 1}
+              </div>
+            ))}
+            <p className="text-[13px] text-[#94A3B8] absolute bottom-3 left-0 right-0 text-center">Žemėlapis bus rodomas su aktyviu API raktu</p>
+          </div>
+          <div className="flex gap-3 mt-4">
+            <button
+              onClick={() => setState(s => ({ ...s, step: 1 }))}
+              className="px-5 py-2.5 rounded-lg border border-[#E2E8F0] text-[14px] text-[#64748B] hover:border-[#1E3A5F] transition-all"
+            >
+              Atgal
+            </button>
+          </div>
+        </div>
+
+        {/* Right: Candidate list */}
+        <div className="rounded-xl border border-[#E2E8F0] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-6 flex flex-col">
+          <h3 className="text-[18px] font-semibold text-[#1A1A2E] mb-4">Galimi atitikmenys</h3>
+
+          <div className="flex-1 flex flex-col gap-2">
+            {(['whole_building', 'unit_in_building', 'land_plot'] as const).map(kind => {
+              const group = groups[kind];
+              if (!group || group.length === 0) return null;
+              return (
+                <div key={kind}>
+                  <p className="text-[13px] uppercase tracking-[0.05em] text-[#94A3B8] mb-2">{KIND_GROUPS[kind]}</p>
+                  {group.map((c, i) => {
+                    const globalIdx = candidates.indexOf(c);
+                    // confidence badges hidden from customer (kept for internal use)
+                    const isSelected = selectedId === c.candidate_id;
+                    const po = c.primary_object as any;
+                    return (
+                      <div
+                        key={c.candidate_id}
+                        onClick={() => setSelectedId(c.candidate_id)}
+                        className={`flex items-start gap-3 p-4 rounded-lg border cursor-pointer transition-all mb-2 ${isSelected ? 'border-[#0D7377] bg-[#E8F4F8] shadow-[0_0_0_1px_#0D7377]' : 'border-[#E2E8F0] hover:border-[#0D7377] hover:bg-[#FAFBFC]'}`}
+                      >
+                        {/* Radio */}
+                        <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center ${isSelected ? 'border-[#0D7377]' : 'border-[#CBD5E1]'}`}>
+                          {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#0D7377]" />}
+                        </div>
+                        {/* Pin number */}
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-[11px] font-semibold flex-shrink-0 ${isSelected ? 'bg-[#0D7377]' : 'bg-[#1E3A5F]'}`}>
+                          {globalIdx + 1}
+                        </div>
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[15px] font-semibold text-[#1A1A2E]">{c.address}</span>
+                          </div>
+                          {c.ntr_unique_number && (
+                            <p className="text-[13px] text-[#64748B]">Unikalus Nr.: {c.ntr_unique_number}</p>
+                          )}
+                          {po && (
+                            <p className="text-[13px] text-[#94A3B8]">
+                              {[po.purpose, po.area_m2 && `${po.area_m2} m²`, po.year_built].filter(Boolean).join(' · ')}
+                            </p>
+                          )}
+                          {c.bundle_items.length > 0 && (
+                            <p className="text-[13px] text-[#64748B] mt-1">Komplekte: {c.bundle_items.map((b: any) => b.kind === 'garage' ? 'garažas' : b.kind === 'shed' ? 'sandėliukas' : b.kind).join(', ')}</p>
+                          )}
+                        </div>
+                        {/* Checkmark */}
+                        {isSelected && (
+                          <span className="text-[#0D7377] text-[16px] flex-shrink-0 mt-0.5">✓</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={handleContinue}
+            disabled={!selectedId}
+            className={`mt-4 w-full py-3 rounded-lg text-[16px] font-semibold transition-all ${selectedId ? 'bg-[#1E3A5F] text-white hover:bg-[#0D7377] cursor-pointer' : 'bg-[#CBD5E1] text-white cursor-not-allowed'}`}
+          >
+            Tęsti
+          </button>
+        </div>
       </div>
     </div>
   );
