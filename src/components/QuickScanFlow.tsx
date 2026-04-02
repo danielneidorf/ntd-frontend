@@ -114,12 +114,18 @@ const initialState = (): QuickScanState => {
       if (!case_type) case_type = 'existing_object';
       email = 'vardas@pastas.lt';
       consent_accepted = true;
+      const hasDiscount = params.get('discount') === 'true';
       quote = {
         quote_id: 'dev-quote-001', bundle_id: 'dev-mock-001',
-        base_price_eur: 49, final_price_eur: 39, discount_amount_eur: 10,
-        pricing_label: 'Beta kaina', pricing_version: 'v1', currency: 'EUR',
-        special_discount_applied: true, ui_explanation_block: [],
-        expires_at: '2099-12-31T23:59:59Z', has_active_discount: true, discount_context: null,
+        base_price_eur: hasDiscount ? 49 : 39,
+        final_price_eur: 39,
+        discount_amount_eur: hasDiscount ? 10 : 0,
+        pricing_label: 'Standartinis', pricing_version: 'v1', currency: 'EUR',
+        special_discount_applied: hasDiscount,
+        ui_explanation_block: hasDiscount
+          ? ['Kaina apskaičiuota pagal registrų duomenis ir vertinimo apimtį.', 'Šiuo metu jums taikoma speciali nuolaida.']
+          : [],
+        expires_at: '2099-12-31T23:59:59Z', has_active_discount: hasDiscount, discount_context: null,
       };
     }
     // Dev bypass: ?step=duplicate shows Screen 2 with duplicate warning
@@ -1443,8 +1449,24 @@ function Screen2({
             <div className="grid grid-cols-[auto_1fr] gap-8">
               {/* Left — Price (fixed) */}
               <div className="flex flex-col items-start pt-1">
-                <span className="text-[32px] font-semibold text-[#1E3A5F]">{quote.final_price_eur} €</span>
-                <span className="text-[14px] text-[#64748B]">/ objektas</span>
+                {quote.special_discount_applied && quote.base_price_eur > quote.final_price_eur ? (
+                  <>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[20px] font-medium text-[#94A3B8] line-through">{quote.base_price_eur} €</span>
+                      <span className="text-[32px] font-semibold text-[#1E3A5F]">{quote.final_price_eur} €</span>
+                      <span className="text-[12px] font-semibold text-[#059669] bg-[#E8F8EE] px-2 py-0.5 rounded">✓ Nuolaida pritaikyta</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[14px] text-[#64748B]">/ objektas</span>
+                      <span className="text-[14px] font-medium text-[#059669]">-{quote.discount_amount_eur} €</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-[32px] font-semibold text-[#1E3A5F]">{quote.final_price_eur} €</span>
+                    <span className="text-[14px] text-[#64748B]">/ objektas</span>
+                  </>
+                )}
               </div>
 
               {/* Right — vertical flow */}

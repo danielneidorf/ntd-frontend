@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "/Users/vilmantas/.nvm/versions/node/v22.22.0/bin/node",
+      "runtimeArgs": ["/Users/vilmantas/dev/ntd/node_modules/astro/astro.js", "dev", "--port", "4321"],
+      "port": 4321
+    }
+  ]
+}

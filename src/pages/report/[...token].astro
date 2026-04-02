@@ -1,0 +1,29 @@
+---
+// P7-A1: Interactive report page route
+// Rest parameter [...token] with catch-all fallback — token is read client-side
+// In production, Nginx must rewrite /report/* to /report/index.html
+import '../../styles/global.css';
+import ReportViewer from '../../components/ReportViewer';
+
+export function getStaticPaths() {
+  return [
+    { params: { token: undefined } },        // /report/ fallback
+    { params: { token: 'dev-existing' } },    // dev mock: full report
+    { params: { token: 'dev-land' } },        // dev mock: land-only
+  ];
+}
+---
+<html lang="lt">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>NTD Ataskaita</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body class="bg-[#FAFBFC] min-h-screen font-['Inter',sans-serif] antialiased m-0 p-0">
+  <ReportViewer client:load />
+</body>
+</html>
