@@ -289,3 +289,21 @@ export const DEV_MOCKS: Record<string, ReportData> = {
   'dev-existing': MOCK_EXISTING,
   'dev-land': MOCK_LAND_ONLY,
 };
+
+// Mock permits for dev mode (P7-A8)
+export const DEV_MOCK_PERMITS: Record<string, any[]> = {
+  'dev-existing': [
+    {
+      project_name: 'Daugiabučio namo renovacija',
+      construction_type: 'Statinio kapitalinis remontas',
+      building_name: 'Daugiabutis gyvenamasis namas',
+      document_type: 'Statybą leidžiantis dokumentas',
+      document_status: 'Galiojantis',
+      document_date: '2021-06-15',
+      ntr_number: '4400-1234-5678',
+      address: 'Vilnius, Žirmūnų g. 12',
+      purpose: 'Gyvenamoji (daugiabučiai pastatai)',
+    },
+  ],
+  'dev-land': [],
+};

@@ -5,6 +5,15 @@ import PropertyProfile from './report/PropertyProfile';
 import Citations from './report/Citations';
 import AdditionalDocuments from './report/AdditionalDocuments';
 import PropertyMap from './report/PropertyMap';
+import ConstructionPermits, { type Permit } from './report/ConstructionPermits';
+import { DEV_MOCK_PERMITS } from './report/mockReportData';
+import PropertyPhoto from './report/PropertyPhoto';
+import ComfortBarComponent, {
+  WINTER_LEVELS,
+  SUMMER_LEVELS,
+  mapWinterLevel,
+  mapSummerLevel,
+} from './report/ComfortBar';
 
 const API_BASE = import.meta.env.PUBLIC_API_BASE ?? 'http://127.0.0.1:8100';
 
@@ -74,84 +83,34 @@ function PropertyIdentity({ data }: { data: ReportData }) {
   );
 }
 
-// ─── Inline band segments (winter/summer) ─────────────────────────
+// ─── EPC-style comfort bars (winter/summer) ──────────────────────
 
-function InlineBandSegments({
-  rows,
-  expandedBand,
-  onToggle,
-}: {
-  rows: { band: string; label_lt: string; description_lt: string; highlighted: boolean }[];
-  expandedBand: string | null;
-  onToggle: (band: string) => void;
-}) {
-  const highlighted = rows.find((r) => r.highlighted);
-  return (
-    <div>
-      {/* Horizontal segments on sm+, stacked on mobile */}
-      <div className="flex flex-col sm:flex-row gap-2">
-        {rows.map((row) => (
-          <button
-            key={row.band}
-            type="button"
-            onClick={() => row.highlighted && onToggle(row.band)}
-            className={`flex-1 rounded-lg px-3 py-2.5 text-left transition-shadow ${
-              row.highlighted
-                ? 'border-l-4 border-[#0D7377] bg-white shadow-sm cursor-pointer hover:shadow-md'
-                : 'border-l-4 border-transparent bg-white/60 opacity-50 cursor-default'
-            }`}
-          >
-            <div className="flex items-center gap-1.5">
-              {row.highlighted && <span className="text-[#0D7377] text-sm">&#10003;</span>}
-              <span
-                className={`text-sm ${
-                  row.highlighted ? 'font-semibold text-[#1E3A5F]' : 'text-slate-500'
-                }`}
-              >
-                {row.label_lt}
-              </span>
-            </div>
-          </button>
-        ))}
-      </div>
-      {/* Expanded description below the row */}
-      {highlighted && expandedBand === highlighted.band && (
-        <div className="mt-2 px-3 py-2 bg-white rounded-lg">
-          <p className="text-sm text-slate-600 leading-relaxed">{highlighted.description_lt}</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function WinterSummerSideBySide({
+function WinterSummerBars({
   winter,
   summer,
 }: {
   winter: NonNullable<ReportData['block1']['winter']>;
   summer: NonNullable<ReportData['block1']['summer']>;
 }) {
-  const winterHighlighted = winter.rows.find((r) => r.highlighted)?.band ?? null;
-  const summerHighlighted = summer.rows.find((r) => r.highlighted)?.band ?? null;
-  const [expandedWinter, setExpandedWinter] = useState<string | null>(winterHighlighted);
-  const [expandedSummer, setExpandedSummer] = useState<string | null>(summerHighlighted);
+  const winterActive = mapWinterLevel(winter.level);
+  const summerActive = mapSummerLevel(summer.risk_level);
+  const winterDesc = winter.rows.find((r) => r.highlighted)?.description_lt ?? '';
+  const summerDesc = summer.rows.find((r) => r.highlighted)?.description_lt ?? '';
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-      <div>
-        <h3 className="text-lg font-semibold text-[#1E3A5F] mb-3">Žiemos komfortas</h3>
-        <InlineBandSegments
-          rows={winter.rows}
-          expandedBand={expandedWinter}
-          onToggle={(b) => setExpandedWinter(expandedWinter === b ? null : b)}
+    <div className="bg-slate-50 rounded-xl p-5 md:p-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <ComfortBarComponent
+          title="Žiemos komfortas"
+          activeLevel={winterActive}
+          levels={WINTER_LEVELS}
+          description={winterDesc}
         />
-      </div>
-      <div>
-        <h3 className="text-lg font-semibold text-[#1E3A5F] mb-3">Vasaros perkaitimo rizika</h3>
-        <InlineBandSegments
-          rows={summer.rows}
-          expandedBand={expandedSummer}
-          onToggle={(b) => setExpandedSummer(expandedSummer === b ? null : b)}
+        <ComfortBarComponent
+          title="Vasaros perkaitimo rizika"
+          activeLevel={summerActive}
+          levels={SUMMER_LEVELS}
+          description={summerDesc}
         />
       </div>
     </div>
@@ -317,24 +276,37 @@ function ReportFooter({ data }: { data: ReportData }) {
 export default function ReportViewer() {
   const [state, setState] = useState<ViewState>('loading');
   const [data, setData] = useState<ReportData | null>(null);
+  const [permits, setPermits] = useState<Permit[]>([]);
+  const [permitsLoading, setPermitsLoading] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     const segments = window.location.pathname.split('/report/');
-    const token = segments[1]?.replace(/\/$/, '');
-    if (!token) {
+    const tkn = segments[1]?.replace(/\/$/, '');
+    if (!tkn) {
       setState('not_found');
       return;
     }
+    setToken(tkn);
 
     // Dev mock bypass
-    if (token in DEV_MOCKS) {
-      setData(DEV_MOCKS[token]);
+    if (tkn in DEV_MOCKS) {
+      setData(DEV_MOCKS[tkn]);
       setState('loaded');
+      // Load mock permits
+      const mockPermits = DEV_MOCK_PERMITS[tkn] ?? [];
+      if (mockPermits.length > 0) {
+        setPermitsLoading(true);
+        setTimeout(() => {
+          setPermits(mockPermits);
+          setPermitsLoading(false);
+        }, 500);
+      }
       return;
     }
 
     // Real API fetch
-    fetch(`${API_BASE}/v1/reports/${token}`)
+    fetch(`${API_BASE}/v1/reports/${tkn}`)
       .then((r) => {
         if (r.status === 404) {
           setState('not_found');
@@ -353,6 +325,32 @@ export default function ReportViewer() {
         setState('error');
       });
   }, []);
+
+  // Async enrichment: fetch permits after report data is loaded
+  useEffect(() => {
+    if (!data || data.property_profile.evaluation_target === 'Žemės sklypas') return;
+    // Skip for dev mocks (handled above)
+    const segments = window.location.pathname.split('/report/');
+    const token = segments[1]?.replace(/\/$/, '');
+    if (token && token in DEV_MOCKS) return;
+
+    const ntr = data.ntr_unique_number;
+    const addr = data.address;
+    if (!ntr && !addr) return;
+
+    setPermitsLoading(true);
+    const params = new URLSearchParams();
+    if (ntr) params.set('ntr', ntr);
+    else params.set('address', addr);
+
+    fetch(`${API_BASE}/v1/enrichment/infostatyba?${params}`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((json) => {
+        if (json?.permits) setPermits(json.permits);
+      })
+      .catch(() => {})
+      .finally(() => setPermitsLoading(false));
+  }, [data]);
 
   if (state === 'loading') {
     return (
@@ -409,6 +407,13 @@ export default function ReportViewer() {
     <div className="min-h-screen bg-[#FAFBFC]">
       <ReportHeader data={data} />
       <main className="max-w-[1100px] mx-auto px-6 py-8 space-y-6">
+        <PropertyPhoto
+          lat={data.lat}
+          lng={data.lng}
+          address={data.address}
+          devToken={token && token in DEV_MOCKS ? token : undefined}
+        />
+
         <PropertyIdentity data={data} />
 
         <PropertyProfile
@@ -440,7 +445,7 @@ export default function ReportViewer() {
           ) : (
             <>
               {block1.winter && block1.summer && (
-                <WinterSummerSideBySide winter={block1.winter} summer={block1.summer} />
+                <WinterSummerBars winter={block1.winter} summer={block1.summer} />
               )}
               {block1.summary_lt && <SummarySection summary={block1.summary_lt} />}
               <DriversSection drivers={block1.drivers} />
@@ -449,6 +454,7 @@ export default function ReportViewer() {
           )}
         </div>
 
+        <ConstructionPermits permits={permits} loading={permitsLoading} />
         <AdditionalDocuments />
         <LockedBlocksPreview />
         <Citations
