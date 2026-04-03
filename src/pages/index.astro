@@ -9,6 +9,8 @@ import AddressLookup from '../components/AddressLookup.astro';
 import Pricing from '../components/Pricing.astro';
 import Sources from '../components/Sources.astro';
 import Footer from '../components/Footer.astro';
+import AIGuide from '../components/guide/AIGuide';
+import { landingTour } from '../components/guide/tours/landingTour';
 ---
 <BaseLayout title="NT Duomenys — Nekilnojamojo turto duomenys">
   <Header />
@@ -189,6 +191,7 @@ import Footer from '../components/Footer.astro';
     <Sources showPropertyTypes={true} />
   </main>
   <Footer />
+  <AIGuide client:load tourSteps={landingTour} />
 </BaseLayout>
 
 <script>
