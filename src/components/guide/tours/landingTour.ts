@@ -1,4 +1,4 @@
-// P7-B1: Landing page tour — 7 steps with hardcoded Lithuanian narrations
+// P7-B1.3: Landing page tour — 6 steps, observational tone
 import type { TourStep } from '../types';
 
 export const landingTour: TourStep[] = [
@@ -6,49 +6,42 @@ export const landingTour: TourStep[] = [
     id: 'hero',
     selector: '[data-guide="hero"]',
     narration:
-      'Sveiki! Aš jūsų NT Duomenų asistentas. Padėsiu suprasti, ką šis įrankis gali pasakyti apie jūsų būstą. Spauskite „Toliau" ir apžvelgsime kartu.',
+      'Sveiki! Padėsiu apžvelgti svetainę. Čia matote pagrindinį puslapį — trumpai, NT Duomenys padeda sužinoti apie nekilnojamąjį turtą tai, ko skelbime nematysite. O dešinėje — dešimtys situacijų, kurioms ataskaita praverčia. Eime toliau?',
     animation: 'pulse',
-  },
-  {
-    id: 'situation-cards',
-    selector: '[data-guide="situation-cards"]',
-    narration:
-      'Pirmiausia — kokia jūsų situacija? Perkate, nuomojate, renovuojate, ar tiesiog domitės? Pasirinkite, ir pradėsime.',
-    animation: 'sequence',
   },
   {
     id: 'data-categories',
     selector: '[data-guide="data-categories"]',
     narration:
-      'NTD analizuoja 5 sritis: šiluminį komfortą, triukšmą, energijos sąnaudas, teisines rizikas ir vietos kontekstą. Kiekviena sritis — atskiras ataskaitos blokas.',
+      'Ataskaitoje rasite šias dalis. Visa tai — vienoje vietoje, iš oficialių šaltinių. Dauguma šios informacijos kitur kainuoja šimtus eurų ir trunka savaites.',
     animation: 'sequence',
   },
   {
     id: 'how-it-works',
     selector: '[data-guide="how-it-works"]',
     narration:
-      'Procesas paprastas: nurodote objektą, apmokate, ir gaunate ataskaitą el. paštu. Viskas užtrunka kelias minutes.',
+      'Palyginkite: nepriklausomo vertintojo vizitas kainuoja 150–300\u00a0€, o čia gaunate panašų informacijos kiekį per mažiau nei valandą.',
     animation: 'pulse',
   },
   {
-    id: 'sources',
-    selector: '[data-guide="sources"]',
+    id: 'property-types',
+    selector: '[data-guide="property-types"]',
     narration:
-      'Duomenys gaunami iš oficialių Lietuvos registrų — Nekilnojamojo turto registro, Kadastro, PENS ir kitų šaltinių. Jokių spėliojimų.',
+      'Matote, kiek skirtingų objektų tipų galima patikrinti. Nesvarbu, koks turtas — kiekvienas vertinamas vienodai nuodugniai.',
     animation: 'pulse',
   },
   {
     id: 'pricing',
     selector: '[data-guide="pricing"]',
     narration:
-      'Viena ataskaita kainuoja 39 €. Tai vienkartinis mokėjimas — jokių prenumeratų ar paslėptų mokesčių.',
+      'Kaina — nuo 39\u00a0€, priklauso nuo objekto sudėtingumo. Vienkartinis mokėjimas, jokių prenumeratų ar paslėptų mokesčių.',
     animation: 'ring',
   },
   {
     id: 'cta',
     selector: '[data-guide="situation-cards"]',
     narration:
-      'Pasiruošę? Pasirinkite savo situaciją viršuje ir pradėkime! Arba galite uždaryti gidą ir naršyti savarankiškai.',
+      'Procesas paprastas — trys žingsniai: nurodote adresą, apmokate, ir ataskaitą gaunate iškart. Pasirinkite savo situaciją ir pradėkime! O jei norite naršyti patys — tiesiog uždarykite gidą.',
     animation: 'pulse',
   },
 ];

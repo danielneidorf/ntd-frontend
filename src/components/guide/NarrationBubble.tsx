@@ -1,8 +1,19 @@
-// P7-B1: Narration bubble — step content + navigation, smart positioning
-import { useEffect, useState, useRef } from 'react';
+// P7-B1.4 / P7-B1.5: Narration as speech bubble — per-step positioning
 import type { TourStep } from './types';
 
-const MARGIN = 16;
+// Avatar geometry (must match AIGuideToggle.tsx positioning):
+//   fixed bottom-24 right-12 → 96px bottom, 48px right
+//   RiveAvatar: 128×128px
+//   Gap between bubble and avatar: 12px
+const AVATAR_BOTTOM = 96;
+const AVATAR_SIZE = 128;
+const AVATAR_RIGHT = 48;
+const GAP = 12;
+
+// Default (steps 2+): bubble above the avatar
+const BUBBLE_BOTTOM_ABOVE = AVATAR_BOTTOM + AVATAR_SIZE + GAP; // 236
+// Step 1: bubble to the left of the avatar (same vertical level)
+const BUBBLE_RIGHT_LEFT = AVATAR_RIGHT + AVATAR_SIZE + GAP; // 188
 
 export default function NarrationBubble({
   step,
@@ -19,65 +30,65 @@ export default function NarrationBubble({
   onBack: () => void;
   onClose: () => void;
 }) {
-  const bubbleRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    setIsMobile(window.innerWidth < 640);
-
-    const update = () => {
-      if (window.innerWidth < 640) {
-        setIsMobile(true);
-        setPos(null);
-        return;
-      }
-      setIsMobile(false);
-
-      const target = document.querySelector(step.selector);
-      if (!target || !bubbleRef.current) return;
-
-      const tr = target.getBoundingClientRect();
-      const br = bubbleRef.current.getBoundingClientRect();
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-
-      // Prefer below the target
-      let top = tr.bottom + MARGIN;
-      let left = tr.left + tr.width / 2 - br.width / 2;
-
-      // If below overflows viewport, place above
-      if (top + br.height > vh - MARGIN) {
-        top = tr.top - br.height - MARGIN;
-      }
-      // If above overflows, place to the right
-      if (top < MARGIN) {
-        top = tr.top + tr.height / 2 - br.height / 2;
-        left = tr.right + MARGIN;
-      }
-
-      // Clamp within viewport
-      left = Math.max(MARGIN, Math.min(left, vw - br.width - MARGIN));
-      top = Math.max(MARGIN, Math.min(top, vh - br.height - MARGIN));
-
-      setPos({ top, left });
-    };
-
-    // Initial + recalc
-    requestAnimationFrame(update);
-    window.addEventListener('resize', update);
-    window.addEventListener('scroll', update, true);
-    return () => {
-      window.removeEventListener('resize', update);
-      window.removeEventListener('scroll', update, true);
-    };
-  }, [step.selector]);
-
   const isLast = stepNumber === totalSteps;
   const isFirst = stepNumber === 1;
 
-  const content = (
-    <>
+  // Step 1: to the left of the avatar, triangle points right
+  // Steps 2+: above the avatar, triangle points down
+  const bubbleStyle: React.CSSProperties = isFirst
+    ? {
+        bottom: AVATAR_BOTTOM,
+        right: BUBBLE_RIGHT_LEFT,
+        maxHeight: `calc(100vh - ${AVATAR_BOTTOM + 16}px)`,
+      }
+    : {
+        bottom: BUBBLE_BOTTOM_ABOVE,
+        right: AVATAR_RIGHT,
+        maxHeight: `calc(100vh - ${BUBBLE_BOTTOM_ABOVE + 16}px)`,
+      };
+
+  const bubbleWidthClass = isFirst
+    ? 'w-[min(320px,calc(100vw-32px))] sm:w-[320px]'
+    : 'w-[min(260px,calc(100vw-32px))] sm:w-[260px]';
+
+  return (
+    <div
+      className={`fixed z-[51] bg-white rounded-xl shadow-xl p-5 ${bubbleWidthClass}`}
+      style={bubbleStyle}
+    >
+      {/* Speech triangle pointer */}
+      {isFirst ? (
+        // Right-pointing triangle (toward avatar on the right)
+        <div
+          className="absolute"
+          style={{
+            right: -8,
+            top: AVATAR_SIZE / 2 - 8,
+            width: 0,
+            height: 0,
+            borderTop: '8px solid transparent',
+            borderBottom: '8px solid transparent',
+            borderLeft: '8px solid white',
+            filter: 'drop-shadow(2px 0 2px rgba(0,0,0,0.05))',
+          }}
+        />
+      ) : (
+        // Down-pointing triangle (toward avatar below)
+        <div
+          className="absolute"
+          style={{
+            bottom: -8,
+            right: AVATAR_SIZE / 2 - 8,
+            width: 0,
+            height: 0,
+            borderLeft: '8px solid transparent',
+            borderRight: '8px solid transparent',
+            borderTop: '8px solid white',
+            filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.05))',
+          }}
+        />
+      )}
+
       <button
         type="button"
         onClick={onClose}
@@ -110,26 +121,6 @@ export default function NarrationBubble({
           </button>
         </div>
       </div>
-    </>
-  );
-
-  // Mobile: bottom sheet
-  if (isMobile) {
-    return (
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-xl shadow-lg p-5">
-        {content}
-      </div>
-    );
-  }
-
-  // Desktop: floating bubble
-  return (
-    <div
-      ref={bubbleRef}
-      className="fixed z-50 bg-white rounded-xl shadow-lg p-5 max-w-sm transition-all duration-300"
-      style={pos ? { top: pos.top, left: pos.left } : { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
-    >
-      {content}
     </div>
   );
 }
