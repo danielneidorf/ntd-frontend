@@ -10,6 +10,11 @@ export const quickscanTour: TourStep[] = [
     selector: '[data-guide="qs-case-cards"]',
     narration:
       'Pirmiausia nurodykite, ką tiksliai norite patikrinti — pasirinkite vieną iš variantų.',
+    // Skip if case type was already pre-selected via URL (e.g. from landing page)
+    skipIf: () => {
+      const params = new URLSearchParams(window.location.search);
+      return params.has('case');
+    },
   },
   {
     id: 'qs-location',
@@ -36,12 +41,6 @@ export const quickscanTour: TourStep[] = [
       'Žinote faktines energijos sąnaudas iš sąskaitų? Įveskite čia — tai suteiks naujausių faktinių duomenų vidaus patalpų klimato vertinimui.',
   },
   {
-    id: 'qs-sources',
-    selector: '[data-guide="sources"]',
-    narration:
-      'Apačioje matote šaltinius, iš kurių renkame duomenis — Nekilnojamojo turto registras, Kadastras, Pastatų energinio naudingumo sertifikatų registras ir kiti oficialūs registrai.',
-  },
-  {
     id: 'qs-submit',
     selector: '[data-guide="qs-submit"]',
     narration:
@@ -54,30 +53,42 @@ export const quickscanTour: TourStep[] = [
     id: 'qs-proof',
     selector: '[data-guide="qs-proof"]',
     narration:
-      'Sistema rado jūsų objektą. Patikrinkite — ar adresas, NTR numeris ir savivaldybė teisingi? Jei viskas gerai, spauskite „Taip, teisingas".',
+      'Sistema rado jūsų objektą. Patikrinkite — ar adresas, NTR numeris ir savivaldybė atrodo teisingi? Jei viskas gerai, spauskite „Taip, teisingas".',
   },
   {
     id: 'qs-report-blocks',
     selector: '[data-guide="qs-report-blocks"]',
     narration:
-      'Čia matote, kokias dalis apims jūsų ataskaita — šiluminis komfortas, energija, triukšmas, teisinės rizikos ir dar kelios. Viskas vienoje ataskaitoje.',
+      'Čia matote, kokias dalis apims jūsų ataskaita.',
   },
   {
     id: 'qs-payment',
     selector: '[data-guide="qs-payment"]',
     narration:
       'Patvirtinus objektą, čia matysite kainą ir galėsite užsakyti. El. paštas, sutikimas ir mokėjimo būdas — viskas vienoje vietoje.',
+    // Skip after object is confirmed — price and inputs are already visible
+    skipIf: () => !!document.querySelector('[data-guide="qs-email-consent"] input'),
   },
   {
     id: 'qs-email-consent',
-    selector: '[data-guide="qs-email-consent"]',
+    selector: '[data-guide="qs-payment"]',
     narration:
-      'Įveskite el. paštą, kuriuo gausite ataskaitą, ir sutikite su sąlygomis. Ataskaitą gausite iškart po apmokėjimo.',
+      'Įveskite el. pašto adresą ataskaitos nuorodai gauti. Sutikite su privatumo sąlygomis. Pažymėkite atitinkamai, jeigu reikia sąskaitos, ir ar sąskaita turėtų būti išrašyta juridiniam asmeniui. Užpildykite atitinkamus laukus. Spauskite „Mokėti ir gauti ataskaitą".',
   },
   {
     id: 'qs-pay-methods',
     selector: '[data-guide="qs-pay-methods"]',
     narration:
       'Pasirinkite mokėjimo būdą — banko pavedimas, kortelė, ar kitas būdas. Apmokėjus, ataskaita parengiama automatiškai.',
+    // This is the last guided step. Tour ends when:
+    // - User clicks "Baigti ✓" in the narration bubble
+    // - Payment starts (spinner appears → element becomes invalid → tour ends)
+    // - Page navigates away (Paysera redirect)
+    skipIf: () => {
+      // Payment in progress (spinner) or payment error shown → tour is done
+      const paying = !!document.querySelector('.animate-spin');
+      const error = !!document.querySelector('[data-guide="qs-payment"]')?.textContent?.includes('Mokėjimo klaida');
+      return paying || error;
+    },
   },
 ];

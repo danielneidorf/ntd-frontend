@@ -1,18 +1,27 @@
 // P7-B1 / P7-B2: AI Guide root component — wraps toggle, overlay, and narration
-import { useState, useEffect, useRef } from 'react';
+// Tour steps are resolved internally (not passed as Astro props) to preserve skipIf functions
+import { useState, useEffect, useRef, useMemo } from 'react';
 import type { TourStep, GuideMode } from './types';
 import useTour from './useTour';
 import AIGuideToggle from './AIGuideToggle';
 import AIGuideOverlay from './AIGuideOverlay';
 import NarrationBubble from './NarrationBubble';
+import { landingTour } from './tours/landingTour';
+import { quickscanTour } from './tours/quickscanTour';
+
+const TOUR_MAP: Record<string, TourStep[]> = {
+  landing: landingTour,
+  quickscan: quickscanTour,
+};
 
 export default function AIGuide({
-  tourSteps,
+  tourId,
   autoStart = false,
 }: {
-  tourSteps: TourStep[];
+  tourId: string;
   autoStart?: boolean;
 }) {
+  const tourSteps = useMemo(() => TOUR_MAP[tourId] ?? [], [tourId]);
   const tour = useTour(tourSteps);
   const autoStartedRef = useRef(false);
   const [mode, setMode] = useState<GuideMode>(() => {
@@ -27,13 +36,12 @@ export default function AIGuide({
     sessionStorage.setItem('ntd-guide-mode', m);
   };
 
-  // Auto-start on mount if guide mode is active (e.g., navigating from landing to /quickscan/)
+  // Auto-start on mount if guide mode is active
   useEffect(() => {
     if (!autoStart || autoStartedRef.current) return;
     if (mode !== 'guided') return;
     if (tour.state.active) return;
 
-    // Delay to let other React islands hydrate first
     const timer = setTimeout(() => {
       autoStartedRef.current = true;
       tour.start();

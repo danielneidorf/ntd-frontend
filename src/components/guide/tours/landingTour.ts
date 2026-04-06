@@ -24,13 +24,6 @@ export const landingTour: TourStep[] = [
     animation: 'pulse',
   },
   {
-    id: 'property-types',
-    selector: '[data-guide="property-types"]',
-    narration:
-      'Matote, kiek skirtingų objektų tipų galima patikrinti. Nesvarbu, koks turtas — kiekvienas vertinamas vienodai nuodugniai.',
-    animation: 'pulse',
-  },
-  {
     id: 'pricing',
     selector: '[data-guide="pricing"]',
     narration:

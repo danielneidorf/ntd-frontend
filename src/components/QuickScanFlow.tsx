@@ -1397,7 +1397,7 @@ function Screen2({
               className={`px-6 py-3 rounded-lg text-[14px] font-semibold transition-all flex items-center gap-2 ${quoting ? 'bg-[#CBD5E1] text-white cursor-not-allowed' : 'bg-[#0D7377] text-white hover:bg-[#0B6268] cursor-pointer'}`}>
               {quoting ? (<><svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Tikrinama…</>) : 'Taip, teisingas'}
             </button>
-            <button onClick={() => setState(s => ({ ...s, step: 1 }))}
+            <button onClick={() => setState(s => ({ ...s, step: 1, resolver_result: null, geo: null, address_text: null, ntr_unique_number: null, selected_candidate_id: null }))}
               className="px-6 py-3 rounded-lg border border-[#E2E8F0] text-[14px] text-[#64748B] hover:border-[#1E3A5F] transition-all">
               Ne, ieškoti kito
             </button>
@@ -1438,7 +1438,7 @@ function Screen2({
         </div>
 
         <p className="text-[13px] text-[#64748B] mt-4 pt-3 border-t border-[#F1F5F9]">
-          PDF ataskaita bus išsiųsta el. paštu per 1 val.
+          Nuoroda į ataskaitą bus išsiųsta el. paštu per 1 val.
         </p>
       </div>
 
@@ -1635,9 +1635,9 @@ function Screen2({
                       </button>
                     ) : showMethodSelector ? (
                       /* Flat payment method grid */
-                      <div style={{ animation: 'slideDown 0.3s ease' }}>
+                      <div style={{ animation: 'slideDown 0.3s ease' }} data-guide="qs-pay-methods">
                         <p className="text-[15px] font-medium text-[#1A1A2E] mb-3">Pasirinkite mokėjimo būdą:</p>
-                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 mb-4" data-guide="qs-pay-methods">
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 mb-4">
                           {PAYMENT_METHODS.map(m => (
                             <div
                               key={m.id}
@@ -1661,7 +1661,7 @@ function Screen2({
                       </div>
                     ) : (
                       /* Initial pay button — opens method selector */
-                      <button onClick={() => { if (canPay) setShowMethodSelector(true); }} disabled={!canPay}
+                      <button onClick={() => { if (canPay) { setShowMethodSelector(true); setTimeout(() => document.querySelector('[data-guide="qs-pay-methods"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100); } }} disabled={!canPay}
                         className={`w-full py-3 rounded-lg text-[16px] font-semibold transition-all flex items-center justify-center gap-2 ${canPay ? 'bg-[#1E3A5F] text-white hover:bg-[#0D7377] cursor-pointer' : 'bg-[#CBD5E1] text-white cursor-not-allowed'}`}>
                         Mokėti ir gauti ataskaitą
                       </button>

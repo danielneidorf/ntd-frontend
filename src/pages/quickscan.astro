@@ -4,7 +4,6 @@ import Header from '../components/Header.astro';
 import QuickScanFlow from '../components/QuickScanFlow';
 import Sources from '../components/Sources.astro';
 import AIGuide from '../components/guide/AIGuide';
-import { quickscanTour } from '../components/guide/tours/quickscanTour';
 ---
 
 <BaseLayout title="NT Duomenys – QuickScan">
@@ -18,5 +17,5 @@ import { quickscanTour } from '../components/guide/tours/quickscanTour';
 
   </div>
   <Sources />
-  <AIGuide client:load tourSteps={quickscanTour} autoStart={true} />
+  <AIGuide client:load tourId="quickscan" autoStart={true} />
 </BaseLayout>

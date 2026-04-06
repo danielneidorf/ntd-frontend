@@ -10,7 +10,6 @@ import Pricing from '../components/Pricing.astro';
 import Sources from '../components/Sources.astro';
 import Footer from '../components/Footer.astro';
 import AIGuide from '../components/guide/AIGuide';
-import { landingTour } from '../components/guide/tours/landingTour';
 ---
 <BaseLayout title="NT Duomenys — Nekilnojamojo turto duomenys">
   <Header />
@@ -191,7 +190,7 @@ import { landingTour } from '../components/guide/tours/landingTour';
     <Sources showPropertyTypes={true} />
   </main>
   <Footer />
-  <AIGuide client:load tourSteps={landingTour} />
+  <AIGuide client:load tourId="landing" />
 </BaseLayout>
 
 <script>

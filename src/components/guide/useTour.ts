@@ -2,14 +2,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { TourStep, TourState } from './types';
 
-function elementExists(selector: string): boolean {
-  return !!document.querySelector(selector);
+function stepIsValid(step: TourStep): boolean {
+  if (step.skipIf?.()) return false;
+  return !!document.querySelector(step.selector);
 }
 
-// Find the next valid step index (element exists in DOM), searching forward from `from`
+// Find the next valid step index, searching forward from `from`
 function findNextValid(steps: TourStep[], from: number): number | null {
   for (let i = from; i < steps.length; i++) {
-    if (elementExists(steps[i].selector)) return i;
+    if (stepIsValid(steps[i])) return i;
   }
   return null;
 }
@@ -17,7 +18,7 @@ function findNextValid(steps: TourStep[], from: number): number | null {
 // Find the previous valid step index, searching backward from `from`
 function findPrevValid(steps: TourStep[], from: number): number | null {
   for (let i = from; i >= 0; i--) {
-    if (elementExists(steps[i].selector)) return i;
+    if (stepIsValid(steps[i])) return i;
   }
   return null;
 }
@@ -145,6 +146,63 @@ export default function useTour(steps: TourStep[]) {
     return () => window.removeEventListener('keydown', onKey);
   }, [state.active, next, back, stop]);
 
+  // Proactive DOM watching while tour is active:
+  // 1. If the next step's element appears → auto-advance (e.g. payment methods grid)
+  // 2. If the current step's element disappears → find nearest valid step
+  //    (e.g. user clicks "Ne, ieškoti kito" → Screen 2 unmounts, go back to Screen 1)
+  useEffect(() => {
+    if (!state.active) return;
+    const currentIdx = state.currentStep;
+    const currentStep = steps[currentIdx];
+    if (!currentStep) return;
+
+    // Check if the next step is currently absent — only auto-advance if it was absent and then appears
+    const nextIdx = currentIdx + 1;
+    const nextWasAbsent = nextIdx < steps.length && !stepIsValid(steps[nextIdx]);
+
+    const observer = new MutationObserver(() => {
+      // Case 1: current step's element disappeared or became invalid
+      if (!stepIsValid(currentStep)) {
+        // First try forward — if a later step is valid, advance
+        const forward = findNextValid(steps, currentIdx + 1);
+        if (forward !== null) {
+          observer.disconnect();
+          goToValidStep(forward);
+          return;
+        }
+        // No forward step — try backward (e.g. Screen 2→1 revert via "Ne, ieškoti kito")
+        // But only if the current step's DOM element is completely gone (not just skipIf)
+        const elementGone = !document.querySelector(currentStep.selector);
+        if (elementGone) {
+          const backward = findNextValid(steps, 0);
+          if (backward !== null && backward !== currentIdx) {
+            observer.disconnect();
+            goToValidStep(backward);
+            return;
+          }
+        }
+        // No valid steps in either direction — end tour + clear guide mode
+        observer.disconnect();
+        sessionStorage.removeItem('ntd-guide-mode');
+        stop();
+        return;
+      }
+
+      // Case 2: next step's element appeared (was absent, now exists) — auto-advance
+      // Only triggers if the next step was absent when the observer was created
+      if (nextWasAbsent && nextIdx < steps.length) {
+        const nextStep = steps[nextIdx];
+        if (nextStep && stepIsValid(nextStep)) {
+          observer.disconnect();
+          goToValidStep(nextIdx);
+        }
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [state.active, state.currentStep, steps, goToValidStep]);
+
   // Cleanup observer on unmount
   useEffect(() => {
     return () => {
@@ -152,14 +210,14 @@ export default function useTour(steps: TourStep[]) {
     };
   }, []);
 
-  // Count visible steps (elements that exist in the DOM)
+  // Count visible steps (valid = element exists + not skipped)
   const visibleStepCount = state.active
-    ? steps.filter((s) => elementExists(s.selector)).length
+    ? steps.filter((s) => stepIsValid(s)).length
     : steps.length;
 
   // Compute visible step number (1-based index among visible steps)
   const visibleStepNumber = state.active
-    ? steps.slice(0, state.currentStep + 1).filter((s) => elementExists(s.selector)).length
+    ? steps.slice(0, state.currentStep + 1).filter((s) => stepIsValid(s)).length
     : 1;
 
   return { state, start, stop, next, back, goToStep, visibleStepCount, visibleStepNumber };

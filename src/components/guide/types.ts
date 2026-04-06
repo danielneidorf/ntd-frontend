@@ -7,6 +7,8 @@ export interface TourStep {
   position?: 'above' | 'below' | 'left' | 'right' | 'auto';
   animation?: 'pulse' | 'ring' | 'arrow' | 'sequence';
   scrollBehavior?: ScrollLogicalPosition;
+  /** If provided and returns true, this step is skipped */
+  skipIf?: () => boolean;
 }
 
 export interface TourState {

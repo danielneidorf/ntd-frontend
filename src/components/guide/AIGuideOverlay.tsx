@@ -1,5 +1,6 @@
-// P7-B1: Spotlight overlay — dims page, cuts out target element
-import { useEffect, useState } from 'react';
+// P7-B1 / P7-B2: Spotlight overlay — dims page, cuts out target element
+// Adapts cutout to include overflow children (e.g. autocomplete dropdowns)
+import { useEffect, useState, useRef } from 'react';
 
 const PADDING = 12;
 
@@ -8,6 +9,38 @@ interface Rect {
   left: number;
   width: number;
   height: number;
+}
+
+/**
+ * Compute the visual bounds of an element including any visible overflow children
+ * (absolutely positioned dropdowns, tooltips, autocomplete suggestions, etc.)
+ */
+function getVisualBounds(el: Element): DOMRect {
+  const base = el.getBoundingClientRect();
+  let top = base.top;
+  let left = base.left;
+  let right = base.right;
+  let bottom = base.bottom;
+
+  // Check all descendants for overflow
+  const children = el.querySelectorAll('*');
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i];
+    const cs = window.getComputedStyle(child);
+    // Only check positioned elements that might overflow
+    if (cs.position === 'absolute' || cs.position === 'fixed') {
+      const cr = child.getBoundingClientRect();
+      // Only include if the child is visible (has size and isn't hidden)
+      if (cr.width > 0 && cr.height > 0 && cs.display !== 'none' && cs.visibility !== 'hidden') {
+        top = Math.min(top, cr.top);
+        left = Math.min(left, cr.left);
+        right = Math.max(right, cr.right);
+        bottom = Math.max(bottom, cr.bottom);
+      }
+    }
+  }
+
+  return new DOMRect(left, top, right - left, bottom - top);
 }
 
 export default function AIGuideOverlay({
@@ -20,6 +53,7 @@ export default function AIGuideOverlay({
   onClickOutside: () => void;
 }) {
   const [rect, setRect] = useState<Rect | null>(null);
+  const rafRef = useRef(0);
 
   useEffect(() => {
     const update = () => {
@@ -28,7 +62,7 @@ export default function AIGuideOverlay({
         setRect(null);
         return;
       }
-      const r = el.getBoundingClientRect();
+      const r = getVisualBounds(el);
       setRect({
         top: r.top - PADDING,
         left: r.left - PADDING,
@@ -38,24 +72,30 @@ export default function AIGuideOverlay({
     };
 
     update();
-    // Recompute on scroll/resize with debounce
-    let raf = 0;
-    const onUpdate = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(update);
+
+    // Continuous polling via rAF — catches dropdowns, animations, any DOM change
+    let running = true;
+    const poll = () => {
+      if (!running) return;
+      update();
+      rafRef.current = requestAnimationFrame(poll);
     };
-    window.addEventListener('scroll', onUpdate, true);
-    window.addEventListener('resize', onUpdate);
+    rafRef.current = requestAnimationFrame(poll);
+
+    // Also listen to scroll/resize for immediate response
+    window.addEventListener('scroll', update, true);
+    window.addEventListener('resize', update);
+
     return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('scroll', onUpdate, true);
-      window.removeEventListener('resize', onUpdate);
+      running = false;
+      cancelAnimationFrame(rafRef.current);
+      window.removeEventListener('scroll', update, true);
+      window.removeEventListener('resize', update);
     };
   }, [targetSelector]);
 
   if (!rect) return null;
 
-  // Build clip-path polygon: full screen with rectangular hole
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const { top, left, width, height } = rect;
