@@ -1,13 +1,20 @@
-// P7-B1: AI Guide root component — wraps toggle, overlay, and narration
-import { useState } from 'react';
+// P7-B1 / P7-B2: AI Guide root component — wraps toggle, overlay, and narration
+import { useState, useEffect, useRef } from 'react';
 import type { TourStep, GuideMode } from './types';
 import useTour from './useTour';
 import AIGuideToggle from './AIGuideToggle';
 import AIGuideOverlay from './AIGuideOverlay';
 import NarrationBubble from './NarrationBubble';
 
-export default function AIGuide({ tourSteps }: { tourSteps: TourStep[] }) {
+export default function AIGuide({
+  tourSteps,
+  autoStart = false,
+}: {
+  tourSteps: TourStep[];
+  autoStart?: boolean;
+}) {
   const tour = useTour(tourSteps);
+  const autoStartedRef = useRef(false);
   const [mode, setMode] = useState<GuideMode>(() => {
     if (typeof window !== 'undefined') {
       return (sessionStorage.getItem('ntd-guide-mode') as GuideMode) || 'self';
@@ -19,6 +26,21 @@ export default function AIGuide({ tourSteps }: { tourSteps: TourStep[] }) {
     setMode(m);
     sessionStorage.setItem('ntd-guide-mode', m);
   };
+
+  // Auto-start on mount if guide mode is active (e.g., navigating from landing to /quickscan/)
+  useEffect(() => {
+    if (!autoStart || autoStartedRef.current) return;
+    if (mode !== 'guided') return;
+    if (tour.state.active) return;
+
+    // Delay to let other React islands hydrate first
+    const timer = setTimeout(() => {
+      autoStartedRef.current = true;
+      tour.start();
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [autoStart, mode, tour.state.active]);
 
   const currentStep = tour.state.active ? tourSteps[tour.state.currentStep] : null;
 
@@ -41,8 +63,8 @@ export default function AIGuide({ tourSteps }: { tourSteps: TourStep[] }) {
           />
           <NarrationBubble
             step={currentStep}
-            stepNumber={tour.state.currentStep + 1}
-            totalSteps={tourSteps.length}
+            stepNumber={tour.visibleStepNumber}
+            totalSteps={tour.visibleStepCount}
             onNext={tour.next}
             onBack={tour.back}
             onClose={tour.stop}

@@ -515,7 +515,7 @@ function Screen1({
 
           {/* Case toggle */}
           <p className="text-[16px] font-semibold text-[#1E3A5F] mb-3">Nurodykite objektą</p>
-          <div className="grid grid-cols-3 gap-2 mb-6">
+          <div className="grid grid-cols-3 gap-2 mb-6" data-guide="qs-case-cards">
             {([
               { value: 'existing_object' as CaseType, emoji: '🏠', label: 'Esamą pastatą ar patalpas' },
               { value: 'new_build_project' as CaseType, emoji: '🏗️', label: 'Naujai statomą, nebaigtą projektą' },
@@ -546,7 +546,7 @@ function Screen1({
           <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: '24px' }}>
 
           {/* Top-left — Tabbed location card */}
-          <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col" style={{ gridColumn: '1', gridRow: '1' }}>
+          <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col" style={{ gridColumn: '1', gridRow: '1' }} data-guide="qs-location">
             <p className="text-[15px] font-medium text-[#1A1A2E] mb-3">Nurodykite vietą jums tinkamiausiu būdu</p>
 
             {/* Tab headers */}
@@ -695,7 +695,7 @@ function Screen1({
           </div>
 
           {/* Top-right — URL card */}
-          <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col" style={{ gridColumn: '2', gridRow: '1' }}>
+          <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col" style={{ gridColumn: '2', gridRow: '1' }} data-guide="qs-listing-url">
               <label className="block text-[15px] font-medium text-[#1A1A2E] mb-2">
                 Pridėkite skelbimo ar projekto nuorodą (jeigu turite)
               </label>
@@ -715,7 +715,7 @@ function Screen1({
 
           {/* Bottom row — PDF card (spans full or half) + kWh card (existing_object only) */}
           <div className={`rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col transition-all duration-300`}
-            style={{ gridColumn: state.case_type === 'existing_object' ? undefined : '1 / -1' }}>
+            style={{ gridColumn: state.case_type === 'existing_object' ? undefined : '1 / -1' }} data-guide="qs-document">
               <label className="block text-[15px] font-medium text-[#1A1A2E] mb-2">
                 Įkelkite dokumentą
               </label>
@@ -758,7 +758,7 @@ function Screen1({
           {/* kWh card — existing_object only, fades in/out */}
           {state.case_type === 'existing_object' && (
           <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col"
-            style={{ animation: 'fadeSlideIn 0.3s ease forwards' }}>
+            style={{ animation: 'fadeSlideIn 0.3s ease forwards' }} data-guide="qs-energy">
               <label className="block text-[15px] font-medium text-[#1A1A2E] mb-1">
                 Faktinės energijos sąnaudos
               </label>
@@ -826,6 +826,7 @@ function Screen1({
         <button
           onClick={handleTesti}
           disabled={!canProceed}
+          data-guide="qs-submit"
           className={`px-8 rounded-lg text-[16px] font-medium transition-all flex items-center gap-2
             ${canProceed
               ? 'bg-[#0D7377] text-white hover:bg-[#0B6268] cursor-pointer'
@@ -1368,7 +1369,7 @@ function Screen2({
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'auto auto', gap: '24px', width: '100%' }}>
 
       {/* TOP-LEFT — Proof card */}
-      <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" style={{ gridColumn: 1, gridRow: 1 }}>
+      <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" style={{ gridColumn: 1, gridRow: 1 }} data-guide="qs-proof">
         <h2 className="text-[18px] font-semibold text-[#1A1A2E] mb-1">Patvirtinkite objektą</h2>
         <p className="text-[14px] text-[#64748B] mb-4">Radome atitinkantį įrašą. Patikrinkite, ar tai tas pats objektas.</p>
 
@@ -1411,7 +1412,7 @@ function Screen2({
       </div>
 
       {/* TOP-RIGHT — Report blocks card */}
-      <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" style={{ gridColumn: 2, gridRow: 1 }}>
+      <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" style={{ gridColumn: 2, gridRow: 1 }} data-guide="qs-report-blocks">
         <h2 className="text-[18px] font-semibold text-[#1A1A2E] mb-4">
           {caseType === 'new_build_project'
             ? 'Šie duomenų blokai bus įtraukti į ataskaitą. Kadangi projektas gali būti dar neregistruotas, dalis vertinimų remiasi projekto duomenimis:'
@@ -1442,7 +1443,7 @@ function Screen2({
       </div>
 
       {/* BOTTOM — Payment card (full width) */}
-      <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" style={{ gridColumn: '1 / -1', gridRow: 2 }}>
+      <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" style={{ gridColumn: '1 / -1', gridRow: 2 }} data-guide="qs-payment">
         {quote ? (
           <>
             {/* Two-column: price left, vertical flow right */}
@@ -1470,7 +1471,7 @@ function Screen2({
               </div>
 
               {/* Right — vertical flow */}
-              <div className="flex flex-col" ref={invoiceSectionRef}>
+              <div className="flex flex-col" ref={invoiceSectionRef} data-guide="qs-email-consent">
                 {/* Email */}
                 <div className="mb-4">
                   <label className="block text-[14px] font-medium text-[#1A1A2E] mb-1">El. pašto adresas</label>
@@ -1636,7 +1637,7 @@ function Screen2({
                       /* Flat payment method grid */
                       <div style={{ animation: 'slideDown 0.3s ease' }}>
                         <p className="text-[15px] font-medium text-[#1A1A2E] mb-3">Pasirinkite mokėjimo būdą:</p>
-                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 mb-4">
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 mb-4" data-guide="qs-pay-methods">
                           {PAYMENT_METHODS.map(m => (
                             <div
                               key={m.id}
