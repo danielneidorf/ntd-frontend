@@ -1,5 +1,6 @@
-// P7-B1 / P7-B2: AI Guide root component — wraps toggle, overlay, and narration
-// Tour steps are resolved internally (not passed as Astro props) to preserve skipIf functions
+// P7-B1 / P7-B2 / P7-B3: AI Guide root component
+// Tour steps resolved internally to preserve skipIf functions
+// Report tour uses deferred data extraction from the DOM
 import { useState, useEffect, useRef, useMemo } from 'react';
 import type { TourStep, GuideMode } from './types';
 import useTour from './useTour';
@@ -8,8 +9,9 @@ import AIGuideOverlay from './AIGuideOverlay';
 import NarrationBubble from './NarrationBubble';
 import { landingTour } from './tours/landingTour';
 import { quickscanTour } from './tours/quickscanTour';
+import { buildReportTour, extractReportData } from './tours/reportTour';
 
-const TOUR_MAP: Record<string, TourStep[]> = {
+const STATIC_TOURS: Record<string, TourStep[]> = {
   landing: landingTour,
   quickscan: quickscanTour,
 };
@@ -21,7 +23,24 @@ export default function AIGuide({
   tourId: string;
   autoStart?: boolean;
 }) {
-  const tourSteps = useMemo(() => TOUR_MAP[tourId] ?? [], [tourId]);
+  // Report tour is built dynamically from DOM data after the page renders
+  const [reportSteps, setReportSteps] = useState<TourStep[] | null>(null);
+
+  useEffect(() => {
+    if (tourId !== 'report') return;
+    // Short delay to let the report components render
+    const timer = setTimeout(() => {
+      const data = extractReportData();
+      setReportSteps(buildReportTour(data));
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [tourId]);
+
+  const tourSteps = useMemo(() => {
+    if (tourId === 'report') return reportSteps ?? [];
+    return STATIC_TOURS[tourId] ?? [];
+  }, [tourId, reportSteps]);
+
   const tour = useTour(tourSteps);
   const autoStartedRef = useRef(false);
   const [mode, setMode] = useState<GuideMode>(() => {
@@ -41,6 +60,7 @@ export default function AIGuide({
     if (!autoStart || autoStartedRef.current) return;
     if (mode !== 'guided') return;
     if (tour.state.active) return;
+    if (tourSteps.length === 0) return; // wait for report steps to be built
 
     const timer = setTimeout(() => {
       autoStartedRef.current = true;
@@ -48,7 +68,7 @@ export default function AIGuide({
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [autoStart, mode, tour.state.active]);
+  }, [autoStart, mode, tour.state.active, tourSteps.length]);
 
   const currentStep = tour.state.active ? tourSteps[tour.state.currentStep] : null;
 
@@ -80,7 +100,6 @@ export default function AIGuide({
         </>
       )}
 
-      {/* Pulse animation keyframes */}
       <style>{`
         @keyframes guide-pulse {
           0%, 100% { box-shadow: 0 0 0 0 rgba(13, 115, 119, 0.4); }

@@ -186,7 +186,7 @@ export default function PropertyMap({
   return (
     <>
       {/* Inline map */}
-      <div className="relative mb-5">
+      <div className="relative mb-5" data-guide="property-map">
         <div
           ref={mapRef}
           className="w-full h-[400px] rounded-lg overflow-hidden"

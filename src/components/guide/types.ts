@@ -2,6 +2,7 @@
 
 export interface TourStep {
   id: string;
+  /** CSS selector for the primary target element, or multiple selectors separated by commas */
   selector: string;
   narration: string;
   position?: 'above' | 'below' | 'left' | 'right' | 'auto';

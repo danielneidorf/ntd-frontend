@@ -4,6 +4,7 @@
 // In production, Nginx must rewrite /report/* to /report/index.html
 import '../../styles/global.css';
 import ReportViewer from '../../components/ReportViewer';
+import AIGuide from '../../components/guide/AIGuide';
 
 export function getStaticPaths() {
   return [
@@ -25,5 +26,6 @@ export function getStaticPaths() {
 </head>
 <body class="bg-[#FAFBFC] min-h-screen font-['Inter',sans-serif] antialiased m-0 p-0">
   <ReportViewer client:load />
+  <AIGuide client:load tourId="report" autoStart={true} />
 </body>
 </html>

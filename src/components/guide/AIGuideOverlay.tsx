@@ -57,17 +57,31 @@ export default function AIGuideOverlay({
 
   useEffect(() => {
     const update = () => {
-      const el = document.querySelector(targetSelector);
-      if (!el) {
+      // Support comma-separated selectors — compute union bounding rect
+      const selectors = targetSelector.split(',').map((s) => s.trim());
+      let top = Infinity, left = Infinity, right = -Infinity, bottom = -Infinity;
+      let found = false;
+
+      for (const sel of selectors) {
+        const el = document.querySelector(sel);
+        if (!el) continue;
+        found = true;
+        const r = el.getBoundingClientRect();
+        top = Math.min(top, r.top);
+        left = Math.min(left, r.left);
+        right = Math.max(right, r.right);
+        bottom = Math.max(bottom, r.bottom);
+      }
+
+      if (!found) {
         setRect(null);
         return;
       }
-      const r = getVisualBounds(el);
       setRect({
-        top: r.top - PADDING,
-        left: r.left - PADDING,
-        width: r.width + PADDING * 2,
-        height: r.height + PADDING * 2,
+        top: top - PADDING,
+        left: left - PADDING,
+        width: right - left + PADDING * 2,
+        height: bottom - top + PADDING * 2,
       });
     };
 

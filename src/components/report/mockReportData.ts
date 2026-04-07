@@ -115,7 +115,7 @@ const SUMMER_ROWS = [
     band: 'MEDIUM',
     label_lt: 'Vidutinė',
     description_lt:
-      'Per karščio bangas kai kuriose patalpose gali tapti per šilta — reikės dažnai vėdinti ir riboti saulę.',
+      'Per karščio bangas kai kuriose patalpose gali tapti per šilta — reikės dažniau vėdinti/vėsinti, riboti saulę.',
   },
   {
     band: 'HIGH',

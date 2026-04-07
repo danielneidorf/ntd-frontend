@@ -4,7 +4,9 @@ import type { TourStep, TourState } from './types';
 
 function stepIsValid(step: TourStep): boolean {
   if (step.skipIf?.()) return false;
-  return !!document.querySelector(step.selector);
+  // Support comma-separated selectors — valid if at least one exists
+  const selectors = step.selector.split(',').map((s) => s.trim());
+  return selectors.some((sel) => !!document.querySelector(sel));
 }
 
 // Find the next valid step index, searching forward from `from`
@@ -30,15 +32,38 @@ export default function useTour(steps: TourStep[]) {
     steps,
   });
 
+  // Keep state.steps in sync when the steps prop changes (e.g. report tour built async)
+  const stepsRef = useRef(steps);
+  useEffect(() => {
+    stepsRef.current = steps;
+    setState((s) => ({ ...s, steps }));
+  }, [steps]);
+
   // MutationObserver: watches for a missing step's element to appear
   const waitingIndexRef = useRef<number | null>(null);
   const observerRef = useRef<MutationObserver | null>(null);
 
   const scrollToTarget = useCallback((selector: string, behavior: ScrollLogicalPosition = 'center') => {
-    const el = document.querySelector(selector);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: behavior });
+    // Support comma-separated selectors — scroll to center the union of all elements
+    const selectors = selector.split(',').map((s) => s.trim());
+    const elements = selectors.map((s) => document.querySelector(s)).filter(Boolean) as Element[];
+    if (elements.length === 0) return;
+
+    if (elements.length === 1) {
+      elements[0].scrollIntoView({ behavior: 'smooth', block: behavior });
+      return;
     }
+
+    // Compute union bounding box and scroll its center into view
+    let top = Infinity, bottom = -Infinity;
+    for (const el of elements) {
+      const r = el.getBoundingClientRect();
+      top = Math.min(top, r.top);
+      bottom = Math.max(bottom, r.bottom);
+    }
+    const unionCenter = window.scrollY + top + (bottom - top) / 2;
+    const viewportCenter = window.innerHeight / 2;
+    window.scrollTo({ top: unionCenter - viewportCenter, behavior: 'smooth' });
   }, []);
 
   const goToValidStep = useCallback((index: number) => {
@@ -70,14 +95,15 @@ export default function useTour(steps: TourStep[]) {
   }, [steps, goToValidStep]);
 
   const start = useCallback(() => {
-    const first = findNextValid(steps, 0);
+    const currentSteps = stepsRef.current;
+    const first = findNextValid(currentSteps, 0);
     if (first === null) return; // no valid steps at all
-    setState({ active: true, currentStep: first, steps });
-    const step = steps[first];
+    setState({ active: true, currentStep: first, steps: currentSteps });
+    const step = currentSteps[first];
     if (step) {
       setTimeout(() => scrollToTarget(step.selector, step.scrollBehavior ?? 'center'), 100);
     }
-  }, [steps, scrollToTarget]);
+  }, [scrollToTarget]);
 
   const stop = useCallback(() => {
     setState((s) => ({ ...s, active: false, currentStep: 0 }));

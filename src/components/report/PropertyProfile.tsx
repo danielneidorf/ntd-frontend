@@ -1,6 +1,6 @@
 // P7-A1.1 / P7-A3.1 / P7-A7: Property Profile — separate cards per group, with map
 import type { ReportData } from './mockReportData';
-import PropertyMap from './PropertyMap';
+// PropertyMap moved to ReportViewer for data-guide separation
 
 type Profile = ReportData['property_profile'];
 
@@ -56,20 +56,24 @@ function ProfileCard({
   title,
   fields,
   header,
+  dataGuide,
 }: {
   title: string;
   fields: Field[];
   header?: React.ReactNode;
+  dataGuide?: string;
 }) {
   if (fields.length === 0) return null;
   return (
     <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
-      <h2 className="text-2xl font-semibold text-[#1E3A5F] mb-4">{title}</h2>
       {header}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
-        {fields.map((f) => (
-          <FieldCell key={f.label} field={f} />
-        ))}
+      <div {...(dataGuide ? { 'data-guide': dataGuide } : {})}>
+        <h2 className="text-2xl font-semibold text-[#1E3A5F] mb-4">{title}</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
+          {fields.map((f) => (
+            <FieldCell key={f.label} field={f} />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -130,9 +134,9 @@ export default function PropertyProfile({
       <ProfileCard
         title="Pastato charakteristikos"
         fields={buildingFields}
-        header={<PropertyMap lat={lat} lng={lng} address={address} />}
+        dataGuide="property-profile"
       />
-      <ProfileCard title="Energinis naudingumas" fields={energyFields} />
+      <ProfileCard title="Energinis naudingumas" fields={energyFields} dataGuide="energy-profile" />
     </div>
   );
 }

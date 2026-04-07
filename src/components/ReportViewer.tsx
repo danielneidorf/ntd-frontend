@@ -407,14 +407,22 @@ export default function ReportViewer() {
     <div className="min-h-screen bg-[#FAFBFC]">
       <ReportHeader data={data} />
       <main className="max-w-[1100px] mx-auto px-6 py-8 space-y-6">
-        <PropertyPhoto
-          lat={data.lat}
-          lng={data.lng}
-          address={data.address}
-          devToken={token && token in DEV_MOCKS ? token : undefined}
-        />
+        <div data-guide="street-view">
+          <PropertyPhoto
+            lat={data.lat}
+            lng={data.lng}
+            address={data.address}
+            devToken={token && token in DEV_MOCKS ? token : undefined}
+          />
+        </div>
 
-        <PropertyIdentity data={data} />
+        <div data-guide="property-identity">
+          <PropertyIdentity data={data} />
+        </div>
+
+        {data.property_profile.evaluation_target !== 'Žemės sklypas' && (
+          <PropertyMap lat={data.lat} lng={data.lng} address={data.address} />
+        )}
 
         <PropertyProfile
           profile={data.property_profile}
@@ -432,31 +440,41 @@ export default function ReportViewer() {
         )}
 
         <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
-          <h2 className="text-2xl font-semibold text-[#1E3A5F] mb-2">1) Vidaus patalpų klimato komfortas</h2>
-          <p className="text-base text-slate-600 mb-6 leading-relaxed">
-            Šiame bloke apžvelgiame, kiek lengva šiame būste palaikyti komfortišką temperatūrą
-            žiemą ir kokia yra perkaitimo rizika vasarą.
-          </p>
-
           {!block1.applicable ? (
-            <div className="bg-gray-50 rounded-lg px-6 py-5 text-base text-slate-600">
-              {block1.neutral_message_lt}
-            </div>
+            <>
+              <h2 className="text-2xl font-semibold text-[#1E3A5F] mb-2">1) Vidaus patalpų klimato komfortas</h2>
+              <p className="text-base text-slate-600 mb-6 leading-relaxed">
+                Šiame bloke apžvelgiame, kiek lengva šiame būste palaikyti komfortišką temperatūrą
+                žiemą ir kokia yra perkaitimo rizika vasarą.
+              </p>
+              <div className="bg-gray-50 rounded-lg px-6 py-5 text-base text-slate-600">
+                {block1.neutral_message_lt}
+              </div>
+            </>
           ) : (
             <>
-              {block1.winter && block1.summer && (
-                <WinterSummerBars winter={block1.winter} summer={block1.summer} />
-              )}
-              {block1.summary_lt && <SummarySection summary={block1.summary_lt} />}
-              <DriversSection drivers={block1.drivers} />
-              <InfoBox items={block1.info_box.items_lt} />
+              <div data-guide="climate-assessment">
+                <h2 className="text-2xl font-semibold text-[#1E3A5F] mb-2">1) Vidaus patalpų klimato komfortas</h2>
+                <p className="text-base text-slate-600 mb-6 leading-relaxed">
+                  Šiame bloke apžvelgiame, kiek lengva šiame būste palaikyti komfortišką temperatūrą
+                  žiemą ir kokia yra perkaitimo rizika vasarą.
+                </p>
+                {block1.winter && block1.summer && (
+                  <WinterSummerBars winter={block1.winter} summer={block1.summer} />
+                )}
+                {block1.summary_lt && <SummarySection summary={block1.summary_lt} />}
+              </div>
+              <div data-guide="drivers">
+                <DriversSection drivers={block1.drivers} />
+                <InfoBox items={block1.info_box.items_lt} />
+              </div>
             </>
           )}
         </div>
 
-        <ConstructionPermits permits={permits} loading={permitsLoading} />
-        <AdditionalDocuments />
-        <LockedBlocksPreview />
+        <div data-guide="permits"><ConstructionPermits permits={permits} loading={permitsLoading} /></div>
+        <div data-guide="documents"><AdditionalDocuments /></div>
+        <div data-guide="locked-blocks"><LockedBlocksPreview /></div>
         <Citations
           snapshot={block1.inputs_snapshot}
           generatedAt={data.generated_at}
