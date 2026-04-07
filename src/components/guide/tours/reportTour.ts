@@ -128,9 +128,14 @@ export function buildReportTour(data: ReportTourData): TourStep[] {
       skipIf: () => !data.hasPermits,
     },
     {
-      id: 'documents',
-      selector: '[data-guide="documents"]',
-      narration: 'Čia rasite nuorodas į papildomus šaltinius — aukštų planus, kadastro žemėlapį, statybos leidimus ir teisinę informaciją. Viską galite peržiūrėti vienu paspaudimu.',
+      id: 'public-documents',
+      selector: '[data-guide="public-documents"]',
+      narration: 'Čia rasite viešai prieinamus šaltinius — kadastro žemėlapį, statybos leidimus ir teritorijų planavimo dokumentus. Viskas atvira ir prieinama be registracijos.',
+    },
+    {
+      id: 'owner-documents',
+      selector: '[data-guide="owner-documents"]',
+      narration: 'O šie dokumentai prieinami tik savininko arba įgalioto asmens prieiga per Registrų centro savitarną — kadastro byla, aukštų planai, išsamūs registro duomenys.',
     },
   ];
 

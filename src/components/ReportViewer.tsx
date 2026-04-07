@@ -473,8 +473,8 @@ export default function ReportViewer() {
         </div>
 
         <div data-guide="permits"><ConstructionPermits permits={permits} loading={permitsLoading} /></div>
-        <div data-guide="documents"><AdditionalDocuments /></div>
         <div data-guide="locked-blocks"><LockedBlocksPreview /></div>
+        <AdditionalDocuments />
         <Citations
           snapshot={block1.inputs_snapshot}
           generatedAt={data.generated_at}
