@@ -1,7 +1,8 @@
-// P7-B1.2: Floating AI Guide toggle — hover-to-open mode selector
+// P7-B5.3: Floating AI Guide toggle — hover shows mode selector + chat card
 import { useState, useRef, useEffect } from 'react';
-import type { GuideMode } from './types';
+import type { GuideMode, ChatMessage } from './types';
 import RiveAvatar from './RiveAvatar';
+import ChatInputCard from './ChatInputCard';
 
 export default function AIGuideToggle({
   mode,
@@ -9,14 +10,21 @@ export default function AIGuideToggle({
   onStart,
   onStop,
   active,
+  standaloneChatHistory,
+  standaloneChatLoading,
+  onStandaloneChatSend,
 }: {
   mode: GuideMode;
   onModeChange: (m: GuideMode) => void;
   onStart: () => void;
   onStop: () => void;
   active: boolean;
+  standaloneChatHistory: ChatMessage[];
+  standaloneChatLoading: boolean;
+  onStandaloneChatSend: (message: string) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [inputFocused, setInputFocused] = useState(false);
   const openTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -29,23 +37,22 @@ export default function AIGuideToggle({
 
   const handleMouseEnter = () => {
     if (active) return;
-    // Cancel any pending close
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
       closeTimeoutRef.current = null;
     }
-    // Open after 300ms hover delay
     openTimeoutRef.current = setTimeout(() => setOpen(true), 300);
   };
 
   const handleMouseLeave = () => {
-    // Cancel pending open if mouse left before it fired
     if (openTimeoutRef.current) {
       clearTimeout(openTimeoutRef.current);
       openTimeoutRef.current = null;
     }
-    // Delay close by 800ms so the user has time to reach the card
-    closeTimeoutRef.current = setTimeout(() => setOpen(false), 800);
+    // Don't close if input is focused or there's an active conversation
+    if (inputFocused) return;
+    const delay = standaloneChatHistory.length > 0 ? 3000 : 800;
+    closeTimeoutRef.current = setTimeout(() => setOpen(false), delay);
   };
 
   const handleStart = () => {
@@ -56,56 +63,88 @@ export default function AIGuideToggle({
     setOpen(false);
   };
 
+  // Keep open when chat input is focused
+  const handleInputFocus = () => {
+    setInputFocused(true);
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+  };
+
+  const handleInputBlur = () => {
+    setInputFocused(false);
+  };
+
+  // Close on Escape when input is focused
+  useEffect(() => {
+    if (!inputFocused) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setInputFocused(false);
+        setOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [inputFocused]);
+
   return (
     <div
       className="fixed bottom-24 right-12 sm:bottom-24 sm:right-12 z-50"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Mode selector dropdown — opens upward, fade-in animation */}
-      {/* pb-3 on outer wrapper bridges the gap to the avatar so hover doesn't break */}
+      {/* Cards stack: mode selector + chat input */}
       {open && !active && (
         <div
-          className="absolute bottom-full right-0 pb-3 w-[280px]"
+          className="flex flex-col gap-2 mb-2 w-[280px]"
           style={{ animation: 'fadeSlideUp 200ms ease-out' }}
         >
-        <div className="bg-white rounded-xl shadow-xl p-5 transition-all duration-200">
-          <p className="text-xs uppercase tracking-wider text-slate-400 font-medium mb-3">
-            Pasirinkite
-          </p>
+          {/* Mode selector */}
+          <div className="bg-white rounded-xl shadow-xl p-5">
+            <p className="text-xs uppercase tracking-wider text-slate-400 font-medium mb-3">
+              Pasirinkite
+            </p>
 
-          <div className="space-y-2">
-            <button
-              type="button"
-              onClick={() => {
-                onModeChange('guided');
-                sessionStorage.setItem('ntd-guide-mode', 'guided');
-                onStart();
-                setOpen(false);
-              }}
-              className="group w-full text-left px-4 py-3 rounded-lg text-sm font-semibold text-white bg-[#0D7377] hover:bg-[#095456] active:bg-[#073f41] transition-all duration-150 border-none cursor-pointer shadow-sm hover:shadow-md flex items-center justify-between"
-            >
-              <span>Naršyti padedant AI gidui?</span>
-              <span className="transition-transform duration-150 group-hover:translate-x-0.5">→</span>
-            </button>
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={handleStart}
+                className="group w-full text-left px-4 py-3 rounded-lg text-sm font-semibold text-white bg-[#0D7377] hover:bg-[#095456] active:bg-[#073f41] transition-all duration-150 border-none cursor-pointer shadow-sm hover:shadow-md flex items-center justify-between"
+              >
+                <span>Naršyti padedant AI gidui?</span>
+                <span className="transition-transform duration-150 group-hover:translate-x-0.5">→</span>
+              </button>
 
-            <button
-              type="button"
-              disabled
-              className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-slate-400 bg-slate-50 border border-dashed border-slate-200 cursor-not-allowed flex items-center justify-between"
-            >
-              <span>Su balso asistentu?</span>
-              <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide">
-                Greitai
-              </span>
-            </button>
+              <button
+                type="button"
+                disabled
+                className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-slate-400 bg-slate-50 border border-dashed border-slate-200 cursor-not-allowed flex items-center justify-between"
+              >
+                <span>Su balso asistentu?</span>
+                <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide">
+                  Greitai
+                </span>
+              </button>
+            </div>
           </div>
-        </div>
+
+          {/* Standalone chat card */}
+          <div onFocus={handleInputFocus} onBlur={handleInputBlur}>
+            <ChatInputCard
+              chatHistory={standaloneChatHistory}
+              chatLoading={standaloneChatLoading}
+              onSend={onStandaloneChatSend}
+              showTriangle
+              triangleDirection="down"
+              avatarSize={128}
+            />
+          </div>
         </div>
       )}
 
       <div className="relative">
-        {/* Rive avatar */}
         <RiveAvatar
           onClick={() => {
             if (active) {
@@ -117,7 +156,6 @@ export default function AIGuideToggle({
           active={active}
         />
 
-        {/* "Stop tour" label when active */}
         {active && (
           <button
             type="button"
@@ -130,7 +168,6 @@ export default function AIGuideToggle({
         )}
       </div>
 
-      {/* Fade-slide animation */}
       <style>{`
         @keyframes fadeSlideUp {
           from { opacity: 0; transform: translateY(8px); }

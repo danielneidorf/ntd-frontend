@@ -19,3 +19,8 @@ export interface TourState {
 }
 
 export type GuideMode = 'self' | 'guided' | 'voice';
+
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
