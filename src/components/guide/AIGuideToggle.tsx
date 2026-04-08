@@ -60,10 +60,9 @@ export default function AIGuideToggle({
   };
 
   const handleStart = () => {
-    if (mode === 'guided') {
-      sessionStorage.setItem('ntd-guide-mode', mode);
-      onStart();
-    }
+    onModeChange('guided');
+    sessionStorage.setItem('ntd-guide-mode', 'guided');
+    onStart();
     setOpen(false);
   };
 
