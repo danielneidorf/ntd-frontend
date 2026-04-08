@@ -8,9 +8,11 @@ const ARTBOARD = 'Catbot';
 export default function RiveAvatar({
   onClick,
   active,
+  isSpeaking = false,
 }: {
   onClick: () => void;
   active: boolean;
+  isSpeaking?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -56,13 +58,18 @@ export default function RiveAvatar({
     return () => window.removeEventListener('mousemove', onMouseMove);
   }, [rive]);
 
+  // Sync Chat face with hover OR speaking
+  useEffect(() => {
+    if (chatInput) chatInput.value = isSpeaking;
+  }, [isSpeaking, chatInput]);
+
   const handleHover = useCallback(() => {
     if (chatInput) chatInput.value = true;
   }, [chatInput]);
 
   const handleHoverEnd = useCallback(() => {
-    if (chatInput) chatInput.value = false;
-  }, [chatInput]);
+    if (chatInput && !isSpeaking) chatInput.value = false;
+  }, [chatInput, isSpeaking]);
 
   return (
     <div

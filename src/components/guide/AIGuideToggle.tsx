@@ -13,6 +13,8 @@ export default function AIGuideToggle({
   standaloneChatHistory,
   standaloneChatLoading,
   onStandaloneChatSend,
+  ttsAvailable,
+  isSpeaking,
 }: {
   mode: GuideMode;
   onModeChange: (m: GuideMode) => void;
@@ -22,6 +24,8 @@ export default function AIGuideToggle({
   standaloneChatHistory: ChatMessage[];
   standaloneChatLoading: boolean;
   onStandaloneChatSend: (message: string) => void;
+  ttsAvailable: boolean;
+  isSpeaking?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [inputFocused, setInputFocused] = useState(false);
@@ -117,16 +121,32 @@ export default function AIGuideToggle({
                 <span className="transition-transform duration-150 group-hover:translate-x-0.5">→</span>
               </button>
 
-              <button
-                type="button"
-                disabled
-                className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-slate-400 bg-slate-50 border border-dashed border-slate-200 cursor-not-allowed flex items-center justify-between"
-              >
-                <span>Su balso asistentu?</span>
-                <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide">
-                  Greitai
-                </span>
-              </button>
+              {ttsAvailable ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onModeChange('voice');
+                    sessionStorage.setItem('ntd-guide-mode', 'voice');
+                    onStart();
+                    setOpen(false);
+                  }}
+                  className="group w-full text-left px-4 py-3 rounded-lg text-sm font-semibold text-[#1E3A5F] bg-slate-50 hover:bg-[#0D7377] hover:text-white transition-all duration-150 border border-slate-200 hover:border-transparent cursor-pointer flex items-center justify-between"
+                >
+                  <span>🔊 Su balso asistentu</span>
+                  <span className="transition-transform duration-150 group-hover:translate-x-0.5">→</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-slate-400 bg-slate-50 border border-dashed border-slate-200 cursor-not-allowed flex items-center justify-between"
+                >
+                  <span>Su balso asistentu?</span>
+                  <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide">
+                    Greitai
+                  </span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -154,6 +174,7 @@ export default function AIGuideToggle({
             }
           }}
           active={active}
+          isSpeaking={isSpeaking}
         />
 
         {active && (

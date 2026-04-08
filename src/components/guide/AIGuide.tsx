@@ -1,5 +1,4 @@
-// P7-B1 / P7-B2 / P7-B3 / P7-B5: AI Guide root component
-// Tour steps resolved internally. Chat via Haiku on any step.
+// P7-B1–B6: AI Guide root component — tour + chat + voice
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import type { TourStep, GuideMode, ChatMessage } from './types';
 import useTour from './useTour';
@@ -9,6 +8,7 @@ import NarrationBubble from './NarrationBubble';
 import { landingTour } from './tours/landingTour';
 import { quickscanTour } from './tours/quickscanTour';
 import { buildReportTour, extractReportData } from './tours/reportTour';
+import { ttsService } from '../../lib/ttsService';
 
 const API_BASE = import.meta.env.PUBLIC_API_BASE ?? 'http://127.0.0.1:8100';
 
@@ -40,11 +40,35 @@ async function sendChatMessage(
     });
     if (!resp.ok) return null;
     const data = await resp.json();
-    if (data.source === 'fallback') return data.response;
     return data.response;
   } catch {
     return null;
   }
+}
+
+function buildPropertyContext(): string | undefined {
+  if (typeof window === 'undefined') return undefined;
+  try {
+    const data = extractReportData();
+    return [
+      `Adresas: ${data.address}`,
+      `Pastato tipas: ${data.buildingType}`,
+      data.yearBuilt ? `Statybos metai: ${data.yearBuilt}` : null,
+      data.energyClass ? `Energinė klasė: ${data.energyClass}` : null,
+      `Žiemos komfortas: ${data.winterLevel}`,
+      `Vasaros perkaitimo rizika: ${data.summerLevel}`,
+      data.hasPermits ? `Statybos leidimai: ${data.permitCount} rasta` : 'Statybos leidimų nerasta',
+      data.isLandOnly ? 'Vertinimo tipas: Žemės sklypas' : 'Vertinimo tipas: Esamas pastatas',
+    ].filter(Boolean).join('\n');
+  } catch {
+    return undefined;
+  }
+}
+
+function getReportToken(): string | undefined {
+  if (typeof window === 'undefined') return undefined;
+  const segments = window.location.pathname.split('/report/');
+  return segments[1]?.replace(/\/$/, '') || undefined;
 }
 
 export default function AIGuide({
@@ -54,9 +78,8 @@ export default function AIGuide({
   tourId: string;
   autoStart?: boolean;
 }) {
-  // Report tour is built dynamically from DOM data
+  // Report tour built dynamically
   const [reportSteps, setReportSteps] = useState<TourStep[] | null>(null);
-
   useEffect(() => {
     if (tourId !== 'report') return;
     const timer = setTimeout(() => {
@@ -73,6 +96,7 @@ export default function AIGuide({
 
   const tour = useTour(tourSteps);
   const autoStartedRef = useRef(false);
+
   const [mode, setMode] = useState<GuideMode>(() => {
     if (typeof window !== 'undefined') {
       return (sessionStorage.getItem('ntd-guide-mode') as GuideMode) || 'self';
@@ -80,15 +104,37 @@ export default function AIGuide({
     return 'self';
   });
 
+  // TTS availability
+  const [ttsAvailable, setTtsAvailable] = useState(false);
+  useEffect(() => {
+    fetch(`${API_BASE}/v1/ai-guide/tts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: 'test', voice: '21m00Tcm4TlvDq8ikWAM' }),
+    })
+      .then((r) => setTtsAvailable(r.ok || r.status !== 503))
+      .catch(() => setTtsAvailable(false));
+  }, []);
+
+  // Speaking state (for Robocat animation)
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  useEffect(() => {
+    if (mode !== 'voice') return;
+    const interval = setInterval(() => {
+      setIsSpeaking(ttsService.isPlaying);
+    }, 100);
+    return () => clearInterval(interval);
+  }, [mode]);
+
   // Tour chat state
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [chatLoading, setChatLoading] = useState(false);
 
-  // Standalone chat state (when no tour is active)
+  // Standalone chat state
   const [standaloneChatHistory, setStandaloneChatHistory] = useState<ChatMessage[]>([]);
   const [standaloneChatLoading, setStandaloneChatLoading] = useState(false);
 
-  // Clear tour chat history when step changes or tour stops
+  // Clear tour chat on step change
   const prevStepRef = useRef(-1);
   useEffect(() => {
     if (tour.state.currentStep !== prevStepRef.current) {
@@ -103,6 +149,17 @@ export default function AIGuide({
     }
   }, [tour.state.active]);
 
+  // Voice mode: speak narration on step change
+  useEffect(() => {
+    if (mode !== 'voice' || !tour.state.active) return;
+    const step = tourSteps[tour.state.currentStep];
+    if (!step) return;
+    const narration = step.narration;
+    ttsService.speak(narration);
+    return () => ttsService.stop();
+  }, [tour.state.currentStep, tour.state.active, mode, tourSteps]);
+
+  // Tour chat handler
   const handleChatSend = useCallback((message: string) => {
     const currentStep = tourSteps[tour.state.currentStep];
     if (!currentStep) return;
@@ -111,100 +168,63 @@ export default function AIGuide({
     setChatHistory((prev) => [...prev, userMsg]);
     setChatLoading(true);
 
-    let reportToken: string | undefined;
-    let propertyContext: string | undefined;
-    if (tourId === 'report' && typeof window !== 'undefined') {
-      const segments = window.location.pathname.split('/report/');
-      reportToken = segments[1]?.replace(/\/$/, '') || undefined;
-
-      // Extract property data from the rendered report DOM
-      const data = extractReportData();
-      propertyContext = [
-        `Adresas: ${data.address}`,
-        `Pastato tipas: ${data.buildingType}`,
-        data.yearBuilt ? `Statybos metai: ${data.yearBuilt}` : null,
-        data.energyClass ? `Energinė klasė: ${data.energyClass}` : null,
-        `Žiemos komfortas: ${data.winterLevel}`,
-        `Vasaros perkaitimo rizika: ${data.summerLevel}`,
-        data.hasPermits ? `Statybos leidimai: ${data.permitCount} rasta` : 'Statybos leidimų nerasta',
-        data.isLandOnly ? 'Vertinimo tipas: Žemės sklypas' : 'Vertinimo tipas: Esamas pastatas',
-      ].filter(Boolean).join('\n');
-    }
+    const reportToken = tourId === 'report' ? getReportToken() : undefined;
+    const propertyContext = tourId === 'report' ? buildPropertyContext() : undefined;
 
     sendChatMessage(tourId, currentStep.id, message, [...chatHistory, userMsg], reportToken, propertyContext)
       .then((response) => {
-        const aiMsg: ChatMessage = {
-          role: 'assistant',
-          content: response ?? 'Atsiprašau, šiuo metu negaliu atsakyti.',
-        };
+        const text = response ?? 'Atsiprašau, šiuo metu negaliu atsakyti.';
+        const aiMsg: ChatMessage = { role: 'assistant', content: text };
         setChatHistory((prev) => [...prev, aiMsg]);
+        if (mode === 'voice') ttsService.speak(text);
       })
       .finally(() => setChatLoading(false));
-  }, [tourSteps, tour.state.currentStep, chatHistory, tourId]);
+  }, [tourSteps, tour.state.currentStep, chatHistory, tourId, mode]);
 
-  // Standalone chat handler (no tour active — user asks from hover card)
+  // Standalone chat handler
   const handleStandaloneChatSend = useCallback((message: string) => {
     const userMsg: ChatMessage = { role: 'user', content: message };
     setStandaloneChatHistory((prev) => [...prev, userMsg]);
     setStandaloneChatLoading(true);
 
-    // Determine page and extract property context if on report
-    const page = tourId;
-    let reportToken: string | undefined;
-    let propertyContext: string | undefined;
-    if (tourId === 'report' && typeof window !== 'undefined') {
-      const segments = window.location.pathname.split('/report/');
-      reportToken = segments[1]?.replace(/\/$/, '') || undefined;
-      const data = extractReportData();
-      propertyContext = [
-        `Adresas: ${data.address}`,
-        `Pastato tipas: ${data.buildingType}`,
-        data.yearBuilt ? `Statybos metai: ${data.yearBuilt}` : null,
-        data.energyClass ? `Energinė klasė: ${data.energyClass}` : null,
-        `Žiemos komfortas: ${data.winterLevel}`,
-        `Vasaros perkaitimo rizika: ${data.summerLevel}`,
-      ].filter(Boolean).join('\n');
-    }
+    const reportToken = tourId === 'report' ? getReportToken() : undefined;
+    const propertyContext = tourId === 'report' ? buildPropertyContext() : undefined;
 
-    sendChatMessage(page, 'standalone', message, [...standaloneChatHistory, userMsg], reportToken, propertyContext)
+    sendChatMessage(tourId, 'standalone', message, [...standaloneChatHistory, userMsg], reportToken, propertyContext)
       .then((response) => {
-        const aiMsg: ChatMessage = {
-          role: 'assistant',
-          content: response ?? 'Atsiprašau, šiuo metu negaliu atsakyti.',
-        };
+        const text = response ?? 'Atsiprašau, šiuo metu negaliu atsakyti.';
+        const aiMsg: ChatMessage = { role: 'assistant', content: text };
         setStandaloneChatHistory((prev) => [...prev, aiMsg]);
+        if (mode === 'voice') ttsService.speak(text);
       })
       .finally(() => setStandaloneChatLoading(false));
-  }, [standaloneChatHistory, tourId]);
-
-  // AI narrations disabled — hardcoded/template narrations used
-  const aiNarrations: Map<string, string> | null = null;
+  }, [standaloneChatHistory, tourId, mode]);
 
   const handleModeChange = (m: GuideMode) => {
     setMode(m);
     sessionStorage.setItem('ntd-guide-mode', m);
   };
 
-  // Auto-start on mount if guide mode is active
+  const handleTourStop = useCallback(() => {
+    ttsService.stop();
+    tour.stop();
+  }, [tour.stop]);
+
+  // Auto-start
   useEffect(() => {
     if (!autoStart || autoStartedRef.current) return;
-    if (mode !== 'guided') return;
+    if (mode !== 'guided' && mode !== 'voice') return;
     if (tour.state.active) return;
     if (tourSteps.length === 0) return;
-
     const timer = setTimeout(() => {
       autoStartedRef.current = true;
       tour.start();
     }, 300);
-
     return () => clearTimeout(timer);
   }, [autoStart, mode, tour.state.active, tourSteps.length]);
 
   const currentStep = tour.state.active ? tourSteps[tour.state.currentStep] : null;
-
-  const currentNarration = currentStep
-    ? aiNarrations?.get(currentStep.id) ?? currentStep.narration
-    : '';
+  const currentNarration = currentStep?.narration ?? '';
 
   return (
     <>
@@ -212,11 +232,13 @@ export default function AIGuide({
         mode={mode}
         onModeChange={handleModeChange}
         onStart={tour.start}
-        onStop={tour.stop}
+        onStop={handleTourStop}
         active={tour.state.active}
         standaloneChatHistory={standaloneChatHistory}
         standaloneChatLoading={standaloneChatLoading}
         onStandaloneChatSend={handleStandaloneChatSend}
+        ttsAvailable={ttsAvailable}
+        isSpeaking={isSpeaking}
       />
 
       {tour.state.active && currentStep && (
@@ -224,7 +246,7 @@ export default function AIGuide({
           <AIGuideOverlay
             targetSelector={currentStep.selector}
             animation={currentStep.animation}
-            onClickOutside={tour.stop}
+            onClickOutside={handleTourStop}
           />
           <NarrationBubble
             step={{ ...currentStep, narration: currentNarration }}
@@ -232,7 +254,7 @@ export default function AIGuide({
             totalSteps={tour.visibleStepCount}
             onNext={tour.next}
             onBack={tour.back}
-            onClose={tour.stop}
+            onClose={handleTourStop}
             chatHistory={chatHistory}
             chatLoading={chatLoading}
             onChatSend={handleChatSend}

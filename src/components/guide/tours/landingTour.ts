@@ -20,7 +20,7 @@ export const landingTour: TourStep[] = [
     id: 'how-it-works',
     selector: '[data-guide="how-it-works"]',
     narration:
-      'Palyginkite: nepriklausomo vertintojo vizitas kainuoja 150–300\u00a0€, o čia gaunate panašų informacijos kiekį per mažiau nei valandą.',
+      'Palyginkite: eksperto samdymas kainuoja 250–700\u00a0€, o čia gaunate panašų informacijos kiekį per mažiau nei valandą.',
     animation: 'pulse',
   },
   {

@@ -122,10 +122,12 @@ export function buildReportTour(data: ReportTourData): TourStep[] {
     {
       id: 'permits',
       selector: '[data-guide="permits"]',
-      narration: data.hasPermits
-        ? `Radome ${data.permitCount} statybos ${data.permitCount === 1 ? 'leidimą' : 'leidimus'} šiuo adresu Infostatyba sistemoje. Tai gali reikšti renovaciją, priestatą ar kitą statybos darbą.`
-        : '',
-      skipIf: () => !data.hasPermits,
+      narration: 'Čia matote statybos leidimus ir dokumentus, rastus Infostatyba sistemoje šiuo adresu. Tai gali reikšti renovaciją, priestatą ar kitą statybos darbą.',
+      // Skip only if the permits wrapper has no visible content (ConstructionPermits returned null)
+      skipIf: () => {
+        const el = document.querySelector('[data-guide="permits"]');
+        return !el || el.children.length === 0 || el.textContent?.trim() === '';
+      },
     },
     {
       id: 'public-documents',
