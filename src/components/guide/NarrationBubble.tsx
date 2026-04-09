@@ -21,6 +21,11 @@ export default function NarrationBubble({
   chatHistory,
   chatLoading,
   onChatSend,
+  voiceMode,
+  voiceConciergeActive,
+  isListening,
+  userTranscript,
+  aiResponseText,
 }: {
   step: TourStep;
   stepNumber: number;
@@ -31,6 +36,11 @@ export default function NarrationBubble({
   chatHistory: ChatMessage[];
   chatLoading: boolean;
   onChatSend: (message: string) => void;
+  voiceMode?: boolean;
+  voiceConciergeActive?: boolean;
+  isListening?: boolean;
+  userTranscript?: string;
+  aiResponseText?: string;
 }) {
   const isLast = stepNumber === totalSteps;
   const isFirst = stepNumber === 1;
@@ -127,6 +137,11 @@ export default function NarrationBubble({
           showTriangle
           triangleDirection={isFirst ? 'right' : 'down'}
           avatarSize={AVATAR_SIZE}
+          voiceMode={voiceMode}
+          voiceConciergeActive={voiceConciergeActive}
+          isListening={isListening}
+          userTranscript={userTranscript}
+          aiResponseText={aiResponseText}
         />
       </div>
     </div>

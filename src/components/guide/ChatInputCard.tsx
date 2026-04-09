@@ -1,12 +1,8 @@
-// P7-B5.3: Reusable chat input card — expands on hover, collapses on leave
+// P7-B5.3 / B7: Chat input card with mic button for voice mode
 import { useState, useRef, useEffect } from 'react';
 import type { ChatMessage } from './types';
+import { sttService, transcribeAudio } from '../../lib/sttService';
 
-const HEADER_HEIGHT = 64;
-const AVATAR_BOTTOM = 96;
-const AVATAR_SIZE = 128;
-const GAP = 12;
-// Max expanded height: hard cap at 300px — keeps the card compact
 const MAX_EXPANDED = '400px';
 
 export default function ChatInputCard({
@@ -16,6 +12,11 @@ export default function ChatInputCard({
   showTriangle,
   triangleDirection,
   avatarSize,
+  voiceMode,
+  voiceConciergeActive,
+  isListening,
+  userTranscript,
+  aiResponseText,
 }: {
   chatHistory: ChatMessage[];
   chatLoading: boolean;
@@ -23,9 +24,16 @@ export default function ChatInputCard({
   showTriangle?: boolean;
   triangleDirection?: 'down' | 'right';
   avatarSize?: number;
+  voiceConciergeActive?: boolean;
+  isListening?: boolean;
+  userTranscript?: string;
+  aiResponseText?: string;
+  voiceMode?: boolean;
 }) {
   const [inputValue, setInputValue] = useState('');
   const [hovered, setHovered] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const threadRef = useRef<HTMLDivElement>(null);
 
@@ -33,7 +41,7 @@ export default function ChatInputCard({
     const msg = inputValue.trim();
     if (!msg || chatLoading) return;
     setInputValue('');
-    setHovered(true); // keep expanded after sending
+    setHovered(true);
     onSend(msg);
   };
 
@@ -44,6 +52,43 @@ export default function ChatInputCard({
     }
   };
 
+  const handleMicClick = async () => {
+    if (isRecording) {
+      // Stop recording → transcribe → auto-send
+      setIsRecording(false);
+      setIsTranscribing(true);
+      setHovered(true);
+
+      try {
+        const audioBlob = await sttService.stopRecording();
+        const transcription = await transcribeAudio(audioBlob);
+        setIsTranscribing(false);
+
+        if (transcription) {
+          onSend(transcription);
+        }
+      } catch {
+        setIsTranscribing(false);
+      }
+    } else {
+      // Start recording
+      try {
+        await sttService.startRecording();
+        setIsRecording(true);
+        setHovered(true);
+
+        // Auto-stop after 60 seconds
+        setTimeout(() => {
+          if (sttService.isRecording) {
+            handleMicClick();
+          }
+        }, 60000);
+      } catch {
+        // Mic permission denied or not available
+      }
+    }
+  };
+
   // Auto-scroll to bottom when new messages arrive while expanded
   useEffect(() => {
     if (threadRef.current && hovered) {
@@ -51,7 +96,6 @@ export default function ChatInputCard({
     }
   }, [chatHistory.length, hovered]);
 
-  // Keep expanded while loading
   useEffect(() => {
     if (chatLoading) setHovered(true);
   }, [chatLoading]);
@@ -64,7 +108,7 @@ export default function ChatInputCard({
     <div
       className="bg-white rounded-xl shadow-xl relative"
       onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => { if (!chatLoading) setHovered(false); }}
+      onMouseLeave={() => { if (!chatLoading && !isRecording) setHovered(false); }}
     >
       {/* Conversation thread */}
       {hasConversation && (
@@ -74,7 +118,6 @@ export default function ChatInputCard({
           style={{ maxHeight: isCollapsed ? '72px' : MAX_EXPANDED }}
         >
           {isCollapsed ? (
-            // Collapsed: last question + truncated response
             <>
               {chatHistory.length >= 2 && chatHistory[chatHistory.length - 2]?.role === 'user' && (
                 <div className="text-right">
@@ -90,7 +133,6 @@ export default function ChatInputCard({
               </div>
             </>
           ) : (
-            // Expanded: full conversation
             <>
               {chatHistory.map((msg, i) => (
                 <div key={i} className={msg.role === 'user' ? 'text-right' : ''}>
@@ -117,30 +159,83 @@ export default function ChatInputCard({
 
       {/* Input row */}
       <div className={`px-4 py-3 flex items-center gap-2 ${hasConversation ? 'border-t border-slate-100' : ''}`}>
-        <span className="text-slate-400 text-sm shrink-0">💬</span>
-        <input
-          ref={inputRef}
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onFocus={() => setHovered(true)}
-          disabled={chatLoading}
-          placeholder="Turite klausimų? Klauskite..."
-          className="flex-1 text-sm text-slate-600 placeholder-slate-400 bg-transparent border-none outline-none"
-        />
-        <button
-          type="button"
-          onClick={handleSend}
-          disabled={!inputValue.trim() || chatLoading}
-          className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center border-none cursor-pointer transition-all text-sm ${
-            inputValue.trim() && !chatLoading
-              ? 'bg-[#0D7377] text-white hover:bg-[#095456]'
-              : 'bg-slate-100 text-slate-300'
-          }`}
-        >
-          ➤
-        </button>
+        {voiceConciergeActive ? (
+          // Voice concierge mode — show live state indicators
+          isListening ? (
+            <>
+              <span className="text-red-500 text-sm shrink-0 animate-pulse">🔴</span>
+              <span className="flex-1 text-sm text-slate-600">
+                {userTranscript || 'Klausau...'}
+              </span>
+            </>
+          ) : aiResponseText ? (
+            <>
+              <span className="text-[#0D7377] text-sm shrink-0">🔊</span>
+              <span className="flex-1 text-sm text-slate-700">{aiResponseText}</span>
+            </>
+          ) : (
+            <>
+              <span className="text-green-500 text-sm shrink-0 animate-pulse">🟢</span>
+              <span className="flex-1 text-sm text-slate-500">Klausau — kalbėkite...</span>
+            </>
+          )
+        ) : isRecording ? (
+          // B7 click-to-record mode (fallback)
+          <>
+            <span className="text-red-500 text-sm shrink-0 animate-pulse">🔴</span>
+            <span className="flex-1 text-sm text-slate-500">Klausau...</span>
+            <button
+              type="button"
+              onClick={handleMicClick}
+              className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center border-none cursor-pointer bg-red-500 text-white hover:bg-red-600 transition-all text-xs"
+            >
+              ⏹
+            </button>
+          </>
+        ) : isTranscribing ? (
+          <>
+            <span className="text-slate-400 text-sm shrink-0">⏳</span>
+            <span className="flex-1 text-sm text-slate-500 animate-pulse">Atpažįstame...</span>
+          </>
+        ) : (
+          // Normal input state
+          <>
+            <span className="text-slate-400 text-sm shrink-0">💬</span>
+            <input
+              ref={inputRef}
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onFocus={() => setHovered(true)}
+              disabled={chatLoading}
+              placeholder={voiceMode ? 'Klauskite balsu arba raštu...' : 'Turite klausimų? Klauskite...'}
+              className="flex-1 text-sm text-slate-600 placeholder-slate-400 bg-transparent border-none outline-none"
+            />
+            {voiceMode && (
+              <button
+                type="button"
+                onClick={handleMicClick}
+                className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center border-none cursor-pointer bg-slate-100 text-slate-500 hover:bg-[#0D7377] hover:text-white transition-all text-sm"
+                title="Klauskite balsu"
+              >
+                🎤
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleSend}
+              disabled={!inputValue.trim() || chatLoading}
+              className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center border-none cursor-pointer transition-all text-sm ${
+                inputValue.trim() && !chatLoading
+                  ? 'bg-[#0D7377] text-white hover:bg-[#095456]'
+                  : 'bg-slate-100 text-slate-300'
+              }`}
+            >
+              ➤
+            </button>
+          </>
+        )}
       </div>
 
       {/* Triangle pointer */}

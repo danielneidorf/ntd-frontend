@@ -13,7 +13,9 @@ class TTSService {
       const response = await fetch(`${API_BASE}/v1/ai-guide/tts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, voice: '21m00Tcm4TlvDq8ikWAM', speed: 1.0 }),
+        // Voice ID is configured on the backend via ELEVENLABS_VOICE_ID env var.
+        // Omitting 'voice' here lets the server pick the configured default.
+        body: JSON.stringify({ text, speed: 1.0 }),
       });
 
       if (!response.ok) return; // silent failure

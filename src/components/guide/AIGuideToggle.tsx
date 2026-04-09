@@ -15,6 +15,10 @@ export default function AIGuideToggle({
   onStandaloneChatSend,
   ttsAvailable,
   isSpeaking,
+  isListening,
+  voiceConciergeActive,
+  userTranscript,
+  aiResponseText,
 }: {
   mode: GuideMode;
   onModeChange: (m: GuideMode) => void;
@@ -26,6 +30,10 @@ export default function AIGuideToggle({
   onStandaloneChatSend: (message: string) => void;
   ttsAvailable: boolean;
   isSpeaking?: boolean;
+  isListening?: boolean;
+  voiceConciergeActive?: boolean;
+  userTranscript?: string;
+  aiResponseText?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [inputFocused, setInputFocused] = useState(false);
@@ -158,6 +166,11 @@ export default function AIGuideToggle({
               showTriangle
               triangleDirection="down"
               avatarSize={128}
+              voiceMode={mode === 'voice'}
+              voiceConciergeActive={voiceConciergeActive}
+              isListening={isListening}
+              userTranscript={userTranscript}
+              aiResponseText={aiResponseText}
             />
           </div>
         </div>

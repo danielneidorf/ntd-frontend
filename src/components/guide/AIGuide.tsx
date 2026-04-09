@@ -1,4 +1,4 @@
-// P7-B1–B6: AI Guide root component — tour + chat + voice
+// P7-B1–B7.1: AI Guide root component — tour + chat + voice concierge
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import type { TourStep, GuideMode, ChatMessage } from './types';
 import useTour from './useTour';
@@ -9,6 +9,9 @@ import { landingTour } from './tours/landingTour';
 import { quickscanTour } from './tours/quickscanTour';
 import { buildReportTour, extractReportData } from './tours/reportTour';
 import { ttsService } from '../../lib/ttsService';
+import { vadService } from '../../lib/vadService';
+import { voiceWS } from '../../lib/voiceWebSocket';
+import { audioQueue } from '../../lib/audioQueue';
 
 const API_BASE = import.meta.env.PUBLIC_API_BASE ?? 'http://127.0.0.1:8100';
 
@@ -107,24 +110,165 @@ export default function AIGuide({
   // TTS availability
   const [ttsAvailable, setTtsAvailable] = useState(false);
   useEffect(() => {
+    // Voice ID comes from the backend (ELEVENLABS_VOICE_ID env var); omit it here.
     fetch(`${API_BASE}/v1/ai-guide/tts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: 'test', voice: '21m00Tcm4TlvDq8ikWAM' }),
+      body: JSON.stringify({ text: 'test' }),
     })
       .then((r) => setTtsAvailable(r.ok || r.status !== 503))
       .catch(() => setTtsAvailable(false));
   }, []);
 
-  // Speaking state (for Robocat animation)
+  // Speaking + listening state (for Robocat animation)
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceConciergeActive, setVoiceConciergeActive] = useState(false);
+  const [userTranscript, setUserTranscript] = useState('');
+  const [aiResponseText, setAiResponseText] = useState('');
+
   useEffect(() => {
     if (mode !== 'voice') return;
+    // P7-B7.4 barge-in: VAD must stay HOT during AI playback so onSpeechStart
+    // can fire and trigger voiceWS.sendCancel(). The previous pause/resume
+    // gate (disabled here) prevented speaker→mic feedback loops when the user
+    // wasn't wearing headphones. With the gate removed, users on open speakers
+    // may occasionally hear the AI cut itself off as its own voice leaks back
+    // into the mic — the fix for that is headphones (user confirmed) or
+    // better echo cancellation in a future task.
     const interval = setInterval(() => {
-      setIsSpeaking(ttsService.isPlaying);
+      setIsSpeaking(ttsService.isPlaying || audioQueue.isPlaying);
     }, 100);
     return () => clearInterval(interval);
   }, [mode]);
+
+  // Voice concierge lifecycle
+  const startVoiceConcierge = useCallback(async () => {
+    if (voiceConciergeActive) return;
+
+    try {
+      // Connect WebSocket
+      voiceWS.connect({
+        onTranscript: (text, isFinal) => {
+          if (isFinal && text) {
+            setUserTranscript(text);
+            setChatHistory((prev) => [...prev, { role: 'user', content: text }]);
+          }
+        },
+        onResponseText: (text) => {
+          setAiResponseText((prev) => (prev ? prev + ' ' + text : text));
+          setChatHistory((prev) => {
+            const last = prev[prev.length - 1];
+            if (last?.role === 'assistant') {
+              return [...prev.slice(0, -1), { role: 'assistant', content: last.content + ' ' + text }];
+            }
+            return [...prev, { role: 'assistant', content: text }];
+          });
+        },
+        onAudioChunk: (base64) => {
+          audioQueue.enqueue(base64);
+        },
+        onAudioEnd: () => {
+          setAiResponseText('');
+        },
+        onError: (msg) => {
+          console.warn('Voice WS error:', msg);
+        },
+        onClose: () => {
+          setVoiceConciergeActive(false);
+          setIsListening(false);
+        },
+      });
+
+      // Wait for WebSocket to connect
+      await new Promise<void>((resolve) => {
+        const check = setInterval(() => {
+          if (voiceWS.connected) { clearInterval(check); resolve(); }
+        }, 50);
+        setTimeout(() => { clearInterval(check); resolve(); }, 2000);
+      });
+
+      // Send page context
+      const propertyContext = tourId === 'report' ? buildPropertyContext() : undefined;
+      const currentStep = tourSteps[tour.state.currentStep];
+      console.log('[AIGuide] about to sendContext — voiceWS.connected=', voiceWS.connected, 'voiceWS instance:', voiceWS);
+      voiceWS.sendContext(tourId, currentStep?.id ?? 'standalone', propertyContext);
+
+      // Start VAD
+      await vadService.start({
+        onSpeechStart: () => {
+          // User started speaking — barge-in: stop local playback AND tell
+          // the backend to abort the in-progress response so we don't keep
+          // burning ElevenLabs/Haiku tokens on audio nobody will hear.
+          console.log('[AIGuide] onSpeechStart callback fired');
+          if (ttsService.isPlaying || audioQueue.isPlaying) {
+            voiceWS.sendCancel();
+          }
+          audioQueue.stop();
+          ttsService.stop();
+          setIsSpeaking(false);
+          setIsListening(true);
+          setUserTranscript('');
+          setAiResponseText('');
+        },
+        onSpeechEnd: (audio) => {
+          // User stopped speaking — send audio to backend
+          console.log('[AIGuide] onSpeechEnd callback fired — audio samples:', audio.length, 'voiceWS.connected=', voiceWS.connected);
+          setIsListening(false);
+          voiceWS.sendAudio(audio, 16000);
+          console.log('[AIGuide] voiceWS.sendAudio(...) returned');
+        },
+        onVADMisfire: () => {
+          console.log('[AIGuide] onVADMisfire callback fired');
+          setIsListening(false);
+        },
+      });
+
+      setVoiceConciergeActive(true);
+      setIsListening(true);
+    } catch (err) {
+      console.warn('Voice concierge start failed:', err);
+    }
+  }, [voiceConciergeActive, tourId, tourSteps, tour.state.currentStep]);
+
+  const stopVoiceConcierge = useCallback(() => {
+    vadService.stop();
+    voiceWS.disconnect();
+    audioQueue.stop();
+    ttsService.stop();
+    setVoiceConciergeActive(false);
+    setIsListening(false);
+    setIsSpeaking(false);
+    setUserTranscript('');
+    setAiResponseText('');
+  }, []);
+
+  // Auto-start voice concierge when voice mode activates
+  useEffect(() => {
+    if (mode === 'voice' && tour.state.active && !voiceConciergeActive) {
+      // Small delay to ensure tour state has settled
+      const timer = setTimeout(() => startVoiceConcierge(), 500);
+      return () => clearTimeout(timer);
+    }
+    if (mode !== 'voice' && voiceConciergeActive) {
+      stopVoiceConcierge();
+    }
+  }, [mode, tour.state.active, voiceConciergeActive, startVoiceConcierge, stopVoiceConcierge]);
+
+  // Update WebSocket context when tour step changes
+  useEffect(() => {
+    if (!voiceConciergeActive) return;
+    const currentStep = tourSteps[tour.state.currentStep];
+    const propertyContext = tourId === 'report' ? buildPropertyContext() : undefined;
+    voiceWS.sendContext(tourId, currentStep?.id ?? 'standalone', propertyContext);
+  }, [tour.state.currentStep, voiceConciergeActive]);
+
+  // Stop voice concierge on tour stop
+  useEffect(() => {
+    if (!tour.state.active && voiceConciergeActive) {
+      stopVoiceConcierge();
+    }
+  }, [tour.state.active, voiceConciergeActive]);
 
   // Tour chat state
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -207,8 +351,9 @@ export default function AIGuide({
 
   const handleTourStop = useCallback(() => {
     ttsService.stop();
+    stopVoiceConcierge();
     tour.stop();
-  }, [tour.stop]);
+  }, [tour.stop, stopVoiceConcierge]);
 
   // Auto-start
   useEffect(() => {
@@ -239,6 +384,10 @@ export default function AIGuide({
         onStandaloneChatSend={handleStandaloneChatSend}
         ttsAvailable={ttsAvailable}
         isSpeaking={isSpeaking}
+        isListening={isListening}
+        voiceConciergeActive={voiceConciergeActive}
+        userTranscript={userTranscript}
+        aiResponseText={aiResponseText}
       />
 
       {tour.state.active && currentStep && (
@@ -258,6 +407,11 @@ export default function AIGuide({
             chatHistory={chatHistory}
             chatLoading={chatLoading}
             onChatSend={handleChatSend}
+            voiceMode={mode === 'voice'}
+            voiceConciergeActive={voiceConciergeActive}
+            isListening={isListening}
+            userTranscript={userTranscript}
+            aiResponseText={aiResponseText}
           />
         </>
       )}
