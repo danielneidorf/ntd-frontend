@@ -1,4 +1,4 @@
-// P7-B1–B7.1: AI Guide root component — tour + chat + voice concierge
+// P7-B1–B9: AI Guide root component — tour + chat + voice concierge
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import type { TourStep, GuideMode, ChatMessage } from './types';
 import useTour from './useTour';
@@ -9,9 +9,12 @@ import { landingTour } from './tours/landingTour';
 import { quickscanTour } from './tours/quickscanTour';
 import { buildReportTour, extractReportData } from './tours/reportTour';
 import { ttsService } from '../../lib/ttsService';
+// P7-B9: old pipeline imports kept for potential fallback (not used in Mode 3).
 import { vadService } from '../../lib/vadService';
 import { voiceWS } from '../../lib/voiceWebSocket';
 import { audioQueue } from '../../lib/audioQueue';
+// P7-B9: OpenAI Realtime API replaces the multi-provider pipeline for Mode 3.
+import { RealtimeVoice } from '../../lib/realtimeVoice';
 
 const API_BASE = import.meta.env.PUBLIC_API_BASE ?? 'http://127.0.0.1:8100';
 
@@ -126,6 +129,8 @@ export default function AIGuide({
   const [voiceConciergeActive, setVoiceConciergeActive] = useState(false);
   const [userTranscript, setUserTranscript] = useState('');
   const [aiResponseText, setAiResponseText] = useState('');
+  // P7-B9: OpenAI Realtime API WebRTC session
+  const realtimeRef = useRef<RealtimeVoice | null>(null);
 
   useEffect(() => {
     if (mode !== 'voice') return;
@@ -142,99 +147,96 @@ export default function AIGuide({
     return () => clearInterval(interval);
   }, [mode]);
 
-  // Voice concierge lifecycle
+  // Voice concierge lifecycle — P7-B9: OpenAI Realtime API via WebRTC.
+  // The browser connects directly to OpenAI; our backend's only role is
+  // to generate the ephemeral token and embed the system prompt.
   const startVoiceConcierge = useCallback(async () => {
     if (voiceConciergeActive) return;
 
+    // P7-B9: voice concierge takes over completely — stop any playing tour
+    // narration and end the guided tour so no step-change narrations fire
+    // while WebRTC is active.
+    ttsService.stop();
+    audioQueue.stop();
+    if (tour.state.active) {
+      tour.stop();
+    }
+
     try {
-      // Connect WebSocket
-      voiceWS.connect({
-        onTranscript: (text, isFinal) => {
-          if (isFinal && text) {
+      const propertyContext = tourId === 'report' ? buildPropertyContext() : undefined;
+
+      const rt = new RealtimeVoice();
+      realtimeRef.current = rt;
+
+      let aiResponseAccum = '';
+
+      await rt.connect(
+        {
+          onUserTranscript: (text) => {
+            // Final user transcript — update caption and add to chat history
             setUserTranscript(text);
             setChatHistory((prev) => [...prev, { role: 'user', content: text }]);
-          }
-        },
-        onResponseText: (text) => {
-          setAiResponseText((prev) => (prev ? prev + ' ' + text : text));
-          setChatHistory((prev) => {
-            const last = prev[prev.length - 1];
-            if (last?.role === 'assistant') {
-              return [...prev.slice(0, -1), { role: 'assistant', content: last.content + ' ' + text }];
+          },
+          onAITranscript: (text, isFinal) => {
+            if (isFinal) {
+              // Complete AI response transcript — add to chat history
+              setAiResponseText(text);
+              setChatHistory((prev) => {
+                const last = prev[prev.length - 1];
+                if (last?.role === 'assistant') {
+                  return [...prev.slice(0, -1), { role: 'assistant', content: text }];
+                }
+                return [...prev, { role: 'assistant', content: text }];
+              });
+            } else {
+              // Streaming delta — accumulate for live display
+              aiResponseAccum += text;
+              setAiResponseText(aiResponseAccum);
             }
-            return [...prev, { role: 'assistant', content: text }];
-          });
+          },
+          onSpeechStarted: () => {
+            setIsListening(true);
+            setIsSpeaking(false);
+            setUserTranscript('');
+            setAiResponseText('');
+            aiResponseAccum = '';
+          },
+          onSpeechStopped: () => {
+            setIsListening(false);
+          },
+          onResponseDone: () => {
+            setIsSpeaking(false);
+            aiResponseAccum = '';
+          },
+          onStateChange: (state) => {
+            console.log('[AIGuide] RealtimeVoice state:', state);
+            if (state === 'connected') {
+              setVoiceConciergeActive(true);
+            } else if (state === 'disconnected' || state === 'error') {
+              setVoiceConciergeActive(false);
+              setIsListening(false);
+              setIsSpeaking(false);
+            }
+          },
+          onError: (msg) => {
+            console.warn('[AIGuide] RealtimeVoice error:', msg);
+          },
         },
-        onAudioChunk: (base64) => {
-          audioQueue.enqueue(base64);
-        },
-        onAudioEnd: () => {
-          setAiResponseText('');
-        },
-        onError: (msg) => {
-          console.warn('Voice WS error:', msg);
-        },
-        onClose: () => {
-          setVoiceConciergeActive(false);
-          setIsListening(false);
-        },
-      });
-
-      // Wait for WebSocket to connect
-      await new Promise<void>((resolve) => {
-        const check = setInterval(() => {
-          if (voiceWS.connected) { clearInterval(check); resolve(); }
-        }, 50);
-        setTimeout(() => { clearInterval(check); resolve(); }, 2000);
-      });
-
-      // Send page context
-      const propertyContext = tourId === 'report' ? buildPropertyContext() : undefined;
-      const currentStep = tourSteps[tour.state.currentStep];
-      console.log('[AIGuide] about to sendContext — voiceWS.connected=', voiceWS.connected, 'voiceWS instance:', voiceWS);
-      voiceWS.sendContext(tourId, currentStep?.id ?? 'standalone', propertyContext);
-
-      // Start VAD
-      await vadService.start({
-        onSpeechStart: () => {
-          // User started speaking — barge-in: stop local playback AND tell
-          // the backend to abort the in-progress response so we don't keep
-          // burning ElevenLabs/Haiku tokens on audio nobody will hear.
-          console.log('[AIGuide] onSpeechStart callback fired');
-          if (ttsService.isPlaying || audioQueue.isPlaying) {
-            voiceWS.sendCancel();
-          }
-          audioQueue.stop();
-          ttsService.stop();
-          setIsSpeaking(false);
-          setIsListening(true);
-          setUserTranscript('');
-          setAiResponseText('');
-        },
-        onSpeechEnd: (audio) => {
-          // User stopped speaking — send audio to backend
-          console.log('[AIGuide] onSpeechEnd callback fired — audio samples:', audio.length, 'voiceWS.connected=', voiceWS.connected);
-          setIsListening(false);
-          voiceWS.sendAudio(audio, 16000);
-          console.log('[AIGuide] voiceWS.sendAudio(...) returned');
-        },
-        onVADMisfire: () => {
-          console.log('[AIGuide] onVADMisfire callback fired');
-          setIsListening(false);
-        },
-      });
+        propertyContext,
+      );
 
       setVoiceConciergeActive(true);
       setIsListening(true);
     } catch (err) {
       console.warn('Voice concierge start failed:', err);
+      realtimeRef.current = null;
     }
   }, [voiceConciergeActive, tourId, tourSteps, tour.state.currentStep]);
 
   const stopVoiceConcierge = useCallback(() => {
-    vadService.stop();
-    voiceWS.disconnect();
-    audioQueue.stop();
+    realtimeRef.current?.disconnect();
+    realtimeRef.current = null;
+    // Also stop any Mode 2 tour narration audio that might be playing
     ttsService.stop();
     setVoiceConciergeActive(false);
     setIsListening(false);
@@ -246,9 +248,13 @@ export default function AIGuide({
   // Auto-start voice concierge when voice mode activates
   useEffect(() => {
     if (mode === 'voice' && tour.state.active && !voiceConciergeActive) {
-      // Small delay to ensure tour state has settled
-      const timer = setTimeout(() => startVoiceConcierge(), 500);
-      return () => clearTimeout(timer);
+      // P7-B9: start immediately — no 500ms delay. startVoiceConcierge()
+      // already calls ttsService.stop() + tour.stop() before connecting
+      // WebRTC, so there's no race with Azure narration. The previous delay
+      // was causing a 500ms window where Azure TTS and OpenAI Realtime
+      // fought for the speaker.
+      startVoiceConcierge();
+      return;
     }
     if (mode !== 'voice' && voiceConciergeActive) {
       stopVoiceConcierge();
@@ -293,9 +299,15 @@ export default function AIGuide({
     }
   }, [tour.state.active]);
 
-  // Voice mode: speak narration on step change
+  // Guided tour mode (Mode 2): speak narration on step change via Azure TTS.
+  // P7-B9: this effect ONLY fires in 'guided' mode, NOT 'voice'. In voice
+  // mode the OpenAI Realtime API handles all conversation — there is no
+  // tour step narration. The previous code fired Azure TTS on mode='voice'
+  // which raced with the WebRTC greeting, causing two voices to talk over
+  // each other on startup. ttsService.stop() can't reliably kill an
+  // in-flight speak() because the fetch hasn't returned yet when stop() runs.
   useEffect(() => {
-    if (mode !== 'voice' || !tour.state.active) return;
+    if (mode !== 'guided' || !tour.state.active) return;
     const step = tourSteps[tour.state.currentStep];
     if (!step) return;
     const narration = step.narration;
@@ -320,7 +332,9 @@ export default function AIGuide({
         const text = response ?? 'Atsiprašau, šiuo metu negaliu atsakyti.';
         const aiMsg: ChatMessage = { role: 'assistant', content: text };
         setChatHistory((prev) => [...prev, aiMsg]);
-        if (mode === 'voice') ttsService.speak(text);
+        // P7-B9: don't TTS text-chat responses while the Realtime voice
+        // concierge is active — two audio sources would fight for the speaker.
+        if (mode === 'guided') ttsService.speak(text);
       })
       .finally(() => setChatLoading(false));
   }, [tourSteps, tour.state.currentStep, chatHistory, tourId, mode]);
@@ -339,7 +353,8 @@ export default function AIGuide({
         const text = response ?? 'Atsiprašau, šiuo metu negaliu atsakyti.';
         const aiMsg: ChatMessage = { role: 'assistant', content: text };
         setStandaloneChatHistory((prev) => [...prev, aiMsg]);
-        if (mode === 'voice') ttsService.speak(text);
+        // P7-B9: only speak chat responses in guided mode, not voice concierge.
+        if (mode === 'guided') ttsService.speak(text);
       })
       .finally(() => setStandaloneChatLoading(false));
   }, [standaloneChatHistory, tourId, mode]);

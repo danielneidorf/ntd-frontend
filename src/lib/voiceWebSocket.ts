@@ -4,6 +4,9 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE ?? 'http://127.0.0.1:8100';
 
 export interface VoiceWSCallbacks {
   onTranscript: (text: string, isFinal: boolean) => void;
+  /** P7-B8.1: fires on every `partial_transcript` frame from Azure streaming STT.
+   *  Use for live-caption UI updates. Optional — batch clients can ignore it. */
+  onPartialTranscript?: (text: string) => void;
   onResponseText: (text: string) => void;
   onAudioChunk: (base64Audio: string) => void;
   onAudioEnd: () => void;
@@ -40,10 +43,17 @@ class VoiceWebSocket {
     this.ws.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
-        console.log('[voiceWS] ← recv type=%s', msg.type, msg);
+        // P7-B8.1: partial_transcript fires ~10 times/sec during speech — don't
+        // spam the console with it like the other frame types.
+        if (msg.type !== 'partial_transcript') {
+          console.log('[voiceWS] ← recv type=%s', msg.type, msg);
+        }
         switch (msg.type) {
           case 'transcript':
             this.callbacks?.onTranscript(msg.text, msg.is_final);
+            break;
+          case 'partial_transcript':
+            this.callbacks?.onPartialTranscript?.(msg.text);
             break;
           case 'response_text':
             this.callbacks?.onResponseText(msg.text);
@@ -105,6 +115,43 @@ class VoiceWebSocket {
     });
     console.log('[voiceWS] → sendAudio samples=%d payload_bytes=%d', audioFloat32.length, payload.length);
     this.ws!.send(payload);
+  }
+
+  /** P7-B8.1: tell the backend a new speech segment is starting.
+   *  Kicks off Azure continuous recognition on the server side. */
+  sendSpeechStart(): void {
+    const state = this.ws?.readyState;
+    if (state !== WebSocket.OPEN) {
+      console.warn('[voiceWS] sendSpeechStart DROPPED — readyState=%s', state);
+      return;
+    }
+    console.log('[voiceWS] → sendSpeechStart');
+    this.ws!.send(JSON.stringify({ type: 'speech_start' }));
+  }
+
+  /** P7-B8.1: stream one audio frame (Float32, 16kHz) to the backend during
+   *  speech. No readyState-drop warning because this fires ~10 times/sec and
+   *  would spam the console. Silent no-op if the socket closed mid-utterance. */
+  sendAudioChunk(audioFloat32: Float32Array): void {
+    if (this.ws?.readyState !== WebSocket.OPEN) return;
+    this.ws.send(JSON.stringify({
+      type: 'audio_chunk',
+      data: float32ToBase64(audioFloat32),
+      sample_rate: 16000,
+    }));
+  }
+
+  /** P7-B8.1: tell the backend the speech segment is over. Triggers Azure
+   *  recognition finalization; backend then runs Haiku + TTS on the final
+   *  transcript and streams audio_chunk frames back. */
+  sendSpeechEnd(): void {
+    const state = this.ws?.readyState;
+    if (state !== WebSocket.OPEN) {
+      console.warn('[voiceWS] sendSpeechEnd DROPPED — readyState=%s', state);
+      return;
+    }
+    console.log('[voiceWS] → sendSpeechEnd');
+    this.ws!.send(JSON.stringify({ type: 'speech_end' }));
   }
 
   /** Barge-in: tell the backend to abort the in-progress Haiku/TTS response.
