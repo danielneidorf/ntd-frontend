@@ -143,13 +143,10 @@ export default function AIGuide({
   const startVoiceConcierge = useCallback(async () => {
     if (voiceConciergeActive) return;
 
-    // P7-B9: voice concierge takes over completely — stop any playing tour
-    // narration and end the guided tour so no step-change narrations fire
-    // while WebRTC is active.
+    // P7-B10: stop any Azure TTS narration that might be playing from a
+    // previous session, but DON'T stop the tour — "Su balsu" runs voice
+    // alongside the tour (AI speaks step narrations via Realtime).
     ttsService.stop();
-    if (tour.state.active) {
-      tour.stop();
-    }
 
     try {
       const propertyContext = tourId === 'report' ? buildPropertyContext() : undefined;
@@ -280,27 +277,44 @@ export default function AIGuide({
     }
   }, [tour.state.active]);
 
-  // Guided tour mode (Mode 2): speak narration on step change via Azure TTS.
-  // P7-B9: this effect ONLY fires in 'guided' mode, NOT 'voice'. In voice
-  // mode the OpenAI Realtime API handles all conversation — there is no
-  // tour step narration. The previous code fired Azure TTS on mode='voice'
-  // which raced with the WebRTC greeting, causing two voices to talk over
-  // each other on startup. ttsService.stop() can't reliably kill an
-  // in-flight speak() because the fetch hasn't returned yet when stop() runs.
+  // P7-B10: Tour step narration effect — behavior depends on mode.
+  // "Be balso" (guided): narration shown as text in the speech bubble only.
+  //   No audio at all — pure reading experience.
+  // "Su balsu" (voice): send narration to the Realtime session via
+  //   sendTextPrompt(). The AI reads it verbatim — consistent with the
+  //   written narration the user sees in the speech bubble.
   useEffect(() => {
-    if (mode !== 'guided' || !tour.state.active) return;
+    if (!tour.state.active) return;
     const step = tourSteps[tour.state.currentStep];
     if (!step) return;
-    const narration = step.narration;
-    ttsService.speak(narration);
-    return () => ttsService.stop();
-  }, [tour.state.currentStep, tour.state.active, mode, tourSteps]);
 
-  // Tour chat handler
+    if (mode === 'voice' && voiceConciergeActive && realtimeRef.current) {
+      const rt = realtimeRef.current;
+      // Wait for the data channel to be ready before sending the first
+      // narration — avoids a race where the effect fires before the
+      // WebRTC connection has fully established.
+      rt.waitForReady().then(() => {
+        rt.sendTextPrompt(
+          `Perskaityk šį tekstą balsu, žodis žodžiui: ${step.narration}`
+        );
+      });
+    }
+    // "Be balso" (mode === 'guided') — no audio. Azure TTS code kept but not called.
+  }, [tour.state.currentStep, tour.state.active, mode, tourSteps, voiceConciergeActive]);
+
+  // Tour chat handler — P7-B10: routes through Realtime in "Su balsu" mode.
   const handleChatSend = useCallback((message: string) => {
     const currentStep = tourSteps[tour.state.currentStep];
     if (!currentStep) return;
 
+    // "Su balsu" — typed question goes through Realtime, not /chat REST.
+    if (mode === 'voice' && voiceConciergeActive && realtimeRef.current) {
+      setChatHistory((prev) => [...prev, { role: 'user', content: message }]);
+      realtimeRef.current.sendTextPrompt(message);
+      return;
+    }
+
+    // "Be balso" — text chat via /chat REST endpoint.
     const userMsg: ChatMessage = { role: 'user', content: message };
     setChatHistory((prev) => [...prev, userMsg]);
     setChatLoading(true);
@@ -313,15 +327,21 @@ export default function AIGuide({
         const text = response ?? 'Atsiprašau, šiuo metu negaliu atsakyti.';
         const aiMsg: ChatMessage = { role: 'assistant', content: text };
         setChatHistory((prev) => [...prev, aiMsg]);
-        // P7-B9: don't TTS text-chat responses while the Realtime voice
-        // concierge is active — two audio sources would fight for the speaker.
-        if (mode === 'guided') ttsService.speak(text);
+        // "Be balso" is fully silent — no ttsService.speak.
       })
       .finally(() => setChatLoading(false));
-  }, [tourSteps, tour.state.currentStep, chatHistory, tourId, mode]);
+  }, [tourSteps, tour.state.currentStep, chatHistory, tourId, mode, voiceConciergeActive]);
 
-  // Standalone chat handler
+  // Standalone chat handler — P7-B10: same Realtime routing logic.
   const handleStandaloneChatSend = useCallback((message: string) => {
+    // "Su balsu" — typed question goes through Realtime.
+    if (mode === 'voice' && voiceConciergeActive && realtimeRef.current) {
+      setStandaloneChatHistory((prev) => [...prev, { role: 'user', content: message }]);
+      realtimeRef.current.sendTextPrompt(message);
+      return;
+    }
+
+    // "Be balso" — text chat via /chat REST endpoint.
     const userMsg: ChatMessage = { role: 'user', content: message };
     setStandaloneChatHistory((prev) => [...prev, userMsg]);
     setStandaloneChatLoading(true);
@@ -334,11 +354,10 @@ export default function AIGuide({
         const text = response ?? 'Atsiprašau, šiuo metu negaliu atsakyti.';
         const aiMsg: ChatMessage = { role: 'assistant', content: text };
         setStandaloneChatHistory((prev) => [...prev, aiMsg]);
-        // P7-B9: only speak chat responses in guided mode, not voice concierge.
-        if (mode === 'guided') ttsService.speak(text);
+        // "Be balso" is fully silent — no ttsService.speak.
       })
       .finally(() => setStandaloneChatLoading(false));
-  }, [standaloneChatHistory, tourId, mode]);
+  }, [standaloneChatHistory, tourId, mode, voiceConciergeActive]);
 
   const handleModeChange = (m: GuideMode) => {
     setMode(m);

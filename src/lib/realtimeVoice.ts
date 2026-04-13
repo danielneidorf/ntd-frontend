@@ -32,11 +32,15 @@ export class RealtimeVoice {
   private micStream: MediaStream | null = null;
   private callbacks: RealtimeCallbacks = {};
   private _connected = false;
+  /** Resolves when the data channel is open and ready for sendTextPrompt(). */
+  private _readyResolve: (() => void) | null = null;
+  private _readyPromise: Promise<void>;
 
   constructor() {
     // Create an in-memory audio element for WebRTC playback — no JSX ref needed.
     this.audioEl = document.createElement('audio');
     this.audioEl.autoplay = true;
+    this._readyPromise = new Promise((resolve) => { this._readyResolve = resolve; });
   }
 
   /**
@@ -94,6 +98,7 @@ export class RealtimeVoice {
       this.dc.onopen = () => {
         console.log('[RealtimeVoice] data channel open');
         this._connected = true;
+        this._readyResolve?.();
         this.callbacks.onStateChange?.('connected');
       };
       this.dc.onclose = () => {
@@ -218,6 +223,42 @@ export class RealtimeVoice {
     this.audioEl.srcObject = null;
     this._connected = false;
     console.log('[RealtimeVoice] disconnected');
+  }
+
+  /** Send a text message to the Realtime model and trigger a spoken response.
+   *
+   *  Used for two purposes:
+   *  1. Tour step narrations in "Su balsu" mode — AI reads the narration in
+   *     its own words (natural, not robotic text-to-speech).
+   *  2. Typed chat messages during voiced mode (instead of the /chat REST
+   *     endpoint) — AI responds with speech.
+   *
+   *  Sends two data channel events: `conversation.item.create` (adds a text
+   *  message to the conversation) + `response.create` (tells the model to
+   *  generate and speak a response). */
+  sendTextPrompt(text: string): void {
+    if (!this.dc || this.dc.readyState !== 'open') {
+      console.warn('[RealtimeVoice] sendTextPrompt — data channel not open');
+      return;
+    }
+    this.dc.send(JSON.stringify({
+      type: 'conversation.item.create',
+      item: {
+        type: 'message',
+        role: 'user',
+        content: [{ type: 'input_text', text }],
+      },
+    }));
+    this.dc.send(JSON.stringify({ type: 'response.create' }));
+    console.log('[RealtimeVoice] → sendTextPrompt:', text.slice(0, 80));
+  }
+
+  /** Returns a promise that resolves when the data channel is open and
+   *  ready for sendTextPrompt(). Use this to gate the first narration send
+   *  on connection readiness — avoids a race where the tour step effect
+   *  fires before the data channel has finished opening. */
+  waitForReady(): Promise<void> {
+    return this._readyPromise;
   }
 
   /** Whether the WebRTC data channel is currently open. */

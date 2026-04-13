@@ -67,9 +67,13 @@ export default function AIGuideToggle({
     closeTimeoutRef.current = setTimeout(() => setOpen(false), delay);
   };
 
+  // P7-B10: selection state for the segmented toggle.
+  // 'guided' = "Be balso" (silent), 'voice' = "Su balsu" (voiced).
+  const [selectedOption, setSelectedOption] = useState<'guided' | 'voice'>('guided');
+
   const handleStart = () => {
-    onModeChange('guided');
-    sessionStorage.setItem('ntd-guide-mode', 'guided');
+    onModeChange(selectedOption);
+    sessionStorage.setItem('ntd-guide-mode', selectedOption);
     onStart();
     setOpen(false);
   };
@@ -112,49 +116,56 @@ export default function AIGuideToggle({
           className="flex flex-col gap-2 mb-2 w-[280px]"
           style={{ animation: 'fadeSlideUp 200ms ease-out' }}
         >
-          {/* Mode selector */}
+          {/* P7-B10: unified guide selection card with voice toggle */}
           <div className="bg-white rounded-xl shadow-xl p-5">
-            <p className="text-xs uppercase tracking-wider text-slate-400 font-medium mb-3">
-              Pasirinkite
+            <p className="text-sm font-semibold text-[#1E3A5F] mb-3">
+              Naršyti su gido pagalba
             </p>
 
-            <div className="space-y-2">
+            {/* Segmented toggle: Be balso / Su balsu */}
+            <div className="flex rounded-lg bg-slate-100 p-0.5 mb-3">
               <button
                 type="button"
-                onClick={handleStart}
-                className="group w-full text-left px-4 py-3 rounded-lg text-sm font-semibold text-white bg-[#0D7377] hover:bg-[#095456] active:bg-[#073f41] transition-all duration-150 border-none cursor-pointer shadow-sm hover:shadow-md flex items-center justify-between"
+                onClick={() => setSelectedOption('guided')}
+                className={`flex-1 py-2 px-3 rounded-md text-xs font-semibold transition-all duration-150 border-none cursor-pointer ${
+                  selectedOption === 'guided'
+                    ? 'bg-[#0D7377] text-white shadow-sm'
+                    : 'bg-transparent text-slate-500 hover:text-slate-700'
+                }`}
               >
-                <span>Naršyti padedant AI gidui?</span>
-                <span className="transition-transform duration-150 group-hover:translate-x-0.5">→</span>
+                📖 Be balso
               </button>
-
-              {ttsAvailable ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onModeChange('voice');
-                    sessionStorage.setItem('ntd-guide-mode', 'voice');
-                    onStart();
-                    setOpen(false);
-                  }}
-                  className="group w-full text-left px-4 py-3 rounded-lg text-sm font-semibold text-[#1E3A5F] bg-slate-50 hover:bg-[#0D7377] hover:text-white transition-all duration-150 border border-slate-200 hover:border-transparent cursor-pointer flex items-center justify-between"
-                >
-                  <span>🔊 Su balso asistentu</span>
-                  <span className="transition-transform duration-150 group-hover:translate-x-0.5">→</span>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  disabled
-                  className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-slate-400 bg-slate-50 border border-dashed border-slate-200 cursor-not-allowed flex items-center justify-between"
-                >
-                  <span>Su balso asistentu?</span>
-                  <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide">
-                    Greitai
-                  </span>
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => ttsAvailable && setSelectedOption('voice')}
+                disabled={!ttsAvailable}
+                className={`flex-1 py-2 px-3 rounded-md text-xs font-semibold transition-all duration-150 border-none ${
+                  !ttsAvailable
+                    ? 'bg-transparent text-slate-300 cursor-not-allowed'
+                    : selectedOption === 'voice'
+                      ? 'bg-[#0D7377] text-white shadow-sm cursor-pointer'
+                      : 'bg-transparent text-slate-500 hover:text-slate-700 cursor-pointer'
+                }`}
+              >
+                🎙 Su balsu
+              </button>
             </div>
+
+            {/* Dynamic description */}
+            <p className="text-xs text-slate-400 leading-relaxed mb-4 min-h-[2.5rem]">
+              {selectedOption === 'guided'
+                ? 'Gidas parodys kiekvieną ataskaitos dalį — skaitysite patys'
+                : 'Gidas papasakos apie ataskaitą balsu ir atsakys į jūsų klausimus'}
+            </p>
+
+            {/* Single action button */}
+            <button
+              type="button"
+              onClick={handleStart}
+              className="group w-full text-center px-4 py-3 rounded-lg text-sm font-semibold text-white bg-[#0D7377] hover:bg-[#095456] active:bg-[#073f41] transition-all duration-150 border-none cursor-pointer shadow-sm hover:shadow-md"
+            >
+              Pradėti <span className="inline-block transition-transform duration-150 group-hover:translate-x-0.5">→</span>
+            </button>
           </div>
 
           {/* Standalone chat card */}
