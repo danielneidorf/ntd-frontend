@@ -9,11 +9,6 @@ import { landingTour } from './tours/landingTour';
 import { quickscanTour } from './tours/quickscanTour';
 import { buildReportTour, extractReportData } from './tours/reportTour';
 import { ttsService } from '../../lib/ttsService';
-// P7-B9: old pipeline imports kept for potential fallback (not used in Mode 3).
-import { vadService } from '../../lib/vadService';
-import { voiceWS } from '../../lib/voiceWebSocket';
-import { audioQueue } from '../../lib/audioQueue';
-// P7-B9: OpenAI Realtime API replaces the multi-provider pipeline for Mode 3.
 import { RealtimeVoice } from '../../lib/realtimeVoice';
 
 const API_BASE = import.meta.env.PUBLIC_API_BASE ?? 'http://127.0.0.1:8100';
@@ -134,15 +129,10 @@ export default function AIGuide({
 
   useEffect(() => {
     if (mode !== 'voice') return;
-    // P7-B7.4 barge-in: VAD must stay HOT during AI playback so onSpeechStart
-    // can fire and trigger voiceWS.sendCancel(). The previous pause/resume
-    // gate (disabled here) prevented speaker→mic feedback loops when the user
-    // wasn't wearing headphones. With the gate removed, users on open speakers
-    // may occasionally hear the AI cut itself off as its own voice leaks back
-    // into the mic — the fix for that is headphones (user confirmed) or
-    // better echo cancellation in a future task.
+    // Track whether ttsService (Mode 2 tour narrations) is currently playing,
+    // for the Robocat speaking animation.
     const interval = setInterval(() => {
-      setIsSpeaking(ttsService.isPlaying || audioQueue.isPlaying);
+      setIsSpeaking(ttsService.isPlaying);
     }, 100);
     return () => clearInterval(interval);
   }, [mode]);
@@ -157,7 +147,6 @@ export default function AIGuide({
     // narration and end the guided tour so no step-change narrations fire
     // while WebRTC is active.
     ttsService.stop();
-    audioQueue.stop();
     if (tour.state.active) {
       tour.stop();
     }
@@ -260,14 +249,6 @@ export default function AIGuide({
       stopVoiceConcierge();
     }
   }, [mode, tour.state.active, voiceConciergeActive, startVoiceConcierge, stopVoiceConcierge]);
-
-  // Update WebSocket context when tour step changes
-  useEffect(() => {
-    if (!voiceConciergeActive) return;
-    const currentStep = tourSteps[tour.state.currentStep];
-    const propertyContext = tourId === 'report' ? buildPropertyContext() : undefined;
-    voiceWS.sendContext(tourId, currentStep?.id ?? 'standalone', propertyContext);
-  }, [tour.state.currentStep, voiceConciergeActive]);
 
   // Stop voice concierge on tour stop
   useEffect(() => {
