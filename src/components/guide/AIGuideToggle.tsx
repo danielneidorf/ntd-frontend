@@ -104,14 +104,14 @@ export default function AIGuideToggle({
 
   return (
     <div
-      className="fixed bottom-24 right-12 sm:bottom-24 sm:right-12 z-50"
+      className="fixed bottom-4 left-1/2 -translate-x-1/2 md:bottom-24 md:right-12 md:left-auto md:translate-x-0 z-50"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       {/* Cards stack: mode selector + chat input */}
       {open && !active && (
         <div
-          className="flex flex-col gap-2 mb-2 w-[280px]"
+          className="flex flex-col gap-2 mb-2 w-[calc(100vw-32px)] md:w-[280px]"
           style={{ animation: 'fadeSlideUp 200ms ease-out' }}
         >
           {/* P7-B10: unified guide selection card with voice toggle */}

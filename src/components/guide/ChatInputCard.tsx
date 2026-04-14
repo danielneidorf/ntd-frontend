@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import type { ChatMessage } from './types';
 import { sttService, transcribeAudio } from '../../lib/sttService';
+import { analytics } from '../../lib/guideAnalytics';
 
 const MAX_EXPANDED = '400px';
 
@@ -42,6 +43,7 @@ export default function ChatInputCard({
     if (!msg || chatLoading) return;
     setInputValue('');
     setHovered(true);
+    analytics.track('chat_message');
     onSend(msg);
   };
 
@@ -216,7 +218,7 @@ export default function ChatInputCard({
               <button
                 type="button"
                 onClick={handleMicClick}
-                className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center border-none cursor-pointer bg-slate-100 text-slate-500 hover:bg-[#0D7377] hover:text-white transition-all text-sm"
+                className="shrink-0 w-10 h-10 md:w-7 md:h-7 rounded-lg flex items-center justify-center border-none cursor-pointer bg-slate-100 text-slate-500 hover:bg-[#0D7377] hover:text-white transition-all text-sm"
                 title="Klauskite balsu"
               >
                 🎤
@@ -226,7 +228,7 @@ export default function ChatInputCard({
               type="button"
               onClick={handleSend}
               disabled={!inputValue.trim() || chatLoading}
-              className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center border-none cursor-pointer transition-all text-sm ${
+              className={`shrink-0 w-10 h-10 md:w-7 md:h-7 rounded-lg flex items-center justify-center border-none cursor-pointer transition-all text-sm ${
                 inputValue.trim() && !chatLoading
                   ? 'bg-[#0D7377] text-white hover:bg-[#095456]'
                   : 'bg-slate-100 text-slate-300'

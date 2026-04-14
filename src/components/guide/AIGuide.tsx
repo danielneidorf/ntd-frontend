@@ -15,6 +15,7 @@ import { getToolsForScreen } from './toolDefinitions';
 import type { ScreenName } from './toolDefinitions';
 import { findContentByTopic, getPagePath } from './contentMap';
 import type { CrossPageDetour } from './contentMap';
+import { analytics } from '../../lib/guideAnalytics';
 
 const API_BASE = import.meta.env.PUBLIC_API_BASE ?? 'http://127.0.0.1:8100';
 
@@ -547,6 +548,7 @@ export default function AIGuide({
 
     // Mark this step as seen (whether tool-driven or auto-narrated)
     seenStepsRef.current.add(tour.state.currentStep);
+    analytics.track('narration', { data: { step_id: step.id, tour_id: tourId } });
 
     // Skip auto-narration if this step change was caused by tour_next/tour_back
     // tool call — the narration text is already in the tool result, and sending
@@ -631,11 +633,13 @@ export default function AIGuide({
   }, [standaloneChatHistory, tourId, mode, voiceConciergeActive]);
 
   const handleModeChange = (m: GuideMode) => {
+    analytics.track('mode_switch', { data: { from: mode, to: m } });
     setMode(m);
     sessionStorage.setItem('ntd-guide-mode', m);
   };
 
   const handleTourStop = useCallback(() => {
+    analytics.track('tour_end', { data: { tour_id: tourId, steps_seen: seenStepsRef.current.size, total_steps: tourSteps.length } });
     returnStepRef.current = null;
     seenStepsRef.current.clear();
     crossPageReturnRef.current = null;

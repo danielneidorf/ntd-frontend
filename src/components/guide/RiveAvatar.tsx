@@ -84,8 +84,8 @@ export default function RiveAvatar({
       title="AI asistentas"
       aria-label="AI asistentas"
     >
-      <div className="w-[128px] h-[128px] overflow-hidden rounded-full">
-        <RiveComponent className="w-[128px] h-[128px]" />
+      <div className="w-[96px] h-[96px] md:w-[128px] md:h-[128px] overflow-hidden rounded-full">
+        <RiveComponent className="w-[96px] h-[96px] md:w-[128px] md:h-[128px]" />
       </div>
     </div>
   );

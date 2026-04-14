@@ -4,12 +4,15 @@ import type { TourStep, ChatMessage } from './types';
 import ChatInputCard from './ChatInputCard';
 
 // Avatar geometry (must match AIGuideToggle.tsx)
+// Desktop: avatar is 128px at bottom-24 (96px) right-12 (48px)
+// Mobile: avatar is 96px at bottom-4 (16px) center
 const AVATAR_BOTTOM = 96;
 const AVATAR_SIZE = 128;
 const AVATAR_RIGHT = 48;
 const GAP = 12;
 const BUBBLE_BOTTOM = AVATAR_BOTTOM + AVATAR_SIZE + GAP;
 const BUBBLE_RIGHT_LEFT = AVATAR_RIGHT + AVATAR_SIZE + GAP;
+const MOBILE_BREAKPOINT = 768;
 
 export default function NarrationBubble({
   step,
@@ -58,19 +61,27 @@ export default function NarrationBubble({
     onChatSend(msg);
   };
 
-  const containerStyle: React.CSSProperties = isFirst
-    ? { bottom: AVATAR_BOTTOM, right: BUBBLE_RIGHT_LEFT, maxHeight: `calc(100vh - ${AVATAR_BOTTOM + 16}px)` }
-    : { bottom: BUBBLE_BOTTOM, right: AVATAR_RIGHT, maxHeight: `calc(100vh - ${BUBBLE_BOTTOM + 16}px)` };
+  // Mobile: bottom sheet above avatar (96px avatar + 16px gap = 120px from bottom)
+  // Desktop: floating bubble positioned relative to avatar
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT;
 
-  const widthClass = isFirst
-    ? 'w-[min(320px,calc(100vw-32px))] sm:w-[320px]'
-    : 'w-[min(280px,calc(100vw-32px))] sm:w-[280px]';
+  const containerStyle: React.CSSProperties = isMobile
+    ? { bottom: 120, left: 0, right: 0, maxHeight: '40vh' }
+    : isFirst
+      ? { bottom: AVATAR_BOTTOM, right: BUBBLE_RIGHT_LEFT, maxHeight: `calc(100vh - ${AVATAR_BOTTOM + 16}px)` }
+      : { bottom: BUBBLE_BOTTOM, right: AVATAR_RIGHT, maxHeight: `calc(100vh - ${BUBBLE_BOTTOM + 16}px)` };
+
+  const widthClass = isMobile
+    ? 'w-full px-4'
+    : isFirst
+      ? 'w-[min(320px,calc(100vw-32px))] sm:w-[320px]'
+      : 'w-[min(280px,calc(100vw-32px))] sm:w-[280px]';
 
   return (
     <div className={`fixed z-[51] ${widthClass}`} style={containerStyle}>
       <div className="flex flex-col gap-2">
         {/* Narration card */}
-        <div className="bg-white rounded-xl shadow-xl p-5 relative overflow-y-auto" style={{ maxHeight: 'calc(60vh)' }}>
+        <div className={`bg-white shadow-xl p-5 relative overflow-y-auto ${isMobile ? 'rounded-t-2xl rounded-b-xl' : 'rounded-xl'}`} style={{ maxHeight: isMobile ? '40vh' : 'calc(60vh)' }}>
           <button
             type="button"
             onClick={onClose}

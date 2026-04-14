@@ -5,6 +5,8 @@
 // The browser connects directly to OpenAI — no audio passes through our backend.
 // Our backend's only role is to generate an ephemeral token via /voice-session.
 
+import { analytics } from './guideAnalytics';
+
 const API_BASE = import.meta.env.PUBLIC_API_BASE ?? 'http://127.0.0.1:8100';
 
 export interface RealtimeCallbacks {
@@ -34,6 +36,7 @@ export class RealtimeVoice {
   private micStream: MediaStream | null = null;
   private callbacks: RealtimeCallbacks = {};
   private _connected = false;
+  private _connectedAt = 0;
   /** Resolves when the data channel is open and ready for sendTextPrompt(). */
   private _readyResolve: (() => void) | null = null;
   private _readyPromise: Promise<void>;
@@ -101,6 +104,8 @@ export class RealtimeVoice {
         console.log('[RealtimeVoice] data channel open');
         this._connected = true;
         this._readyResolve?.();
+        this._connectedAt = Date.now();
+        analytics.track('voice_connect', { data: { model } });
         this.callbacks.onStateChange?.('connected');
       };
       this.dc.onclose = () => {
@@ -251,7 +256,11 @@ export class RealtimeVoice {
       this.micStream = null;
     }
     this.audioEl.srcObject = null;
+    if (this._connected) {
+      analytics.track('voice_disconnect', { duration_ms: this._connectedAt ? Date.now() - this._connectedAt : undefined });
+    }
     this._connected = false;
+    this._connectedAt = 0;
     console.log('[RealtimeVoice] disconnected');
   }
 
