@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
+import { formActions } from './guide/formActionsRegistry';
+import { mapStepToScreen } from './guide/toolDefinitions';
 
 export type CaseType = 'existing_object' | 'new_build_project' | 'land_only';
 
@@ -210,6 +212,31 @@ export default function QuickScanFlow() {
   >([]);
   const [sessionToken] = useState(() => crypto.randomUUID());
 
+  // P7-B8.1: Register form actions so the AI voice concierge can query screen state.
+  // The registry is a module-level singleton shared across Astro islands.
+  useEffect(() => {
+    const screen = typeof state.step === 'number' ? mapStepToScreen(state.step) : mapStepToScreen(state.step);
+
+    formActions.register('__screen', () => screen);
+    formActions.register('get_current_screen', () =>
+      JSON.stringify({
+        success: true,
+        data: {
+          screen,
+          case_type: state.case_type ?? undefined,
+          address_filled: !!state.address_text,
+          current_address: state.address_text ?? undefined,
+          has_geo: !!state.geo,
+        },
+      }),
+    );
+
+    return () => {
+      formActions.unregister('__screen');
+      formActions.unregister('get_current_screen');
+    };
+  }, [state.step, state.case_type, state.address_text, state.geo]);
+
   return (
     <div>
       {state.step === 1 && (
@@ -399,6 +426,11 @@ function Screen1({
   const locationValid = ntrValid || addressValid || geoValid;
   const canProceed = !!selected && locationValid;
 
+  // P7-B8.2: pending candidates ref for the fill_address → select_address_candidate flow
+  const pendingCandidatesRef = useRef<
+    { place_id: string; description: string; main_text: string; secondary_text: string }[] | null
+  >(null);
+
   function handleNtrChange(value: string) {
     let v = value.replace(/[^\d:]/g, '');
     const digits = v.replace(/\D/g, '');
@@ -495,6 +527,144 @@ function Screen1({
       setResolveSteps([]);
     }
   };
+
+  // P7-B8.2: Register Screen 1 form actions for the AI voice concierge.
+  // Placed after all handlers so arrow-function references (handleTesti) are available.
+  // These override the parent's get_current_screen with richer Screen 1 data.
+  useEffect(() => {
+    formActions.register('get_current_screen', () =>
+      JSON.stringify({
+        success: true,
+        data: {
+          screen: 'quickscan-step1',
+          case_type: state.case_type ?? undefined,
+          address_filled: !!state.address_text,
+          current_address: state.address_text ?? undefined,
+          has_geo: !!state.geo,
+          ntr: state.ntr_unique_number ?? undefined,
+          active_tab: activeTab,
+          address_input: addressInput || undefined,
+          ntr_input: ntrInput || undefined,
+          can_proceed: canProceed,
+        },
+      }),
+    );
+
+    formActions.register('select_case_type', (args) => {
+      const caseType = args.case_type as string;
+      const valid = ['existing_object', 'new_build_project', 'land_only'];
+      if (!valid.includes(caseType)) {
+        return JSON.stringify({ success: false, error: 'invalid_case_type', message: 'Neteisingas objekto tipas.' });
+      }
+      setState((s) => ({ ...s, case_type: caseType as CaseType }));
+      return JSON.stringify({ success: true, case_type: caseType });
+    });
+
+    formActions.register('fill_address', async (args) => {
+      const query = (args.address as string)?.trim();
+      if (!query) {
+        return JSON.stringify({ success: false, error: 'empty_address', message: 'Adresas tuščias.' });
+      }
+
+      setAddressInput(query);
+      setActiveTab('address');
+      setState((s) => ({ ...s, address_text: query, geo: null }));
+      setGeoSource(null);
+
+      try {
+        const r = await fetch(
+          `${API_BASE}/v1/quickscan-lite/geocode?q=${encodeURIComponent(query)}&session_token=${sessionToken}`,
+        );
+        const json = await r.json();
+        const candidates: { place_id: string; description: string; main_text: string; secondary_text: string }[] =
+          json.data?.candidates ?? [];
+
+        if (candidates.length === 0) {
+          setAddressCandidates([]);
+          return JSON.stringify({
+            success: false,
+            error: 'no_results',
+            message: 'Pagal šį adresą nieko nerasta. Pabandykite tiksliau.',
+          });
+        }
+
+        if (candidates.length === 1) {
+          handleAddressSelect(candidates[0]);
+          return JSON.stringify({
+            success: true,
+            auto_selected: true,
+            address: candidates[0].description,
+          });
+        }
+
+        // Multiple candidates — show dropdown and store for select_address_candidate
+        setAddressCandidates(candidates);
+        pendingCandidatesRef.current = candidates;
+        return JSON.stringify({
+          success: true,
+          needs_selection: true,
+          candidates: candidates.map((c, i) => ({
+            index: i,
+            address: c.description,
+          })),
+        });
+      } catch {
+        return JSON.stringify({ success: false, error: 'geocode_failed', message: 'Geocode klaida.' });
+      }
+    });
+
+    formActions.register('select_address_candidate', (args) => {
+      const index = args.index as number;
+      const candidates = pendingCandidatesRef.current;
+
+      if (!candidates || !candidates[index]) {
+        return JSON.stringify({
+          success: false,
+          error: 'invalid_index',
+          message: 'Neteisingas kandidato indeksas.',
+        });
+      }
+
+      handleAddressSelect(candidates[index]);
+      pendingCandidatesRef.current = null;
+      return JSON.stringify({ success: true, address: candidates[index].description });
+    });
+
+    formActions.register('fill_ntr', (args) => {
+      const ntr = (args.ntr as string)?.trim();
+      if (!ntr || !NTR_REGEX.test(ntr)) {
+        return JSON.stringify({
+          success: false,
+          error: 'invalid_format',
+          message: 'Neteisingas NTR formatas. Teisingas: 1234-5678-9012',
+        });
+      }
+      handleNtrChange(ntr);
+      setActiveTab('ntr');
+      return JSON.stringify({ success: true, ntr });
+    });
+
+    formActions.register('click_continue', async () => {
+      if (!canProceed) {
+        return JSON.stringify({
+          success: false,
+          error: 'form_not_ready',
+          message: 'Negalima tęsti — pasirinkite objekto tipą ir nurodykite vietą.',
+        });
+      }
+      handleTesti();
+      return JSON.stringify({ success: true });
+    });
+
+    return () => {
+      formActions.unregister('select_case_type');
+      formActions.unregister('fill_address');
+      formActions.unregister('select_address_candidate');
+      formActions.unregister('fill_ntr');
+      formActions.unregister('click_continue');
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.case_type, state.address_text, state.geo, state.ntr_unique_number, addressInput, ntrInput, activeTab, sessionToken, canProceed]);
 
   return (
     <div className="max-w-[1200px]">

@@ -83,7 +83,7 @@ export default function useTour(steps: TourStep[]) {
     if (!selector) return;
 
     const observer = new MutationObserver(() => {
-      if (elementExists(selector)) {
+      if (document.querySelector(selector)) {
         observer.disconnect();
         observerRef.current = null;
         waitingIndexRef.current = null;
@@ -151,7 +151,7 @@ export default function useTour(steps: TourStep[]) {
   const goToStep = useCallback((index: number) => {
     setState((s) => {
       if (index < 0 || index >= s.steps.length) return s;
-      if (!elementExists(s.steps[index].selector)) return s;
+      if (!document.querySelector(s.steps[index].selector)) return s;
       const step = s.steps[index];
       if (step) {
         setTimeout(() => scrollToTarget(step.selector, step.scrollBehavior ?? 'center'), 100);

@@ -19,6 +19,8 @@ export interface RealtimeCallbacks {
   onSpeechStopped?: () => void;
   /** Full response (including audio) is complete */
   onResponseDone?: () => void;
+  /** Model invoked a function — return the JSON result string */
+  onFunctionCall?: (name: string, args: Record<string, unknown>, callId: string) => Promise<string>;
   /** Connection lifecycle state change */
   onStateChange?: (state: 'connecting' | 'connected' | 'disconnected' | 'error') => void;
   /** Error from any stage (token, mic, SDP, runtime) */
@@ -187,6 +189,34 @@ export class RealtimeVoice {
         }
         break;
 
+      case 'response.function_call_arguments.done':
+        // Model completed a function call — dispatch to callback and return result
+        if (this.callbacks.onFunctionCall && event.name && event.call_id) {
+          const callId = event.call_id as string;
+          const fnName = event.name as string;
+          let parsedArgs: Record<string, unknown> = {};
+          try {
+            parsedArgs = JSON.parse(event.arguments || '{}');
+          } catch { /* empty args */ }
+
+          console.log('[RealtimeVoice] function call:', fnName, parsedArgs);
+
+          this.callbacks.onFunctionCall(fnName, parsedArgs, callId).then((result) => {
+            if (!this.dc || this.dc.readyState !== 'open') return;
+            this.dc.send(JSON.stringify({
+              type: 'conversation.item.create',
+              item: {
+                type: 'function_call_output',
+                call_id: callId,
+                output: result,
+              },
+            }));
+            this.dc.send(JSON.stringify({ type: 'response.create' }));
+            console.log('[RealtimeVoice] → function result sent for', fnName);
+          });
+        }
+        break;
+
       case 'response.done':
         this.callbacks.onResponseDone?.();
         break;
@@ -225,6 +255,19 @@ export class RealtimeVoice {
     console.log('[RealtimeVoice] disconnected');
   }
 
+  /** Push updated session config (instructions, tools) to the Realtime model mid-conversation. */
+  updateSession(config: Record<string, unknown>): void {
+    if (!this.dc || this.dc.readyState !== 'open') {
+      console.warn('[RealtimeVoice] updateSession — data channel not open');
+      return;
+    }
+    this.dc.send(JSON.stringify({
+      type: 'session.update',
+      session: config,
+    }));
+    console.log('[RealtimeVoice] → session.update');
+  }
+
   /** Send a text message to the Realtime model and trigger a spoken response.
    *
    *  Used for two purposes:
@@ -251,6 +294,32 @@ export class RealtimeVoice {
     }));
     this.dc.send(JSON.stringify({ type: 'response.create' }));
     console.log('[RealtimeVoice] → sendTextPrompt:', text.slice(0, 80));
+  }
+
+  /** Send a narration text for the model to read verbatim, then stop.
+   *
+   *  Uses per-response instructions to override the session-level prompt
+   *  for this turn only — the model reads the text and stays silent after. */
+  sendNarration(text: string): void {
+    if (!this.dc || this.dc.readyState !== 'open') {
+      console.warn('[RealtimeVoice] sendNarration — data channel not open');
+      return;
+    }
+    this.dc.send(JSON.stringify({
+      type: 'conversation.item.create',
+      item: {
+        type: 'message',
+        role: 'user',
+        content: [{ type: 'input_text', text: `[NARACIJA]\n${text}` }],
+      },
+    }));
+    this.dc.send(JSON.stringify({
+      type: 'response.create',
+      response: {
+        instructions: 'Perskaityk tiksliai naudotojo pateiktą tekstą po [NARACIJA] žymos. Skaityk žodis žodžiui. Baigęs — TYLĖK. Nieko nepridėk. Nelaukdamas atsakymo, tiesiog nutilk.',
+      },
+    }));
+    console.log('[RealtimeVoice] → sendNarration:', text.slice(0, 80));
   }
 
   /** Returns a promise that resolves when the data channel is open and

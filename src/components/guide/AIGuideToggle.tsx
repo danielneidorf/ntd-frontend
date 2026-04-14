@@ -13,7 +13,6 @@ export default function AIGuideToggle({
   standaloneChatHistory,
   standaloneChatLoading,
   onStandaloneChatSend,
-  ttsAvailable,
   isSpeaking,
   isListening,
   voiceConciergeActive,
@@ -28,7 +27,6 @@ export default function AIGuideToggle({
   standaloneChatHistory: ChatMessage[];
   standaloneChatLoading: boolean;
   onStandaloneChatSend: (message: string) => void;
-  ttsAvailable: boolean;
   isSpeaking?: boolean;
   isListening?: boolean;
   voiceConciergeActive?: boolean;
@@ -137,14 +135,11 @@ export default function AIGuideToggle({
               </button>
               <button
                 type="button"
-                onClick={() => ttsAvailable && setSelectedOption('voice')}
-                disabled={!ttsAvailable}
-                className={`flex-1 py-2 px-3 rounded-md text-xs font-semibold transition-all duration-150 border-none ${
-                  !ttsAvailable
-                    ? 'bg-transparent text-slate-300 cursor-not-allowed'
-                    : selectedOption === 'voice'
-                      ? 'bg-[#0D7377] text-white shadow-sm cursor-pointer'
-                      : 'bg-transparent text-slate-500 hover:text-slate-700 cursor-pointer'
+                onClick={() => setSelectedOption('voice')}
+                className={`flex-1 py-2 px-3 rounded-md text-xs font-semibold transition-all duration-150 border-none cursor-pointer ${
+                  selectedOption === 'voice'
+                    ? 'bg-[#0D7377] text-white shadow-sm'
+                    : 'bg-transparent text-slate-500 hover:text-slate-700'
                 }`}
               >
                 🎙 Su balsu

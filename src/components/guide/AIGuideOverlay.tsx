@@ -66,7 +66,7 @@ export default function AIGuideOverlay({
         const el = document.querySelector(sel);
         if (!el) continue;
         found = true;
-        const r = el.getBoundingClientRect();
+        const r = getVisualBounds(el);
         top = Math.min(top, r.top);
         left = Math.min(left, r.left);
         right = Math.max(right, r.right);

@@ -8,8 +8,12 @@ import NarrationBubble from './NarrationBubble';
 import { landingTour } from './tours/landingTour';
 import { quickscanTour } from './tours/quickscanTour';
 import { buildReportTour, extractReportData } from './tours/reportTour';
-import { ttsService } from '../../lib/ttsService';
 import { RealtimeVoice } from '../../lib/realtimeVoice';
+import { formActions } from './formActionsRegistry';
+import { executeFormAction } from './FormActionExecutor';
+import { getToolsForScreen } from './toolDefinitions';
+import type { ScreenName } from './toolDefinitions';
+import { findContentByTopic } from './contentMap';
 
 const API_BASE = import.meta.env.PUBLIC_API_BASE ?? 'http://127.0.0.1:8100';
 
@@ -105,19 +109,6 @@ export default function AIGuide({
     return 'self';
   });
 
-  // TTS availability
-  const [ttsAvailable, setTtsAvailable] = useState(false);
-  useEffect(() => {
-    // Voice ID comes from the backend (ELEVENLABS_VOICE_ID env var); omit it here.
-    fetch(`${API_BASE}/v1/ai-guide/tts`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: 'test' }),
-    })
-      .then((r) => setTtsAvailable(r.ok || r.status !== 503))
-      .catch(() => setTtsAvailable(false));
-  }, []);
-
   // Speaking + listening state (for Robocat animation)
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -127,26 +118,11 @@ export default function AIGuide({
   // P7-B9: OpenAI Realtime API WebRTC session
   const realtimeRef = useRef<RealtimeVoice | null>(null);
 
-  useEffect(() => {
-    if (mode !== 'voice') return;
-    // Track whether ttsService (Mode 2 tour narrations) is currently playing,
-    // for the Robocat speaking animation.
-    const interval = setInterval(() => {
-      setIsSpeaking(ttsService.isPlaying);
-    }, 100);
-    return () => clearInterval(interval);
-  }, [mode]);
-
   // Voice concierge lifecycle — P7-B9: OpenAI Realtime API via WebRTC.
   // The browser connects directly to OpenAI; our backend's only role is
   // to generate the ephemeral token and embed the system prompt.
   const startVoiceConcierge = useCallback(async () => {
     if (voiceConciergeActive) return;
-
-    // P7-B10: stop any Azure TTS narration that might be playing from a
-    // previous session, but DON'T stop the tour — "Su balsu" runs voice
-    // alongside the tour (AI speaks step narrations via Realtime).
-    ttsService.stop();
 
     try {
       const propertyContext = tourId === 'report' ? buildPropertyContext() : undefined;
@@ -207,9 +183,32 @@ export default function AIGuide({
           onError: (msg) => {
             console.warn('[AIGuide] RealtimeVoice error:', msg);
           },
+          onFunctionCall: async (name, args) => {
+            return executeFormAction(name, args);
+          },
         },
         propertyContext,
       );
+
+      // P7-B8.1: send initial session.update with tools + screen instructions.
+      // Derive screen from __screen registry (QuickScanFlow pages) or tourId (landing/report).
+      await rt.waitForReady();
+      const screenAction = formActions.get('__screen');
+      const screen: ScreenName = screenAction
+        ? (await screenAction({})) as ScreenName
+        : (tourId as ScreenName) ?? 'other';
+      // Don't send `instructions` — the backend system prompt has full domain
+      // knowledge. session.update instructions would replace it entirely.
+      rt.updateSession({
+        tools: getToolsForScreen(screen),
+        tool_choice: 'auto',
+        turn_detection: {
+          type: 'server_vad',
+          threshold: 0.6,
+          prefix_padding_ms: 300,
+          silence_duration_ms: 800,
+        },
+      });
 
       setVoiceConciergeActive(true);
       setIsListening(true);
@@ -222,8 +221,6 @@ export default function AIGuide({
   const stopVoiceConcierge = useCallback(() => {
     realtimeRef.current?.disconnect();
     realtimeRef.current = null;
-    // Also stop any Mode 2 tour narration audio that might be playing
-    ttsService.stop();
     setVoiceConciergeActive(false);
     setIsListening(false);
     setIsSpeaking(false);
@@ -235,10 +232,7 @@ export default function AIGuide({
   useEffect(() => {
     if (mode === 'voice' && tour.state.active && !voiceConciergeActive) {
       // P7-B9: start immediately — no 500ms delay. startVoiceConcierge()
-      // already calls ttsService.stop() + tour.stop() before connecting
-      // WebRTC, so there's no race with Azure narration. The previous delay
-      // was causing a 500ms window where Azure TTS and OpenAI Realtime
-      // fought for the speaker.
+      // P7-B9: start immediately — no delay needed.
       startVoiceConcierge();
       return;
     }
@@ -253,6 +247,148 @@ export default function AIGuide({
       stopVoiceConcierge();
     }
   }, [tour.state.active, voiceConciergeActive]);
+
+  // P7-B8.1: subscribe to form actions registry for screen changes → session.update
+  const lastScreenRef = useRef<string | undefined>();
+  useEffect(() => {
+    const unsub = formActions.subscribe(async () => {
+      const screenAction = formActions.get('__screen');
+      if (!screenAction) return;
+      const screen = (await screenAction({})) as string;
+      if (screen === lastScreenRef.current) return;
+      lastScreenRef.current = screen;
+
+      const rt = realtimeRef.current;
+      if (rt?.connected) {
+        rt.updateSession({
+          tools: getToolsForScreen(screen as ScreenName),
+          tool_choice: 'auto',
+          turn_detection: {
+            type: 'server_vad',
+            threshold: 0.6,
+            prefix_padding_ms: 300,
+            silence_duration_ms: 800,
+          },
+        });
+      }
+    });
+    return unsub;
+  }, [tourId]);
+
+  // P7-B8.2-fix / B8.4: Tour navigation + show_section actions.
+  // toolNavRef prevents auto-narration race; returnStepRef enables detour return.
+  // seenStepsRef tracks which steps the user has already seen (linear or detour)
+  // so tour_next skips them — no repeated narrations unless explicitly asked.
+  const toolNavRef = useRef(false);
+  const returnStepRef = useRef<number | null>(null);
+  const seenStepsRef = useRef<Set<number>>(new Set());
+
+  useEffect(() => {
+    // Find the next unseen step from a given start index (inclusive)
+    const findNextUnseen = (from: number): number | null => {
+      for (let i = from; i < tourSteps.length; i++) {
+        if (!seenStepsRef.current.has(i)) return i;
+      }
+      return null;
+    };
+
+    formActions.register('tour_next', () => {
+      if (!tour.state.active) {
+        return JSON.stringify({ success: false, error: 'tour_not_active' });
+      }
+
+      // Determine where to search from
+      const searchFrom = returnStepRef.current !== null
+        ? returnStepRef.current + 1  // after detour: resume past where user was
+        : tour.state.currentStep + 1; // normal: next after current
+      returnStepRef.current = null;
+
+      const nextIdx = findNextUnseen(searchFrom);
+      if (nextIdx === null) {
+        return JSON.stringify({ success: false, error: 'last_step', message: 'Tai paskutinis žingsnis.' });
+      }
+
+      seenStepsRef.current.add(nextIdx);
+      toolNavRef.current = true;
+      tour.goToStep(nextIdx);
+      const step = tourSteps[nextIdx];
+      return JSON.stringify({
+        success: true,
+        step: nextIdx,
+        narration: step?.narration ?? '',
+        instruction: 'Perskaityk naracijos tekstą žodis žodžiui. Po perskaitymo — tylėk.',
+      });
+    });
+
+    formActions.register('tour_back', () => {
+      if (!tour.state.active) {
+        return JSON.stringify({ success: false, error: 'tour_not_active' });
+      }
+      // Clear any detour on manual back
+      returnStepRef.current = null;
+      if (tour.state.currentStep <= 0) {
+        return JSON.stringify({ success: false, error: 'first_step', message: 'Tai pirmas žingsnis.' });
+      }
+      const prevIdx = tour.state.currentStep - 1;
+      toolNavRef.current = true;
+      tour.back();
+      const prevStep = tourSteps[prevIdx];
+      return JSON.stringify({
+        success: true,
+        step: prevIdx,
+        narration: prevStep?.narration ?? '',
+        instruction: 'Perskaityk naracijos tekstą žodis žodžiui. Po perskaitymo — tylėk.',
+      });
+    });
+
+    // P7-B8.4: show_section — jump to a content section that answers the user's question
+    formActions.register('show_section', (args) => {
+      const topic = args.topic as string;
+      const entry = findContentByTopic(topic);
+
+      if (!entry) {
+        return JSON.stringify({ success: false, error: 'unknown_topic', message: `Nežinoma tema: ${topic}` });
+      }
+
+      if (entry.tourId !== tourId) {
+        const pageLabels: Record<string, string> = {
+          landing: 'pagrindiniame puslapyje',
+          quickscan: 'užsakymo puslapyje',
+          report: 'ataskaitoje',
+        };
+        return JSON.stringify({
+          success: false,
+          error: 'different_page',
+          message: `Ši informacija yra ${pageLabels[entry.tourId] ?? 'kitame puslapyje'}.`,
+          page: entry.tourId,
+        });
+      }
+
+      const stepIndex = tourSteps.findIndex((s) => s.id === entry.stepId);
+      if (stepIndex === -1) {
+        return JSON.stringify({ success: false, error: 'step_not_found' });
+      }
+
+      returnStepRef.current = tour.state.currentStep;
+      seenStepsRef.current.add(stepIndex);
+      toolNavRef.current = true;
+      tour.goToStep(stepIndex);
+
+      return JSON.stringify({
+        success: true,
+        label: entry.label,
+        narration: tourSteps[stepIndex]?.narration ?? '',
+        instruction: 'Perskaityk naracijos tekstą žodis žodžiui. Po perskaitymo — tylėk ir lauk.',
+        return_available: true,
+      });
+    });
+
+    return () => {
+      formActions.unregister('tour_next');
+      formActions.unregister('tour_back');
+      formActions.unregister('show_section');
+    };
+  }, [tour.state.active, tour.state.currentStep, tourSteps.length, tourId]);
 
   // Tour chat state
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -288,18 +424,23 @@ export default function AIGuide({
     const step = tourSteps[tour.state.currentStep];
     if (!step) return;
 
+    // Mark this step as seen (whether tool-driven or auto-narrated)
+    seenStepsRef.current.add(tour.state.currentStep);
+
+    // Skip auto-narration if this step change was caused by tour_next/tour_back
+    // tool call — the narration text is already in the tool result, and sending
+    // sendNarration would race with the tool's response.create.
+    if (toolNavRef.current) {
+      toolNavRef.current = false;
+      return;
+    }
+
     if (mode === 'voice' && voiceConciergeActive && realtimeRef.current) {
       const rt = realtimeRef.current;
-      // Wait for the data channel to be ready before sending the first
-      // narration — avoids a race where the effect fires before the
-      // WebRTC connection has fully established.
       rt.waitForReady().then(() => {
-        rt.sendTextPrompt(
-          `Perskaityk šį tekstą balsu, žodis žodžiui: ${step.narration}`
-        );
+        rt.sendNarration(step.narration);
       });
     }
-    // "Be balso" (mode === 'guided') — no audio. Azure TTS code kept but not called.
   }, [tour.state.currentStep, tour.state.active, mode, tourSteps, voiceConciergeActive]);
 
   // Tour chat handler — P7-B10: routes through Realtime in "Su balsu" mode.
@@ -327,7 +468,7 @@ export default function AIGuide({
         const text = response ?? 'Atsiprašau, šiuo metu negaliu atsakyti.';
         const aiMsg: ChatMessage = { role: 'assistant', content: text };
         setChatHistory((prev) => [...prev, aiMsg]);
-        // "Be balso" is fully silent — no ttsService.speak.
+        // "Be balso" is text-only — no audio.
       })
       .finally(() => setChatLoading(false));
   }, [tourSteps, tour.state.currentStep, chatHistory, tourId, mode, voiceConciergeActive]);
@@ -354,7 +495,7 @@ export default function AIGuide({
         const text = response ?? 'Atsiprašau, šiuo metu negaliu atsakyti.';
         const aiMsg: ChatMessage = { role: 'assistant', content: text };
         setStandaloneChatHistory((prev) => [...prev, aiMsg]);
-        // "Be balso" is fully silent — no ttsService.speak.
+        // "Be balso" is text-only — no audio.
       })
       .finally(() => setStandaloneChatLoading(false));
   }, [standaloneChatHistory, tourId, mode, voiceConciergeActive]);
@@ -365,7 +506,8 @@ export default function AIGuide({
   };
 
   const handleTourStop = useCallback(() => {
-    ttsService.stop();
+    returnStepRef.current = null;
+    seenStepsRef.current.clear();
     stopVoiceConcierge();
     tour.stop();
   }, [tour.stop, stopVoiceConcierge]);
@@ -397,7 +539,6 @@ export default function AIGuide({
         standaloneChatHistory={standaloneChatHistory}
         standaloneChatLoading={standaloneChatLoading}
         onStandaloneChatSend={handleStandaloneChatSend}
-        ttsAvailable={ttsAvailable}
         isSpeaking={isSpeaking}
         isListening={isListening}
         voiceConciergeActive={voiceConciergeActive}
