@@ -557,7 +557,17 @@ function Screen1({
         return JSON.stringify({ success: false, error: 'invalid_case_type', message: 'Neteisingas objekto tipas.' });
       }
       setState((s) => ({ ...s, case_type: caseType as CaseType }));
-      return JSON.stringify({ success: true, case_type: caseType });
+      return JSON.stringify({ success: true, case_type: caseType, next_step: 'Naudok tour_next — pereik į kitą gido žingsnį.' });
+    });
+
+    formActions.register('set_location_tab', (args) => {
+      const tab = args.tab as string;
+      if (!['address', 'ntr', 'map'].includes(tab)) {
+        return JSON.stringify({ success: false, error: 'invalid_tab' });
+      }
+      setActiveTab(tab as 'address' | 'ntr' | 'map');
+      if (tab === 'map') setMapExpanded(true);
+      return JSON.stringify({ success: true, tab });
     });
 
     formActions.register('fill_address', async (args) => {
@@ -590,10 +600,13 @@ function Screen1({
 
         if (candidates.length === 1) {
           handleAddressSelect(candidates[0]);
+          setMapExpanded(false);
+          setActiveTab('address');
           return JSON.stringify({
             success: true,
             auto_selected: true,
             address: candidates[0].description,
+            next_step: 'Adresas pasirinktas. Naudok tour_next — dar yra papildomų neprivalomų laukų (nuoroda, dokumentas, energija). NENAUDOK click_continue.',
           });
         }
 
@@ -627,7 +640,13 @@ function Screen1({
 
       handleAddressSelect(candidates[index]);
       pendingCandidatesRef.current = null;
-      return JSON.stringify({ success: true, address: candidates[index].description });
+      setMapExpanded(false);
+      setActiveTab('address');
+      return JSON.stringify({
+        success: true,
+        address: candidates[index].description,
+        next_step: 'Adresas pasirinktas. Naudok tour_next — dar yra papildomų neprivalomų laukų. NENAUDOK click_continue.',
+      });
     });
 
     formActions.register('fill_ntr', (args) => {
@@ -641,7 +660,11 @@ function Screen1({
       }
       handleNtrChange(ntr);
       setActiveTab('ntr');
-      return JSON.stringify({ success: true, ntr });
+      return JSON.stringify({
+        success: true,
+        ntr,
+        next_step: 'NTR įvestas. Naudok tour_next — dar yra papildomų neprivalomų laukų. NENAUDOK click_continue.',
+      });
     });
 
     formActions.register('click_continue', async () => {
@@ -658,6 +681,7 @@ function Screen1({
 
     return () => {
       formActions.unregister('select_case_type');
+      formActions.unregister('set_location_tab');
       formActions.unregister('fill_address');
       formActions.unregister('select_address_candidate');
       formActions.unregister('fill_ntr');
@@ -1184,6 +1208,113 @@ function Screen2({
   const resolver = state.resolver_result;
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email);
   const canPay = objectConfirmed && state.quote && emailValid && state.consent_accepted && !paying;
+
+  // P7-B8.3: Register Screen 2 form actions for the AI voice concierge.
+  useEffect(() => {
+    const validMethodIds = ['swedbank', 'seb', 'luminor', 'citadele', 'revolut', 'paysera', 'card', 'apple-pay', 'google-pay', 'paypal'];
+
+    formActions.register('get_current_screen', () =>
+      JSON.stringify({
+        success: true,
+        data: {
+          screen: 'quickscan-step2',
+          object_confirmed: objectConfirmed,
+          email: state.email || undefined,
+          email_valid: emailValid,
+          consent_accepted: state.consent_accepted,
+          invoice_requested: state.invoice_requested,
+          selected_method: selectedMethod ?? undefined,
+          can_pay: canPay,
+          price: state.quote?.final_price_eur ?? undefined,
+          paying,
+        },
+      }),
+    );
+
+    formActions.register('confirm_property', async () => {
+      if (objectConfirmed) {
+        return JSON.stringify({ success: true, already_confirmed: true });
+      }
+      handleConfirmObject();
+      return JSON.stringify({ success: true });
+    });
+
+    formActions.register('fill_email', (args) => {
+      const email = (args.email as string)?.trim();
+      const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email ?? '');
+      if (!email || !valid) {
+        return JSON.stringify({ success: false, error: 'invalid_email', message: 'Neteisingas el. pašto formatas.' });
+      }
+      setState((s) => ({ ...s, email }));
+      return JSON.stringify({ success: true, email });
+    });
+
+    formActions.register('toggle_consent', (args) => {
+      const checked = args.checked as boolean;
+      setState((s) => ({ ...s, consent_accepted: checked }));
+      return JSON.stringify({ success: true, consent: checked });
+    });
+
+    formActions.register('toggle_invoice', (args) => {
+      const checked = args.checked as boolean;
+      setState((s) => ({ ...s, invoice_requested: checked }));
+      return JSON.stringify({ success: true, invoice: checked });
+    });
+
+    formActions.register('select_payment_method', (args) => {
+      const method = args.method as string;
+      if (!validMethodIds.includes(method)) {
+        return JSON.stringify({ success: false, error: 'invalid_method', message: `Nežinomas mokėjimo būdas: ${method}` });
+      }
+      setSelectedMethod(method);
+      setShowMethodSelector(true);
+      return JSON.stringify({ success: true, method });
+    });
+
+    formActions.register('click_pay', async () => {
+      if (!canPay) {
+        const missing: string[] = [];
+        if (!objectConfirmed) missing.push('objekto patvirtinimas');
+        if (!state.email || !emailValid) missing.push('el. paštas');
+        if (!state.consent_accepted) missing.push('sutikimas su sąlygomis');
+        if (!selectedMethod) missing.push('mokėjimo būdas');
+        return JSON.stringify({
+          success: false,
+          error: 'missing_fields',
+          message: `Trūksta: ${missing.join(', ')}.`,
+        });
+      }
+      if (!selectedMethod) {
+        return JSON.stringify({ success: false, error: 'no_method', message: 'Pasirinkite mokėjimo būdą.' });
+      }
+      handleMethodConfirm();
+      return JSON.stringify({ success: true, price: state.quote?.final_price_eur });
+    });
+
+    formActions.register('navigate_back', () => {
+      setState((s) => ({
+        ...s,
+        step: 1 as const,
+        resolver_result: null,
+        geo: null,
+        address_text: null,
+        ntr_unique_number: null,
+        selected_candidate_id: null,
+      }));
+      return JSON.stringify({ success: true });
+    });
+
+    return () => {
+      formActions.unregister('confirm_property');
+      formActions.unregister('fill_email');
+      formActions.unregister('toggle_consent');
+      formActions.unregister('toggle_invoice');
+      formActions.unregister('select_payment_method');
+      formActions.unregister('click_pay');
+      formActions.unregister('navigate_back');
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.email, state.consent_accepted, state.invoice_requested, objectConfirmed, selectedMethod, canPay, state.quote, paying]);
 
   if (!resolver) return null;
 

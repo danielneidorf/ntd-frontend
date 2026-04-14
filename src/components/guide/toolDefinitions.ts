@@ -65,7 +65,7 @@ const SHOW_SECTION_TOOL: ToolDefinition = {
     `- thermal_comfort — šiluminis komfortas (tik ataskaitoje)\n` +
     `- energy_costs — energijos sąnaudos (tik ataskaitoje)\n` +
     `- permits — statybos leidimai (tik ataskaitoje)\n\n` +
-    `Kai tema yra kitame puslapyje — pasakyk naudotojui.\n` +
+    `Jei sekcija yra kitame puslapyje — automatiškai pereis. Trumpai pasakyk "Parodysiu" ir iškart kvieski show_section.\n` +
     `Po parodymo, kai naudotojas sako "toliau" — grąžink jį atgal kur buvo.`,
   parameters: {
     type: 'object',
@@ -88,7 +88,27 @@ const SHOW_SECTION_TOOL: ToolDefinition = {
   },
 };
 
-const TOOLS_COMMON: ToolDefinition[] = [GET_CURRENT_SCREEN_TOOL, TOUR_NEXT_TOOL, TOUR_BACK_TOOL, SHOW_SECTION_TOOL];
+const START_ORDER_TOOL: ToolDefinition = {
+  type: 'function',
+  name: 'start_order',
+  description:
+    "Pereiti į užsakymo puslapį. Naudok kai naudotojas nori pradėti užsakymą, sako 'noriu užsakyti', " +
+    "'noriu patikrinti', 'pradėkime', 'esamas pastatas', 'naujas projektas', 'žemės sklypas' ar panašiai. " +
+    'Jei naudotojas nurodo objekto tipą — perduok jį kaip case_type.',
+  parameters: {
+    type: 'object',
+    properties: {
+      case_type: {
+        type: 'string',
+        enum: ['existing_object', 'new_build_project', 'land_only'],
+        description: 'Objekto tipas, jei naudotojas jau pasakė. Neprivalomas.',
+      },
+    },
+    required: [],
+  },
+};
+
+const TOOLS_COMMON: ToolDefinition[] = [GET_CURRENT_SCREEN_TOOL, TOUR_NEXT_TOOL, TOUR_BACK_TOOL, SHOW_SECTION_TOOL, START_ORDER_TOOL];
 
 // P7-B8.2: Screen 1 form-filling tools
 const TOOLS_SCREEN1: ToolDefinition[] = [
@@ -108,6 +128,24 @@ const TOOLS_SCREEN1: ToolDefinition[] = [
         },
       },
       required: ['case_type'],
+    },
+  },
+  {
+    type: 'function',
+    name: 'set_location_tab',
+    description:
+      "Perjungti vietos įvedimo būdą. Naudok kai naudotojas sako 'žemėlapyje', 'per žemėlapį', " +
+      "'NTR numeriu', 'unikaliu numeriu', 'adresu' ar panašiai.",
+    parameters: {
+      type: 'object',
+      properties: {
+        tab: {
+          type: 'string',
+          enum: ['address', 'ntr', 'map'],
+          description: 'address = adresas, ntr = NTR numeris, map = žemėlapis',
+        },
+      },
+      required: ['tab'],
     },
   },
   {
@@ -177,12 +215,101 @@ const TOOLS_SCREEN1: ToolDefinition[] = [
   },
 ];
 
+// P7-B8.3: Screen 2 payment/confirmation tools
+const TOOLS_SCREEN2: ToolDefinition[] = [
+  {
+    type: 'function',
+    name: 'confirm_property',
+    description:
+      "Patvirtinti rastą objektą proof card'e. Naudok kai naudotojas sako 'taip, teisingas' arba 'patvirtinu'. " +
+      "Jei sako 'ne' — naudok navigate_back.",
+    parameters: { type: 'object', properties: {}, required: [] },
+  },
+  {
+    type: 'function',
+    name: 'fill_email',
+    description: 'Įvesti naudotojo el. pašto adresą. Naudok kai naudotojas pasako savo el. paštą.',
+    parameters: {
+      type: 'object',
+      properties: {
+        email: {
+          type: 'string',
+          description: "El. pašto adresas, pvz. 'jonas@gmail.com'",
+        },
+      },
+      required: ['email'],
+    },
+  },
+  {
+    type: 'function',
+    name: 'toggle_consent',
+    description:
+      "Pažymėti arba atžymėti sutikimo su sąlygomis varnelę. " +
+      "Naudok kai naudotojas sako 'sutinku su sąlygomis' arba 'taip, sutinku'.",
+    parameters: {
+      type: 'object',
+      properties: {
+        checked: { type: 'boolean', description: 'true = pažymėti, false = atžymėti' },
+      },
+      required: ['checked'],
+    },
+  },
+  {
+    type: 'function',
+    name: 'toggle_invoice',
+    description:
+      "Pažymėti arba atžymėti 'Reikia sąskaitos faktūros' varnelę. " +
+      'Naudok tik kai naudotojas aiškiai prašo sąskaitos.',
+    parameters: {
+      type: 'object',
+      properties: {
+        checked: { type: 'boolean', description: 'true = reikia sąskaitos, false = nereikia' },
+      },
+      required: ['checked'],
+    },
+  },
+  {
+    type: 'function',
+    name: 'select_payment_method',
+    description:
+      "Pasirinkti mokėjimo būdą. Galimi: 'card' (kortelė Visa/MC), 'apple-pay', 'google-pay', " +
+      "'paypal', 'swedbank', 'seb', 'luminor', 'citadele', 'revolut', 'paysera'.",
+    parameters: {
+      type: 'object',
+      properties: {
+        method: { type: 'string', description: 'Mokėjimo būdo ID' },
+      },
+      required: ['method'],
+    },
+  },
+  {
+    type: 'function',
+    name: 'click_pay',
+    description:
+      "Paspausti 'Mokėti ir gauti ataskaitą' mygtuką. ⚠️ NEGRĮŽTAMAS VEIKSMAS. " +
+      "PRIVALOMA: prieš kviečiant šį įrankį, VISADA pasakyk naudotojui tikslią kainą ir " +
+      "paklausk patvirtinimo: 'Patvirtinkite — apmokame [kaina] €?' " +
+      "Lauk kol naudotojas aiškiai pasakys 'taip', 'sutinku', 'mokėk' ar panašiai. " +
+      'Jei naudotojas nepatvirtina — NEKVIESTI šio įrankio.',
+    parameters: { type: 'object', properties: {}, required: [] },
+  },
+  {
+    type: 'function',
+    name: 'navigate_back',
+    description:
+      'Grįžti atgal į 1 žingsnį (vietos pasirinkimą). ' +
+      'Naudok kai naudotojas sako objektas neteisingas arba nori keisti adresą.',
+    parameters: { type: 'object', properties: {}, required: [] },
+  },
+];
+
 /** Returns the tool set appropriate for the given screen. */
 export function getToolsForScreen(screen: ScreenName): ToolDefinition[] {
   switch (screen) {
     case 'quickscan-step1':
       return [...TOOLS_COMMON, ...TOOLS_SCREEN1];
-    // B8.3 will add quickscan-step2
+    case 'quickscan-step2':
+      return [...TOOLS_COMMON, ...TOOLS_SCREEN2];
     default:
       return [...TOOLS_COMMON];
   }
