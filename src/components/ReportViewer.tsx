@@ -21,7 +21,9 @@ type ViewState = 'loading' | 'loaded' | 'not_found' | 'error';
 
 // ─── Sub-components ───────────────────────────────────────────────
 
-function ReportHeader({ data }: { data: ReportData }) {
+function ReportHeader({ data, token }: { data: ReportData; token: string | null }) {
+  const pdfUrl = token ? `${API_BASE}/v1/reports/${token}/pdf` : null;
+
   return (
     <header className="bg-[#1E3A5F] text-white">
       <div className="max-w-[1100px] mx-auto px-6 py-4 flex items-center justify-between">
@@ -30,13 +32,23 @@ function ReportHeader({ data }: { data: ReportData }) {
           <span className="text-white/30">|</span>
           <span className="text-white/60 text-[13px]">ntd.lt</span>
         </div>
-        <button
-          disabled
-          className="text-sm text-white/40 border border-white/20 px-3 py-1.5 rounded cursor-not-allowed"
-          title="PDF atsisiuntimas bus prieinamas netrukus"
-        >
-          Atsisiųsti PDF
-        </button>
+        {pdfUrl ? (
+          <a
+            href={pdfUrl}
+            download
+            className="text-sm text-white border border-white/40 px-3 py-1.5 rounded hover:bg-white/10 transition-colors no-underline"
+          >
+            Atsisiųsti PDF
+          </a>
+        ) : (
+          <button
+            disabled
+            className="text-sm text-white/40 border border-white/20 px-3 py-1.5 rounded cursor-not-allowed"
+            title="PDF atsisiuntimas bus prieinamas netrukus"
+          >
+            Atsisiųsti PDF
+          </button>
+        )}
       </div>
     </header>
   );
@@ -405,7 +417,7 @@ export default function ReportViewer() {
 
   return (
     <div className="min-h-screen bg-[#FAFBFC]">
-      <ReportHeader data={data} />
+      <ReportHeader data={data} token={token} />
       <main className="max-w-[1100px] mx-auto px-6 py-8 space-y-6">
         <div data-guide="street-view">
           <PropertyPhoto
