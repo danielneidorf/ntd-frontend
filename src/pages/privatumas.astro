@@ -1,0 +1,91 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+<BaseLayout title="Privatumo politika — NT Duomenys">
+  <Header />
+  <main class="max-w-3xl mx-auto px-6 py-12">
+    <h1 class="text-[36px] font-semibold text-[#1E3A5F] mb-2">Privatumo politika</h1>
+    <!-- TODO: Fill after MB registration -->
+    <p class="text-sm text-slate-500 mb-10">Galioja nuo: 2026 m. [month] [day] d.</p>
+
+    <section class="prose prose-slate max-w-none">
+
+      <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">1. Duomenų valdytojas</h2>
+      <!-- TODO: Fill after MB registration -->
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">Jūsų asmens duomenų valdytojas yra [NTD įmonės pavadinimas], juridinio asmens kodas [kodas], adresas [adresas], el. paštas — nurodytas svetainėje ntd.lt (toliau — NTD arba Mes).</p>
+
+      <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">2. Kokie duomenys renkami</h2>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">Naudojantis Platforma, renkami šie duomenys:</p>
+      <ul class="list-disc pl-6 space-y-2 mb-3 text-[15px] leading-relaxed text-[#333]">
+        <li><strong>El. pašto adresas</strong> — ataskaitos pristatymui.</li>
+        <li><strong>Turto adresas ir/arba NTR numeris</strong> — ataskaitos generavimui. Tai nėra Jūsų asmeniniai duomenys, o analizuojamo turto identifikatoriai.</li>
+        <li><strong>Mokėjimo duomenys</strong> — apdorojami mokėjimų paslaugų teikėjo ir NTD jų nemato bei nesaugo.</li>
+        <li><strong>IP adresas ir naršyklės tipas</strong> — techniniams tikslams ir platformos saugumui.</li>
+        <li><strong>Balso duomenys</strong> — jei naudojatės balso gidu, garso duomenys apdorojami realiu laiku trečiosios šalies paslaugų teikėjo serveriuose ir nėra saugomi NTD serveriuose.</li>
+      </ul>
+
+      <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">3. Duomenų tvarkymo tikslai ir pagrindas</h2>
+      <table class="w-full border-collapse my-4 text-[14px]">
+        <thead>
+          <tr class="border-b-2 border-[#E2E8F0]">
+            <th class="text-left p-3 text-[#1E3A5F] font-semibold">Tikslas</th>
+            <th class="text-left p-3 text-[#1E3A5F] font-semibold">Teisinis pagrindas (BDAR)</th>
+          </tr>
+        </thead>
+        <tbody class="text-[#333]">
+          <tr class="border-b border-[#F1F5F9]"><td class="p-3">Ataskaitos generavimas ir pristatymas</td><td class="p-3">Sutarties vykdymas (6 str. 1 d. b)</td></tr>
+          <tr class="border-b border-[#F1F5F9]"><td class="p-3">Mokėjimo apdorojimas</td><td class="p-3">Sutarties vykdymas (6 str. 1 d. b)</td></tr>
+          <tr class="border-b border-[#F1F5F9]"><td class="p-3">Ataskaitos saugojimas ir pakartotinė prieiga</td><td class="p-3">Teisėtas interesas (6 str. 1 d. f)</td></tr>
+          <tr class="border-b border-[#F1F5F9]"><td class="p-3">Platformos saugumas</td><td class="p-3">Teisėtas interesas (6 str. 1 d. f)</td></tr>
+          <tr><td class="p-3">Tiesioginė rinkodara</td><td class="p-3">Sutikimas (6 str. 1 d. a), jei pažymėjote</td></tr>
+        </tbody>
+      </table>
+
+      <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">4. Duomenų perdavimas</h2>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">Jūsų duomenys gali būti perduodami trečiosioms šalims, reikalingoms paslaugų teikimui:</p>
+      <ul class="list-disc pl-6 space-y-2 mb-3 text-[15px] leading-relaxed text-[#333]">
+        <li><strong>Mokėjimų paslaugų teikėjas</strong> — mokėjimų apdorojimui.</li>
+        <li><strong>VĮ Registrų centras</strong> — turto duomenų užklausoms (Lietuva).</li>
+        <li><strong>Balso atpažinimo paslaugų teikėjas</strong> — balso gido veikimui, jei jį naudojate. Garso duomenys apdorojami realiu laiku ir neišsaugomi.</li>
+        <li><strong>Žemėlapių paslaugų teikėjas</strong> — žemėlapių atvaizdavimui.</li>
+      </ul>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">Duomenų perdavimas trečiosioms šalims, esančioms už EEE ribų, vykdomas pagal ES standartines sutarčių sąlygas arba kitas BDAR numatytas apsaugos priemones.</p>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">Jūsų duomenys nėra parduodami trečiosioms šalims.</p>
+
+      <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">5. Duomenų saugojimo terminai</h2>
+      <ul class="list-disc pl-6 space-y-2 mb-3 text-[15px] leading-relaxed text-[#333]">
+        <li><strong>Ataskaitos duomenys</strong> — saugomi 2 metus nuo sugeneravimo datos. Po to ištrinami.</li>
+        <li><strong>El. pašto adresas</strong> — saugomas tiek, kiek reikia ataskaitos pristatymui ir galimam pakartotiniam siuntimui. Ištrinamas per 30 dienų nuo prašymo.</li>
+        <li><strong>Mokėjimo įrašai</strong> — saugomi pagal LR Buhalterinės apskaitos įstatymo reikalavimus (10 metų).</li>
+        <li><strong>Techniniai žurnalai (logs)</strong> — saugomi tiek, kiek reikalinga platformos saugumui ir veikimui užtikrinti.</li>
+      </ul>
+
+      <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">6. Jūsų teisės</h2>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">Pagal BDAR Jūs turite teisę:</p>
+      <ul class="list-disc pl-6 space-y-2 mb-3 text-[15px] leading-relaxed text-[#333]">
+        <li><strong>Žinoti</strong> (gauti informaciją apie duomenų tvarkymą);</li>
+        <li><strong>Susipažinti</strong> su tvarkomais savo asmens duomenimis;</li>
+        <li><strong>Reikalauti ištaisyti</strong> netikslius duomenis;</li>
+        <li><strong>Reikalauti ištrinti</strong> duomenis („teisė būti pamirštam");</li>
+        <li><strong>Apriboti</strong> duomenų tvarkymą;</li>
+        <li><strong>Perkelti</strong> duomenis kitam valdytojui;</li>
+        <li><strong>Nesutikti</strong> su duomenų tvarkymu;</li>
+        <li><strong>Pateikti skundą</strong> Valstybinei duomenų apsaugos inspekcijai (L. Sapiegos g. 17, Vilnius, ada.lt).</li>
+      </ul>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">Kreipkitės dėl bet kurios teisės el. paštu, nurodytu svetainėje ntd.lt. Atsakome per 30 kalendorinių dienų.</p>
+
+      <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">7. Slapukai</h2>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">Platforma naudoja tik būtinuosius slapukus (session cookies), reikalingus užsakymo procesui. Analitikos slapukai naudojami tik su Jūsų sutikimu.</p>
+
+      <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">8. Pakeitimai</h2>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">NTD pasilieka teisę keisti šią Privatumo politiką. Pakeitimai skelbiami Platformoje.</p>
+
+      <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">9. Kontaktai</h2>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">El. paštas: nurodytas svetainėje ntd.lt<br>Svetainė: ntd.lt</p>
+
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>

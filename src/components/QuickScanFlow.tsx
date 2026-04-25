@@ -1791,7 +1791,7 @@ function Screen2({
                     onChange={e => setState(s => ({ ...s, consent_accepted: e.target.checked }))}
                     className="w-4 h-4 mt-0.5 accent-[#0D7377] flex-shrink-0" />
                   <span className="text-[14px] text-[#64748B]">
-                    Sutinku su <a href="/salygos" className="text-[#0D7377] underline">sąlygomis</a> ir <a href="/privatumas" className="text-[#0D7377] underline">privatumu</a>.
+                    Sutinku su <a href="/salygos" target="_blank" rel="noopener noreferrer" className="text-[#0D7377] underline">sąlygomis</a> ir <a href="/privatumas" target="_blank" rel="noopener noreferrer" className="text-[#0D7377] underline">privatumu</a>.
                   </span>
                 </label>
 
