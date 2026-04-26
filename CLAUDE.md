@@ -11,7 +11,7 @@ Font: Inter. Max-width: 1200px.
 
 Astro v5 · Tailwind CSS v4 · TypeScript · React 19 islands.
 Deploy: Hostinger (static HTML + JS islands).
-Backend API: api.staging.bustodnr.lt (CORS-enabled), branch block1-e2e.
+Backend API: api.ntd.lt (CORS-enabled), branch block1-e2e.
 Payment: Stripe (cards, Apple Pay, Google Pay, PayPal) + Paysera PIS (Lithuanian bank links).
 
 ## Screens
