@@ -1,7 +1,7 @@
 ---
 ---
 <header class="fixed top-0 left-0 right-0 z-50 bg-[#1E3A5F] border-b border-[#1E3A5F]">
-  <div class="max-w-[1200px] mx-auto px-16 h-16 flex items-center justify-between">
+  <div class="max-w-[1200px] mx-auto px-4 md:px-16 h-16 flex items-center justify-between">
 
     <!-- Logo -->
     <a href="/" class="flex items-center gap-3 no-underline">
@@ -10,8 +10,8 @@
       <span class="text-white/60 text-[13px] font-normal">ntd.lt</span>
     </a>
 
-    <!-- Nav -->
-    <nav class="flex items-center gap-8">
+    <!-- Desktop Nav -->
+    <nav class="hidden md:flex items-center gap-8">
       <a href="/quickscan/" class="text-[14px] text-white/70 hover:text-white transition-colors">Objekto paieška</a>
       <a href="/#pricing-section" class="text-[14px] text-white/70 hover:text-white transition-colors">Kaina</a>
       <div class="dev-dropdown relative inline-block">
@@ -27,6 +27,10 @@
           <a href="/report/dev-existing" class="block px-4 py-2 text-[13px] italic text-[#E8A040] no-underline hover:bg-[rgba(232,160,64,0.1)]">Ataskaita (mock)</a>
           <a href="/report/dev-land" class="block px-4 py-2 text-[13px] italic text-[#E8A040] no-underline hover:bg-[rgba(232,160,64,0.1)]">Ataskaita (žemė)</a>
           <div class="border-t border-[#E8A040]/30 my-1"></div>
+          <a href="http://127.0.0.1:8100/v1/reports/dev/invoice/fizinis" target="_blank" class="block px-4 py-2 text-[13px] italic text-[#E8A040] no-underline hover:bg-[rgba(232,160,64,0.1)]">Sąskaita (fizinis)</a>
+          <a href="http://127.0.0.1:8100/v1/reports/dev/invoice/juridinis" target="_blank" class="block px-4 py-2 text-[13px] italic text-[#E8A040] no-underline hover:bg-[rgba(232,160,64,0.1)]">Sąskaita (juridinis)</a>
+          <a href="http://127.0.0.1:8100/v1/reports/dev/invoice/fizinis?vat=true" target="_blank" class="block px-4 py-2 text-[13px] italic text-[#E8A040] no-underline hover:bg-[rgba(232,160,64,0.1)]">Sąskaita (su PVM)</a>
+          <div class="border-t border-[#E8A040]/30 my-1"></div>
           <a href="/quickscan/?case=existing_object&step=resolver-loading" class="block px-4 py-2 text-[13px] italic text-[#E8A040] no-underline hover:bg-[rgba(232,160,64,0.1)]">R-A: Ieškoma...</a>
           <a href="/quickscan/?case=existing_object&step=resolver-failure" class="block px-4 py-2 text-[13px] italic text-[#E8A040] no-underline hover:bg-[rgba(232,160,64,0.1)]">R-B: Klaida</a>
           <a href="/quickscan/?case=existing_object&step=resolver-nomatch" class="block px-4 py-2 text-[13px] italic text-[#E8A040] no-underline hover:bg-[rgba(232,160,64,0.1)]">R-C: Nerasta</a>
@@ -38,10 +42,51 @@
       </a>
     </nav>
 
+    <!-- Mobile right cluster: hamburger + CTA -->
+    <div class="flex md:hidden items-center gap-2">
+      <button
+        id="menu-toggle"
+        class="text-white p-2 rounded hover:bg-white/10 transition-colors"
+        aria-label="Meniu"
+        aria-expanded="false"
+      >
+        <svg id="menu-icon-open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+        <svg id="menu-icon-close" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+      <a href="/#pasirinkite" class="text-[13px] text-white font-semibold border border-white/40 px-3 py-1.5 rounded-sm hover:bg-white hover:text-[#1E3A5F] transition-colors">
+        Užsakyti
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Mobile menu drawer -->
+  <div
+    id="mobile-menu"
+    class="hidden md:hidden absolute top-16 left-0 right-0 bg-[#1E3A5F] border-t border-white/10 px-4 py-4 flex-col gap-1 shadow-lg"
+  >
+    <a href="/quickscan/" class="block w-full py-3 px-2 text-white text-[15px] hover:bg-white/10 rounded transition-colors">Objekto paieška</a>
+    <a href="/#pricing-section" class="block w-full py-3 px-2 text-white text-[15px] hover:bg-white/10 rounded transition-colors">Kaina</a>
+
+    <!-- Dev section (kept until launch — will be removed in K4) -->
+    <div class="border-t border-white/10 mt-2 pt-2">
+      <p class="px-2 py-1 text-[12px] italic text-[#E8A040]/70 uppercase tracking-wide">Dev ⚙️</p>
+      <a href="/quickscan/?case=existing_object" class="block py-2 px-2 text-[13px] italic text-[#E8A040] hover:bg-[rgba(232,160,64,0.1)] rounded">Vieta (Screen 1)</a>
+      <a href="/quickscan/?case=existing_object&step=2" class="block py-2 px-2 text-[13px] italic text-[#E8A040] hover:bg-[rgba(232,160,64,0.1)] rounded">Patvirtinimas (Screen 2)</a>
+      <a href="/quickscan/?case=existing_object&step=2-payment" class="block py-2 px-2 text-[13px] italic text-[#E8A040] hover:bg-[rgba(232,160,64,0.1)] rounded">Mokėjimas (Screen 2 + card)</a>
+      <a href="/quickscan/?case=existing_object&step=success" class="block py-2 px-2 text-[13px] italic text-[#E8A040] hover:bg-[rgba(232,160,64,0.1)] rounded">Sėkmė (Success)</a>
+      <a href="/report/dev-existing" class="block py-2 px-2 text-[13px] italic text-[#E8A040] hover:bg-[rgba(232,160,64,0.1)] rounded">Ataskaita (mock)</a>
+      <a href="/report/dev-land" class="block py-2 px-2 text-[13px] italic text-[#E8A040] hover:bg-[rgba(232,160,64,0.1)] rounded">Ataskaita (žemė)</a>
+    </div>
   </div>
 </header>
 
 <script>
+  // Desktop dev dropdown (existing behavior)
   const trigger = document.getElementById('dev-trigger');
   const menu = document.getElementById('dev-menu');
   if (trigger && menu) {
@@ -49,7 +94,53 @@
       e.stopPropagation();
       menu.classList.toggle('hidden');
     });
-    document.addEventListener('click', () => menu.classList.add('hidden'));
     menu.addEventListener('click', (e) => e.stopPropagation());
   }
+
+  // Mobile hamburger menu
+  const toggleBtn = document.getElementById('menu-toggle');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const iconOpen = document.getElementById('menu-icon-open');
+  const iconClose = document.getElementById('menu-icon-close');
+
+  function setMobileMenuOpen(open: boolean) {
+    if (!mobileMenu || !toggleBtn || !iconOpen || !iconClose) return;
+    if (open) {
+      mobileMenu.classList.remove('hidden');
+      mobileMenu.classList.add('flex');
+      iconOpen.classList.add('hidden');
+      iconClose.classList.remove('hidden');
+      toggleBtn.setAttribute('aria-expanded', 'true');
+    } else {
+      mobileMenu.classList.add('hidden');
+      mobileMenu.classList.remove('flex');
+      iconOpen.classList.remove('hidden');
+      iconClose.classList.add('hidden');
+      toggleBtn.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  if (toggleBtn && mobileMenu) {
+    toggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isHidden = mobileMenu.classList.contains('hidden');
+      setMobileMenuOpen(isHidden);
+    });
+
+    // Close menu when a link inside it is clicked
+    mobileMenu.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', () => setMobileMenuOpen(false));
+    });
+
+    // Prevent clicks inside the menu from closing it (links handle their own close above)
+    mobileMenu.addEventListener('click', (e) => e.stopPropagation());
+  }
+
+  // Outside-click closes both dev menu and mobile menu
+  document.addEventListener('click', () => {
+    menu?.classList.add('hidden');
+    if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+      setMobileMenuOpen(false);
+    }
+  });
 </script>
