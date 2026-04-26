@@ -22,7 +22,7 @@ import AIGuide from '../components/guide/AIGuide';
 
     <!-- Step 1.5: Resolver loading -->
     <div id="resolver-loading" class="hidden border-t border-[#E2E8F0] py-24">
-      <div class="max-w-7xl mx-auto px-8 flex flex-col items-center gap-6">
+      <div class="max-w-7xl mx-auto px-4 md:px-8 flex flex-col items-center gap-6">
         <div class="w-10 h-10 border-2 border-[#0D7377] border-t-transparent rounded-full animate-spin"></div>
         <div class="text-[15px] text-[#1E3A5F] font-medium">Tikriname registrus...</div>
         <div class="text-[13px] text-[#64748B]">NTR · PENS · Registrų centras · Kadastras</div>
@@ -31,10 +31,10 @@ import AIGuide from '../components/guide/AIGuide';
 
     <!-- Screen 2: Confirm property -->
     <div id="screen-2" class="hidden border-t border-[#E2E8F0] py-16">
-      <div class="max-w-[1200px] mx-auto px-16">
+      <div class="max-w-[1200px] mx-auto px-4 md:px-16">
         <div class="text-[11px] font-semibold tracking-[0.12em] uppercase text-[#0D7377] mb-2">02 · Patvirtinkite objektą</div>
         <h2 class="text-[24px] font-semibold text-[#1E3A5F] mb-8">Ar tai teisingas objektas?</h2>
-        <div class="grid grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
 
           <!-- Proof card -->
           <div class="bg-white border border-[#E2E8F0] rounded-sm p-6">
@@ -110,11 +110,11 @@ import AIGuide from '../components/guide/AIGuide';
 
     <!-- Screen 3: Quote + payment -->
     <div id="screen-3" class="hidden border-t border-[#E2E8F0] py-16">
-      <div class="max-w-[1200px] mx-auto px-16">
+      <div class="max-w-[1200px] mx-auto px-4 md:px-16">
         <div class="text-[11px] font-semibold tracking-[0.12em] uppercase text-[#0D7377] mb-2">03 · Užsakymas ir apmokėjimas</div>
         <h2 class="text-[24px] font-semibold text-[#1E3A5F] mb-8">Jūsų užsakymas</h2>
 
-        <div class="grid grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
 
           <!-- Left: quote summary -->
           <div class="space-y-6">
@@ -177,7 +177,7 @@ import AIGuide from '../components/guide/AIGuide';
 
     <!-- Success screen -->
     <div id="screen-success" class="hidden border-t border-[#E2E8F0] py-24">
-      <div class="max-w-[1200px] mx-auto px-16 flex flex-col items-center text-center gap-4">
+      <div class="max-w-[1200px] mx-auto px-4 md:px-16 flex flex-col items-center text-center gap-4">
         <div class="text-[40px]">✅</div>
         <h2 class="text-[24px] font-semibold text-[#1E3A5F]">Patvirtinome jūsų užsakymą.</h2>
         <p class="text-[15px] text-[#64748B] max-w-lg leading-[1.7]">

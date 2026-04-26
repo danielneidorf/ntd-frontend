@@ -58,9 +58,10 @@ export interface QuickScanState {
   email: string;
   consent_accepted: boolean;
   invoice_requested: boolean;
-  invoice_name: string;
   invoice_is_company: boolean;
-  invoice_company_name: string;
+  company_name: string;          // P7-F4.1: Įmonės pavadinimas
+  company_code: string;          // P7-F4.1: Įmonės kodas
+  company_vat_code: string;      // P7-F4.1: PVM mokėtojo kodas
   invoice_email: string;
   order_id: string | null;
   payment_complete: boolean;
@@ -188,9 +189,10 @@ const initialState = (): QuickScanState => {
   email,
   consent_accepted,
   invoice_requested: false,
-  invoice_name: '',
   invoice_is_company: false,
-  invoice_company_name: '',
+  company_name: '',
+  company_code: '',
+  company_vat_code: '',
   invoice_email: '',
   order_id: null,
   payment_complete,
@@ -1462,6 +1464,11 @@ function Screen2({
             timestamp: new Date().toISOString(),
           },
           bundle_signature: state.selected_candidate_id ?? state.quote.bundle_id ?? '',
+          // P7-F4.1: juridinis (company) buyer fields. Omit when fizinis so backend stores NULL.
+          buyer_type: state.invoice_is_company ? 'juridinis' : 'fizinis',
+          company_name: state.invoice_is_company ? state.company_name : undefined,
+          company_code: state.invoice_is_company ? state.company_code : undefined,
+          company_vat_code: state.invoice_is_company ? state.company_vat_code : undefined,
         }),
       });
       const json = await r.json();
@@ -1829,17 +1836,19 @@ function Screen2({
                   <div className="ml-6 mt-2 mb-2 flex flex-col gap-3">
                     <div>
                       <label className="block text-[13px] font-medium text-[#1A1A2E] mb-1">Įmonės pavadinimas</label>
-                      <input type="text" value={state.invoice_company_name} onChange={e => setState(s => ({ ...s, invoice_company_name: e.target.value }))}
+                      <input type="text" value={state.company_name} onChange={e => setState(s => ({ ...s, company_name: e.target.value }))}
                         className="w-full px-4 py-3 rounded-lg border border-[#E2E8F0] text-[16px] outline-none focus:border-[#0D7377] transition-all" />
                     </div>
                     <div>
                       <label className="block text-[13px] font-medium text-[#1A1A2E] mb-1">Įmonės kodas</label>
-                      <input type="text" value={state.invoice_name} onChange={e => setState(s => ({ ...s, invoice_name: e.target.value }))}
+                      <input type="text" value={state.company_code} onChange={e => setState(s => ({ ...s, company_code: e.target.value }))}
                         className="w-full px-4 py-3 rounded-lg border border-[#E2E8F0] text-[16px] outline-none focus:border-[#0D7377] transition-all" />
                     </div>
                     <div>
                       <label className="block text-[13px] font-medium text-[#1A1A2E] mb-1">PVM mokėtojo kodas</label>
                       <input type="text" placeholder="LT..."
+                        value={state.company_vat_code}
+                        onChange={e => setState(s => ({ ...s, company_vat_code: e.target.value }))}
                         className="w-full px-4 py-3 rounded-lg border border-[#E2E8F0] text-[16px] outline-none focus:border-[#0D7377] transition-all" />
                       <p className="text-[13px] text-[#64748B] mt-1">Jei esate PVM mokėtojas</p>
                     </div>

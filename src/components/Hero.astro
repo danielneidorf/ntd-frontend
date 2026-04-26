@@ -2,34 +2,34 @@
 import WhyScenariosCarousel from './WhyScenariosCarousel.astro';
 
 ---
-<section data-guide="hero" class="flex flex-col px-8 pt-[72px] pb-6 max-w-[1400px] mx-auto relative">
+<section data-guide="hero" class="flex flex-col px-4 md:px-8 pt-[72px] pb-6 max-w-[1400px] mx-auto relative">
   <div class="flex-1 flex items-center">
-  <div class="grid gap-12 items-center w-full" style="grid-template-columns: 3fr minmax(0, 2fr);">
+  <div class="hero-grid grid gap-8 md:gap-12 items-center w-full">
 
     <!-- Left: Text content -->
     <div>
-      <h1 class="text-[49px] font-semibold leading-[1.1] tracking-tight text-[#1E3A5F] mb-4">
+      <h1 class="text-[28px] md:text-[49px] font-semibold leading-[1.1] tracking-tight text-[#1E3A5F] mb-4">
         Nekilnojamojo turto duomenys<br />iš oficialių Lietuvos registrų
       </h1>
 
-      <p class="text-[21px] text-[#64748B] font-light leading-relaxed mb-10">
+      <p class="text-[16px] md:text-[21px] text-[#64748B] font-light leading-relaxed mb-6 md:mb-10">
         Analitika ir aiškios įžvalgos. Visų tipų nekilnojamas turtas.
       </p>
 
       <div class="space-y-4 text-justify">
-        <p class="text-[20px] text-[#1E3A5F] font-semibold leading-snug">
+        <p class="text-[16px] md:text-[20px] text-[#1E3A5F] font-semibold leading-snug">
           Kiekvieno objekto DNR — vienoje vietoje.
         </p>
-        <p class="text-[19px] text-[#475569] leading-[1.7]">
+        <p class="text-[15px] md:text-[19px] text-[#475569] leading-[1.7]">
           Šalia to, ką pasakoja pardavėjas, kiekvienas objektas turi savo istoriją.
           Skelbimas parodo fasadą — registrų duomenys parodo, kas už jo.
         </p>
-        <p class="text-[19px] text-[#475569] leading-[1.7]">
+        <p class="text-[15px] md:text-[19px] text-[#475569] leading-[1.7]">
           Ar perkate, ar nuomojate — tikrosios energijos sąnaudos, šiluminis
           komfortas, teisinės rizikos ir kainos pagrįstumas prieinami iš oficialių
           šaltinių. Objekto ekspertizė kainuoja šimtus eurų ir trunka dienas.
         </p>
-        <p class="text-[19px] text-[#1E3A5F] font-medium leading-[1.7]">
+        <p class="text-[15px] md:text-[19px] text-[#1E3A5F] font-medium leading-[1.7]">
           Duomenys surenkami, apskaičiuojami ir pateikiami kaip aiškios įžvalgos —
           kad sprendimus priimtumėte faktais, ne akimis.
         </p>
@@ -37,7 +37,7 @@ import WhyScenariosCarousel from './WhyScenariosCarousel.astro';
     </div>
 
     <!-- Right: Why scenarios carousel -->
-    <div class="flex items-center justify-end">
+    <div class="flex items-center justify-center md:justify-end">
       <WhyScenariosCarousel />
     </div>
 
@@ -46,4 +46,15 @@ import WhyScenariosCarousel from './WhyScenariosCarousel.astro';
 
 
 </section>
+
+<style>
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 768px) {
+    .hero-grid {
+      grid-template-columns: 3fr minmax(0, 2fr);
+    }
+  }
+</style>
 
