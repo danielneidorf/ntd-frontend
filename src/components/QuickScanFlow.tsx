@@ -711,7 +711,7 @@ function Screen1({
 
           {/* Case toggle */}
           <p className="text-[16px] font-semibold text-[#1E3A5F] mb-3">Nurodykite objektą</p>
-          <div className="grid grid-cols-3 gap-2 mb-6" data-guide="qs-case-cards">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-2 mb-6" data-guide="qs-case-cards">
             {([
               { value: 'existing_object' as CaseType, emoji: '🏠', label: 'Esamą pastatą ar patalpas' },
               { value: 'new_build_project' as CaseType, emoji: '🏗️', label: 'Naujai statomą, nebaigtą projektą' },
@@ -746,10 +746,10 @@ function Screen1({
             <p className="text-[15px] font-medium text-[#1A1A2E] mb-3">Nurodykite vietą jums tinkamiausiu būdu</p>
 
             {/* Tab headers */}
-            <div className="flex border-b border-[#E2E8F0] mb-0">
+            <div className="flex flex-wrap border-b border-[#E2E8F0] mb-0">
               <button
                 onClick={() => setActiveTab('address')}
-                className={`px-4 py-2.5 text-[14px] border-b-2 transition-all rounded-t-md ${
+                className={`px-4 py-2.5 text-[14px] border-b-2 transition-all rounded-t-md whitespace-nowrap min-h-[44px] ${
                   activeTab === 'address'
                     ? 'bg-[#E8F4F8] border-[#0D7377] text-[#1E3A5F] font-semibold'
                     : 'border-transparent text-[#64748B] font-medium hover:bg-[#FAFBFC] hover:text-[#1A1A2E]'
@@ -759,7 +759,7 @@ function Screen1({
               </button>
               <button
                 onClick={() => setActiveTab('ntr')}
-                className={`px-4 py-2.5 text-[14px] border-b-2 transition-all rounded-t-md flex items-center gap-1.5 ${
+                className={`px-4 py-2.5 text-[14px] border-b-2 transition-all rounded-t-md whitespace-nowrap min-h-[44px] flex items-center gap-1.5 ${
                   activeTab === 'ntr'
                     ? 'bg-[#E8F4F8] border-[#0D7377] text-[#1E3A5F] font-semibold'
                     : 'border-transparent text-[#64748B] font-medium hover:bg-[#FAFBFC] hover:text-[#1A1A2E]'
@@ -770,7 +770,7 @@ function Screen1({
               </button>
               <button
                 onClick={() => setActiveTab('map')}
-                className={`px-4 py-2.5 text-[14px] border-b-2 transition-all rounded-t-md ${
+                className={`px-4 py-2.5 text-[14px] border-b-2 transition-all rounded-t-md whitespace-nowrap min-h-[44px] ${
                   activeTab === 'map'
                     ? 'bg-[#E8F4F8] border-[#0D7377] text-[#1E3A5F] font-semibold'
                     : 'border-transparent text-[#64748B] font-medium hover:bg-[#FAFBFC] hover:text-[#1A1A2E]'
@@ -1023,7 +1023,7 @@ function Screen1({
           onClick={handleTesti}
           disabled={!canProceed}
           data-guide="qs-submit"
-          className={`px-8 rounded-lg text-[16px] font-medium transition-all flex items-center gap-2
+          className={`w-full md:w-auto px-8 rounded-lg text-[16px] font-medium transition-all flex items-center justify-center gap-2
             ${canProceed
               ? 'bg-[#0D7377] text-white hover:bg-[#0B6268] cursor-pointer'
               : 'bg-[#CBD5E1] text-white cursor-not-allowed'}`}
@@ -1041,7 +1041,7 @@ function Screen1({
             <span className="text-[16px] font-semibold text-[#1E3A5F]">Taškas žemėlapyje</span>
             <button
               onClick={() => { if (!geoValid) { mapInstanceRef.current = null; markerRef.current = null; } setMapExpanded(false); }}
-              className="ml-auto w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#F1F5F9] text-[#64748B] text-lg"
+              className="ml-auto w-11 h-11 flex items-center justify-center rounded-full hover:bg-[#F1F5F9] text-[#64748B] text-lg"
             >✕</button>
           </div>
           {/* Search */}
@@ -1673,7 +1673,7 @@ function Screen2({
   const caseType = state.case_type;
 
   return (
-    <div className="max-w-[1100px] mx-auto px-8 pb-[120px]" style={{ minHeight: 'calc(100vh - 160px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div className="max-w-[1100px] mx-auto px-4 md:px-8 pb-[120px]" style={{ minHeight: 'calc(100vh - 160px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'auto auto', gap: '24px', width: '100%' }}>
 
       {/* TOP-LEFT — Proof card */}
@@ -1755,7 +1755,7 @@ function Screen2({
         {quote ? (
           <>
             {/* Two-column: price left, vertical flow right */}
-            <div className="grid grid-cols-[auto_1fr] gap-8">
+            <div className="grid grid-cols-[auto_1fr] gap-4 md:gap-8">
               {/* Left — Price (fixed) */}
               <div className="flex flex-col items-start pt-1">
                 {quote.special_discount_applied && quote.base_price_eur > quote.final_price_eur ? (
@@ -1947,7 +1947,7 @@ function Screen2({
                       /* Flat payment method grid */
                       <div style={{ animation: 'slideDown 0.3s ease' }} data-guide="qs-pay-methods">
                         <p className="text-[15px] font-medium text-[#1A1A2E] mb-3">Pasirinkite mokėjimo būdą:</p>
-                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 mb-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 mb-4">
                           {PAYMENT_METHODS.map(m => (
                             <div
                               key={m.id}
@@ -2015,7 +2015,7 @@ function SuccessScreen({ state }: { state: QuickScanState }) {
   const isNewBuild = caseType === 'new_build_project';
 
   return (
-    <div className="max-w-[1100px] mx-auto px-8 pb-[120px]" style={{ minHeight: 'calc(100vh - 160px)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+    <div className="max-w-[1100px] mx-auto px-4 md:px-8 pb-[120px]" style={{ minHeight: 'calc(100vh - 160px)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
 
       {/* Green banner */}
       <div className="rounded-xl border border-[#34D399] bg-[#E8F8EE] p-6 mb-6">
@@ -2227,7 +2227,7 @@ function ResolverChooser({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left: Map placeholder */}
         <div className="rounded-xl border border-[#E2E8F0] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-6 flex flex-col">
-          <div className="flex-1 rounded-lg bg-[#F0F4F8] flex items-center justify-center min-h-[300px] relative">
+          <div className="flex-1 rounded-lg bg-[#F0F4F8] flex items-center justify-center min-h-[200px] md:min-h-[300px] relative">
             {/* Pin placeholders */}
             {candidates.map((c, i) => (
               <div key={c.candidate_id}
