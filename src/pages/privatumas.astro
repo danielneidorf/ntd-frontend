@@ -5,7 +5,7 @@ import Footer from '../components/Footer.astro';
 ---
 <BaseLayout title="Privatumo politika — NT Duomenys">
   <Header />
-  <main class="max-w-3xl mx-auto px-6 py-12">
+  <main class="max-w-3xl mx-auto px-4 md:px-6 py-12">
     <h1 class="text-[36px] font-semibold text-[#1E3A5F] mb-2">Privatumo politika</h1>
     <!-- TODO: Fill after MB registration -->
     <p class="text-sm text-slate-500 mb-10">Galioja nuo: 2026 m. [month] [day] d.</p>
@@ -27,21 +27,23 @@ import Footer from '../components/Footer.astro';
       </ul>
 
       <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">3. Duomenų tvarkymo tikslai ir pagrindas</h2>
-      <table class="w-full border-collapse my-4 text-[14px]">
-        <thead>
-          <tr class="border-b-2 border-[#E2E8F0]">
-            <th class="text-left p-3 text-[#1E3A5F] font-semibold">Tikslas</th>
-            <th class="text-left p-3 text-[#1E3A5F] font-semibold">Teisinis pagrindas (BDAR)</th>
-          </tr>
-        </thead>
-        <tbody class="text-[#333]">
-          <tr class="border-b border-[#F1F5F9]"><td class="p-3">Ataskaitos generavimas ir pristatymas</td><td class="p-3">Sutarties vykdymas (6 str. 1 d. b)</td></tr>
-          <tr class="border-b border-[#F1F5F9]"><td class="p-3">Mokėjimo apdorojimas</td><td class="p-3">Sutarties vykdymas (6 str. 1 d. b)</td></tr>
-          <tr class="border-b border-[#F1F5F9]"><td class="p-3">Ataskaitos saugojimas ir pakartotinė prieiga</td><td class="p-3">Teisėtas interesas (6 str. 1 d. f)</td></tr>
-          <tr class="border-b border-[#F1F5F9]"><td class="p-3">Platformos saugumas</td><td class="p-3">Teisėtas interesas (6 str. 1 d. f)</td></tr>
-          <tr><td class="p-3">Tiesioginė rinkodara</td><td class="p-3">Sutikimas (6 str. 1 d. a), jei pažymėjote</td></tr>
-        </tbody>
-      </table>
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse my-4 text-[14px]">
+          <thead>
+            <tr class="border-b-2 border-[#E2E8F0]">
+              <th class="text-left p-3 text-[#1E3A5F] font-semibold">Tikslas</th>
+              <th class="text-left p-3 text-[#1E3A5F] font-semibold">Teisinis pagrindas (BDAR)</th>
+            </tr>
+          </thead>
+          <tbody class="text-[#333]">
+            <tr class="border-b border-[#F1F5F9]"><td class="p-3">Ataskaitos generavimas ir pristatymas</td><td class="p-3">Sutarties vykdymas (6 str. 1 d. b)</td></tr>
+            <tr class="border-b border-[#F1F5F9]"><td class="p-3">Mokėjimo apdorojimas</td><td class="p-3">Sutarties vykdymas (6 str. 1 d. b)</td></tr>
+            <tr class="border-b border-[#F1F5F9]"><td class="p-3">Ataskaitos saugojimas ir pakartotinė prieiga</td><td class="p-3">Teisėtas interesas (6 str. 1 d. f)</td></tr>
+            <tr class="border-b border-[#F1F5F9]"><td class="p-3">Platformos saugumas</td><td class="p-3">Teisėtas interesas (6 str. 1 d. f)</td></tr>
+            <tr><td class="p-3">Tiesioginė rinkodara</td><td class="p-3">Sutikimas (6 str. 1 d. a), jei pažymėjote</td></tr>
+          </tbody>
+        </table>
+      </div>
 
       <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">4. Duomenų perdavimas</h2>
       <p class="mb-3 text-[15px] leading-relaxed text-[#333]">Jūsų duomenys gali būti perduodami trečiosioms šalims, reikalingoms paslaugų teikimui:</p>
