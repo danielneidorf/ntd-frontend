@@ -41,7 +41,7 @@ function LinkList({ links }: { links: typeof PUBLIC_LINKS }) {
           href={link.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-start gap-3 group no-underline"
+          className="flex items-start gap-3 py-2 group no-underline"
         >
           <span className="text-[#0D7377] mt-0.5 shrink-0" aria-hidden>
             &#8599;

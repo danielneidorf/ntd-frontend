@@ -36,14 +36,14 @@ function ReportHeader({ data, token }: { data: ReportData; token: string | null 
           <a
             href={pdfUrl}
             download
-            className="text-sm text-white border border-white/40 px-3 py-1.5 rounded hover:bg-white/10 transition-colors no-underline"
+            className="text-sm text-white border border-white/40 min-h-[44px] inline-flex items-center px-4 py-2 rounded hover:bg-white/10 transition-colors no-underline"
           >
             Atsisiųsti PDF
           </a>
         ) : (
           <button
             disabled
-            className="text-sm text-white/40 border border-white/20 px-3 py-1.5 rounded cursor-not-allowed"
+            className="text-sm text-white/40 border border-white/20 min-h-[44px] inline-flex items-center px-4 py-2 rounded cursor-not-allowed"
             title="PDF atsisiuntimas bus prieinamas netrukus"
           >
             Atsisiųsti PDF
@@ -136,7 +136,7 @@ function SummarySection({ summary }: { summary: string }) {
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-2 cursor-pointer bg-transparent border-none p-0 mb-2"
+        className="flex items-center gap-2 cursor-pointer bg-transparent border-none min-h-[44px] py-2 mb-2"
       >
         <span
           className="text-[12px] text-[#0D7377] transition-transform duration-200"
@@ -183,7 +183,7 @@ function DriversSection({ drivers }: { drivers: ReportData['block1']['drivers'] 
               <button
                 type="button"
                 onClick={() => toggle(d.key)}
-                className={`text-sm px-3 py-1.5 rounded-full border cursor-pointer transition-colors ${
+                className={`text-sm min-h-[44px] inline-flex items-center px-4 py-2 rounded-full border cursor-pointer transition-colors ${
                   d.direction === 'positive'
                     ? 'border-green-300 bg-green-50 text-green-800 hover:bg-green-100'
                     : 'border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100'
@@ -256,7 +256,7 @@ function LockedBlocksPreview() {
       {blocks.map((b) => (
         <div
           key={b.num}
-          className="bg-gray-100 rounded-xl px-6 py-4 flex items-center gap-3 opacity-50"
+          className="w-full bg-gray-100 rounded-xl px-6 py-4 flex items-center gap-3 opacity-50"
         >
           <span className="text-[18px]">&#128274;</span>
           <div>

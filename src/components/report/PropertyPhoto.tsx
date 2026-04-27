@@ -64,7 +64,7 @@ export default function PropertyPhoto({
       <img
         src={result.image_url}
         alt={`Gatvės vaizdas: ${address}`}
-        className="w-full h-[300px] object-cover rounded-xl"
+        className="w-full h-[200px] md:h-[300px] object-cover rounded-xl"
         onError={() => setImgError(true)}
       />
       <div className="flex items-center justify-between mt-1.5">

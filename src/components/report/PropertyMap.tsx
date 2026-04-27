@@ -189,13 +189,13 @@ export default function PropertyMap({
       <div className="relative mb-5" data-guide="property-map">
         <div
           ref={mapRef}
-          className="w-full h-[400px] rounded-lg overflow-hidden"
+          className="w-full h-[250px] md:h-[400px] rounded-lg overflow-hidden"
         />
         {loaded && (
           <button
             type="button"
             onClick={() => setFullscreen(true)}
-            className="absolute top-3 right-3 bg-white/90 hover:bg-white text-[#1E3A5F] text-sm font-medium px-3 py-1.5 rounded shadow-md cursor-pointer border border-gray-200 transition-colors"
+            className="absolute top-3 right-3 bg-white/90 hover:bg-white text-[#1E3A5F] text-sm font-medium min-h-[44px] min-w-[44px] inline-flex items-center justify-center px-4 py-2 rounded shadow-md cursor-pointer border border-gray-200 transition-colors"
           >
             Padidinti
           </button>
