@@ -1179,8 +1179,8 @@ function Screen2({
   const [emailTouched, setEmailTouched] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [stripeCardReady, setStripeCardReady] = useState(false);
-  const [duplicateInfo, setDuplicateInfo] = useState<{ order_id: string; paid_at: string; address: string } | null>(
-    isDevDuplicate ? { order_id: 'dev-dup-001', paid_at: '2026-03-30T10:15:00Z', address: 'Vilnius, Žirmūnų g. 12' } : null
+  const [duplicateInfo, setDuplicateInfo] = useState<{ order_id: string; paid_at: string; report_url: string | null } | null>(
+    isDevDuplicate ? { order_id: 'dev-dup-001', paid_at: '2026-03-30T10:15:00Z', report_url: 'https://ntd.lt/report/dev-dup-token' } : null
   );
   const [resendDone, setResendDone] = useState(false);
   const [showMethodSelector, setShowMethodSelector] = useState(isDevPayment);
@@ -1472,15 +1472,18 @@ function Screen2({
         }),
       });
       const json = await r.json();
+      // P7-J2: Backend returns 200 + { ok: true, duplicate: true, ... } when the
+      // same (bundle_signature, customer_email) was paid in the last 24h. Final
+      // — no force_duplicate bypass.
+      if (json.ok && json.duplicate) {
+        setDuplicateInfo({
+          order_id: json.existing_order_id,
+          paid_at: json.paid_at,
+          report_url: json.report_url ?? null,
+        });
+        return;
+      }
       if (!json.ok) {
-        if (json.error_code === 'duplicate_order' && json.data) {
-          setDuplicateInfo({
-            order_id: json.data.existing_order_id,
-            paid_at: json.data.paid_at,
-            address: json.data.address,
-          });
-          return;
-        }
         if (json.error_code === 'quote_expired') {
           setPayError('Kainos galiojimas baigėsi. Prašome grįžti ir patvirtinti objektą iš naujo.');
         } else {
@@ -1618,14 +1621,13 @@ function Screen2({
       });
       const json = await r.json();
       if (!json.ok) {
-        if (json.error_code === 'duplicate_order' && json.data) {
-          setDuplicateInfo({ order_id: json.data.existing_order_id, paid_at: json.data.paid_at, address: json.data.address });
-          return;
-        }
         if (json.error_code === 'quote_expired') { setPayError('Kainos galiojimas baigėsi. Prašome grįžti ir patvirtinti objektą iš naujo.'); }
         else { setPayError('Mokėjimo klaida. Bandykite dar kartą arba pasirinkite kitą banką.'); }
         return;
       }
+      // Note: duplicate detection on the Paysera path lives upstream of this call —
+      // the customer hits Stripe /payment-intent first which catches the duplicate
+      // before we ever get here. P7-J2.
       const { redirect_url, order_id } = json.data;
       setState(s => ({ ...s, order_id }));
       const { redirectToPaysera } = await import('../lib/paysera');
@@ -1886,50 +1888,60 @@ function Screen2({
                   <p className="text-[14px] text-[#EF4444] mb-3 mt-2">{payError}</p>
                 )}
 
-                {/* Duplicate purchase warning */}
+                {/* P7-J2: Duplicate purchase warning. Two states based on report_url:
+                    1. report_url present → "Atidaryti ataskaitą →" + "Persiųsti el. paštu"
+                    2. report_url null    → "Susisiekite: ntd@ntd.lt" (report still being prepared)
+                    No re-purchase bypass. */}
                 {duplicateInfo && (
                   <div className="mt-4 rounded-lg p-6" style={{ background: '#FEF3C7', border: '1px solid #F59E0B', animation: 'slideDown 0.3s ease' }}>
                     <div className="flex items-start gap-3 mb-3">
                       <span className="text-[24px]">⚠️</span>
                       <p className="text-[16px] font-semibold" style={{ color: '#92400E' }}>
-                        Panašu, kad neseniai jau užsakėte ataskaitą šiam objektui.
+                        Ši ataskaita jau buvo užsakyta per pastarines 24 valandas.
                       </p>
                     </div>
-                    <p className="text-[15px] font-semibold text-[#1A1A2E] mb-1">{duplicateInfo.address}</p>
                     <p className="text-[14px] mb-4" style={{ color: '#92400E' }}>
                       Užsakyta: {new Date(duplicateInfo.paid_at).toLocaleDateString('lt-LT')}, {new Date(duplicateInfo.paid_at).toLocaleTimeString('lt-LT', { hour: '2-digit', minute: '2-digit' })}
                     </p>
-                    {resendDone ? (
-                      <p className="text-[15px] font-medium text-[#059669]">✓ Ataskaita išsiųsta iš naujo</p>
+                    {duplicateInfo.report_url ? (
+                      resendDone ? (
+                        <p className="text-[15px] font-medium text-[#059669]">✓ Ataskaita išsiųsta el. paštu</p>
+                      ) : (
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <a
+                            href={duplicateInfo.report_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 py-2.5 px-4 rounded-lg bg-[#0D7377] text-white text-[14px] font-medium text-center hover:bg-[#0B6268] transition-colors no-underline"
+                          >
+                            Atidaryti ataskaitą →
+                          </a>
+                          <button
+                            onClick={async () => {
+                              try {
+                                await fetch(`${API_BASE}/v1/quickscan-lite/resend-report`, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    order_id: duplicateInfo.order_id,
+                                    email: state.email,
+                                  }),
+                                });
+                              } catch { /* silent */ }
+                              setResendDone(true);
+                            }}
+                            className="flex-1 py-2.5 px-4 rounded-lg border text-[14px] font-medium transition-colors"
+                            style={{ borderColor: '#F59E0B', color: '#D97706' }}
+                          >
+                            Persiųsti el. paštu
+                          </button>
+                        </div>
+                      )
                     ) : (
-                      <div className="flex gap-3">
-                        <button
-                          onClick={async () => {
-                            try {
-                              await fetch(`${API_BASE}/v1/quickscan-lite/resend-report`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ order_id: duplicateInfo.order_id }),
-                              });
-                            } catch { /* silent */ }
-                            setResendDone(true);
-                          }}
-                          className="flex-1 py-2.5 rounded-lg border text-[14px] font-medium transition-colors"
-                          style={{ borderColor: '#F59E0B', color: '#D97706' }}
-                        >
-                          Persiųsti paskutinę ataskaitą
-                        </button>
-                        <button
-                          onClick={() => {
-                            setDuplicateInfo(null);
-                            // Re-trigger payment with force flag
-                            handlePayment();
-                          }}
-                          className="flex-1 py-2.5 rounded-lg bg-[#1E3A5F] text-white text-[14px] font-medium hover:bg-[#0D7377] transition-colors"
-                        >
-                          Vis tiek užsakyti iš naujo
-                        </button>
-                      </div>
+                      <p className="text-[14px]" style={{ color: '#92400E' }}>
+                        Ataskaita dar paruošiama — gausite ją el. paštu per kelias minutes. Jei iškiltų klausimų, susisiekite:{' '}
+                        <a href="mailto:ntd@ntd.lt" className="font-medium underline" style={{ color: '#92400E' }}>ntd@ntd.lt</a>
+                      </p>
                     )}
                   </div>
                 )}
