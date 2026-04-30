@@ -66,6 +66,14 @@ function buildPropertyContext(): string | undefined {
       `Vasaros perkaitimo rizika: ${data.summerLevel}`,
       data.hasPermits ? `Statybos leidimai: ${data.permitCount} rasta` : 'Statybos leidimų nerasta',
       data.isLandOnly ? 'Vertinimo tipas: Žemės sklypas' : 'Vertinimo tipas: Esamas pastatas',
+      // B8-3: surface Block 8 content to the chat backend for Ona.
+      data.block8Intro ? `8 bloko įžanga: ${data.block8Intro}` : null,
+      data.block8ViewingQuestions.length > 0
+        ? `8 bloko apžiūros klausimai: ${data.block8ViewingQuestions.join('; ')}`
+        : null,
+      data.block8NegotiationAngles.length > 0
+        ? `8 bloko derybų kampai: ${data.block8NegotiationAngles.join('; ')}`
+        : null,
     ].filter(Boolean).join('\n');
   } catch {
     return undefined;

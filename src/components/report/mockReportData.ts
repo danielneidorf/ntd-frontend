@@ -1,6 +1,25 @@
 // P7-A1: Report data types + dev mock data
 // Lithuanian copy sourced from Script Brief §2.4.2, Thermal Comfort annex, Decision Log D6–D15
 
+export interface Block8Content {
+  pattern: string;
+  scope_prefix: string;
+  intro_lt: string;
+  viewing_questions_lt: string[];
+  negotiation_angles_lt: string[];
+  forward_note_lt: string;
+  caveat_lt?: string | null;
+  scope_disclaimer_lt: string;
+}
+
+export interface Block8Data {
+  id: string;
+  title_lt: string;
+  // "ready" when there is a real recommendation; "not_applicable" for land-only.
+  status: 'ready' | 'not_applicable';
+  data: Block8Content | null;
+}
+
 export interface ReportData {
   address: string;
   ntr_unique_number: string | null;
@@ -10,6 +29,7 @@ export interface ReportData {
   bundle_items: { kind: string; address?: string }[];
   generated_at: string;
   order_reference: string;
+  block8?: Block8Data;
   block1: {
     applicable: boolean;
     neutral_message_lt?: string;
@@ -148,6 +168,31 @@ export const MOCK_EXISTING: ReportData = {
   ],
   generated_at: '2026-04-01T14:30:00Z',
   order_reference: 'NTD-2026-0042',
+  block8: {
+    id: 'recommendations',
+    title_lt: '8) Rekomendacijos ir sprendimai',
+    status: 'ready',
+    data: {
+      pattern: 'B',
+      scope_prefix: 'Šilumos komforto požiūriu',
+      intro_lt:
+        'Šilumos komforto požiūriu, šis pastatas kelia šildymo iššūkį — šildymo sąnaudos gali būti reikšmingai didesnės nei efektyviame pastate, todėl verta atkreipti dėmesį į keletą dalykų.',
+      viewing_questions_lt: [
+        'Paprašykite faktinių šildymo sąskaitų už paskutinius 2–3 žiemos sezonus — ne įvertinimų, o tikrų sąskaitų.',
+        'Apžiūrėkite izoliaciją: stogo / pastogės apšiltinimą, grindų / rūsio izoliaciją, sienų būklę (matomi plyšiai, drėgmės žymės).',
+        'Patikrinkite langų būklę: dvigubas ar trigubas stiklo paketas, rėmų būklė, ar jaučiamas skersvėjis.',
+      ],
+      negotiation_angles_lt: [
+        'Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 10–30 % didesnės nei techniškai efektyviame pastate. Tai reiškia konkretų pokytį jūsų mėnesinėse sąskaitose.',
+        'Šio laikotarpio pastatai dažnai turi silpnesnę izoliaciją — verta paklausti pardavėjo, ar buvo atlikta modernizacija.',
+      ],
+      forward_note_lt:
+        'Kiek konkrečiai kainuos šildymas eurais per mėnesį, parodys 2 blokas (Energijos sąnaudos). 10 metų bendrą gyvenimo kainą — 3 blokas (Gyvenimo kaina).',
+      caveat_lt: null,
+      scope_disclaimer_lt:
+        'Šios rekomendacijos apima tik šilumos komforto aspektą. Visapusiškas derybų strategijas ir pasiūlymo kainą pateiks pilnas 8 blokų rinkinys, kai visi blokai bus pridėti.',
+    },
+  },
   block1: {
     applicable: true,
     winter: {
@@ -243,6 +288,12 @@ export const MOCK_LAND_ONLY: ReportData = {
   bundle_items: [{ kind: 'land_plot', address: 'Sklypas prie kelio' }],
   generated_at: '2026-04-01T15:00:00Z',
   order_reference: 'NTD-2026-0043',
+  block8: {
+    id: 'recommendations',
+    title_lt: '8) Rekomendacijos ir sprendimai',
+    status: 'not_applicable',
+    data: null,
+  },
   block1: {
     applicable: false,
     neutral_message_lt:

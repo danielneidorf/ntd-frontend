@@ -7,6 +7,7 @@ import AdditionalDocuments from './report/AdditionalDocuments';
 import PropertyMap from './report/PropertyMap';
 import ConstructionPermits, { type Permit } from './report/ConstructionPermits';
 import { DEV_MOCK_PERMITS } from './report/mockReportData';
+import { Block8Section } from './report/Block8Section';
 import PropertyPhoto from './report/PropertyPhoto';
 import ComfortBarComponent, {
   WINTER_LEVELS,
@@ -483,6 +484,8 @@ export default function ReportViewer() {
             </>
           )}
         </div>
+
+        <Block8Section block8={data.block8} />
 
         <div data-guide="permits"><ConstructionPermits permits={permits} loading={permitsLoading} /></div>
         <div data-guide="locked-blocks"><LockedBlocksPreview /></div>

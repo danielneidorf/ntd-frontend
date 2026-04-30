@@ -11,6 +11,10 @@ interface ReportTourData {
   hasPermits: boolean;
   permitCount: number;
   isLandOnly: boolean;
+  // B8-3: Block 8 (recommendations) DOM-scraped content
+  block8Intro: string | null;
+  block8ViewingQuestions: string[];
+  block8NegotiationAngles: string[];
 }
 
 const COMFORT_LABELS: Record<string, string> = {
@@ -75,6 +79,27 @@ export function extractReportData(): ReportTourData {
   // Land-only
   const isLandOnly = !document.querySelector('[data-guide="climate-assessment"]');
 
+  // B8-3: Block 8 — Recommendations (status="ready" only; absent in land-only mocks)
+  const block8Section = document.querySelector('[data-guide="block8"]');
+  let block8Intro: string | null = null;
+  let block8ViewingQuestions: string[] = [];
+  let block8NegotiationAngles: string[] = [];
+
+  if (block8Section) {
+    block8Intro =
+      block8Section.querySelector('[data-block8="intro"]')?.textContent?.trim() ?? null;
+    block8ViewingQuestions = Array.from(
+      block8Section.querySelectorAll('[data-block8="viewing-questions"] li'),
+    )
+      .map((li) => li.textContent?.trim() ?? '')
+      .filter((s) => s.length > 0);
+    block8NegotiationAngles = Array.from(
+      block8Section.querySelectorAll('[data-block8="negotiation-angles"] li'),
+    )
+      .map((li) => li.textContent?.trim() ?? '')
+      .filter((s) => s.length > 0);
+  }
+
   return {
     address,
     buildingType: buildingType || 'Pastatas',
@@ -85,6 +110,9 @@ export function extractReportData(): ReportTourData {
     hasPermits,
     permitCount: permitItems.length,
     isLandOnly,
+    block8Intro,
+    block8ViewingQuestions,
+    block8NegotiationAngles,
   };
 }
 
@@ -118,6 +146,14 @@ export function buildReportTour(data: ReportTourData): TourStep[] {
       selector: '[data-guide="drivers"]',
       narration: 'Čia — pagrindiniai veiksniai, kurie lemia vertinimą. Kiekvienas veiksnys parodo, kaip konkreti savybė veikia jūsų pastato komfortą.',
       skipIf: () => data.isLandOnly,
+    },
+    {
+      id: 'block8',
+      selector: '[data-guide="block8"]',
+      narration: data.block8Intro
+        ? `8 blokas — rekomendacijos. ${data.block8Intro.split('—')[0].trim()}. Žemiau rasite konkrečius klausimus apžiūrai ir derybų kampus.`
+        : 'Čia 8 blokas — rekomendacijos ir sprendimai. Konkretūs patarimai, ką patikrinti apžiūros metu ir kokius derybų kampus naudoti.',
+      skipIf: () => !document.querySelector('[data-guide="block8"]'),
     },
     {
       id: 'permits',
