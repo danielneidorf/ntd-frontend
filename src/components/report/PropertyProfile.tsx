@@ -84,11 +84,18 @@ export default function PropertyProfile({
   lat,
   lng,
   address,
+  betweenSections,
 }: {
   profile: Profile;
   lat: number;
   lng: number;
   address: string;
+  /**
+   * Optional content rendered between the "Pastato charakteristikos" and
+   * "Energinis naudingumas" cards. Used by the report layout to insert the
+   * Infostatyba permits block in its semantically-correct position.
+   */
+  betweenSections?: React.ReactNode;
 }) {
   const isLand = profile.evaluation_target === 'Žemės sklypas';
 
@@ -136,6 +143,7 @@ export default function PropertyProfile({
         fields={buildingFields}
         dataGuide="property-profile"
       />
+      {betweenSections}
       <ProfileCard title="Energinis naudingumas" fields={energyFields} dataGuide="energy-profile" />
     </div>
   );

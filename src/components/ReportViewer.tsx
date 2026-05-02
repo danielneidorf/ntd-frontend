@@ -442,6 +442,13 @@ export default function ReportViewer() {
           lat={data.lat}
           lng={data.lng}
           address={data.address}
+          betweenSections={
+            // Infostatyba sits between "Pastato charakteristikos" and
+            // "Energinis naudingumas" — same order as the PDF.
+            <div data-guide="permits">
+              <ConstructionPermits permits={permits} loading={permitsLoading} />
+            </div>
+          }
         />
 
         {/* Standalone map for land-only (PropertyProfile returns null) */}
@@ -487,7 +494,6 @@ export default function ReportViewer() {
 
         <Block8Section block8={data.block8} />
 
-        <div data-guide="permits"><ConstructionPermits permits={permits} loading={permitsLoading} /></div>
         <div data-guide="locked-blocks"><LockedBlocksPreview /></div>
         <AdditionalDocuments />
         <Citations
