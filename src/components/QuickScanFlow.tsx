@@ -434,11 +434,23 @@ function Screen1({
   >(null);
 
   function handleNtrChange(value: string) {
-    let v = value.replace(/[^\d:]/g, '');
-    const digits = v.replace(/\D/g, '');
-    if (digits.length <= 4) v = digits;
-    else if (digits.length <= 8) v = digits.slice(0, 4) + '-' + digits.slice(4);
-    else v = digits.slice(0, 4) + '-' + digits.slice(4, 8) + '-' + digits.slice(8, 12);
+    // Keep digits and the ':' unit separator. Format the building part as
+    // XXXX-XXXX-XXXX and preserve an optional :NNNN patalpa suffix, so a unit
+    // number survives input (NTR_REGEX accepts the suffix).
+    const cleaned = value.replace(/[^\d:]/g, '');
+    const colonIdx = cleaned.indexOf(':');
+    const buildingDigits = (colonIdx === -1 ? cleaned : cleaned.slice(0, colonIdx))
+      .replace(/\D/g, '')
+      .slice(0, 12);
+    let v = buildingDigits;
+    if (buildingDigits.length > 8) {
+      v = buildingDigits.slice(0, 4) + '-' + buildingDigits.slice(4, 8) + '-' + buildingDigits.slice(8);
+    } else if (buildingDigits.length > 4) {
+      v = buildingDigits.slice(0, 4) + '-' + buildingDigits.slice(4);
+    }
+    if (colonIdx !== -1) {
+      v = v + ':' + cleaned.slice(colonIdx + 1).replace(/\D/g, '').slice(0, 6);
+    }
     setNtrInput(v);
     setState((s) => ({ ...s, ntr_unique_number: v || null }));
   }
@@ -825,8 +837,8 @@ function Screen1({
                     value={ntrInput}
                     onChange={(e) => handleNtrChange(e.target.value)}
                     onBlur={() => setNtrTouched(true)}
-                    placeholder="pvz., 1234-5678-9012"
-                    maxLength={14}
+                    placeholder="pvz., 1234-5678-9012 arba 1234-5678-9012:7"
+                    maxLength={21}
                     className={[
                       'w-full px-4 rounded-lg border text-[16px] outline-none transition-all',
                       ntrValid
@@ -838,7 +850,7 @@ function Screen1({
                     style={{ height: '48px' }}
                   />
                   {ntrTouched && ntrInput && !ntrValid && (
-                    <p className="text-[14px] text-[#DC3545] mt-1">Formatas: 1234-5678-9012</p>
+                    <p className="text-[14px] text-[#DC3545] mt-1">Formatas: 1234-5678-9012 arba 1234-5678-9012:7</p>
                   )}
                   <p className="text-[14px] text-[#64748B] mt-2">
                     Tiksliausias būdas — kiekvienas objektas turi unikalų numerį Nekilnojamojo turto registre.
