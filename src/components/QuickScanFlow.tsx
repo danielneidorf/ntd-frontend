@@ -14,6 +14,32 @@ export interface Candidate {
   primary_object: Record<string, unknown>;
   bundle_items: unknown[];
   bundle_confidence: 'HIGH' | 'AMBIGUOUS' | 'LOW';
+  // Resolver-side provenance: where this candidate's identifying data
+  // came from. Drives the success-handler routing (P7-H3): any
+  // candidate tagged `pin_reverse_geocode` flows to the chooser
+  // regardless of confidence/count, because the pin seed is the weak
+  // link (a few metres over a property line → neighbour's address →
+  // confidently-wrong resolve).
+  //   - "registry"           : NTR-by-number, authoritative.
+  //   - "address_lookup"     : address → AR → Datalab building.
+  //   - "pin_reverse_geocode": pin → geocoding.reverse → address → … (above).
+  //   - "reverse_geocode"    : report-time Tier-3 address refinement.
+  // Optional — older candidates / stub mode may omit it.
+  address_source?: 'registry' | 'address_lookup' | 'pin_reverse_geocode' | 'reverse_geocode' | null;
+  // Pin coords kept on the candidate so the chooser can render the
+  // user's pin alongside the resolved building's centroid. Set by the
+  // success handler from `state.geo` when a pin-derived candidate is
+  // present (the backend doesn't echo `payload.geo` on the candidate,
+  // and we want the chooser to compare what-the-user-pinned with
+  // what-the-resolver-returned, not what-the-resolver-returned twice).
+  pin_lat?: number | null;
+  pin_lng?: number | null;
+  lat?: number | null;
+  lng?: number | null;
+  // Resolver warnings (e.g. "pin_seeded_building_identity_unverified",
+  // "unit_requested_building_resolved") — surfaced from the backend for
+  // diagnostics / future user-facing chips.
+  resolver_warnings?: string[];
 }
 
 export interface ResolveResponse {
@@ -532,7 +558,54 @@ function Screen1({
       const remaining = minWait - elapsed;
       if (remaining > 0) await new Promise(r => setTimeout(r, remaining));
 
-      setState((s) => ({ ...s, resolver_result: json.data, step: 2 }));
+      // P7-H3: branch on the resolver response. The previous code
+      // always advanced to step:2 (Patvirtinkite objektą + payment),
+      // which works for the single-NTR-HIGH case but is wrong for two
+      // others:
+      //   - empty candidates → should land on resolver-nomatch so the
+      //     user can pick another identifier;
+      //   - pin-seeded candidate (`address_source ===
+      //     "pin_reverse_geocode"`) → must always hit the chooser, even
+      //     at single-HIGH, because the *seed* (a pin near a property
+      //     line) is the weak link, not the resolution. The chooser's
+      //     map-aware UI overlays the pin against the resolved
+      //     building so the user catches an off-by-a-property-line
+      //     mismatch the text-only confirm card can miss.
+      //   - multi-candidate → existing chooser flow (`ambiguous`).
+      // The single-candidate non-pin case still goes straight to
+      // step:2; Screen 2's Patvirtinkite objektą card is the
+      // text-based confirm that already covers safety there.
+      const candidates: Candidate[] = json.data?.candidates ?? [];
+      const status: ResolveResponse['status'] = json.data?.status ?? 'no_match';
+      const anyPinSeeded = candidates.some(
+        (c) => c.address_source === 'pin_reverse_geocode'
+      );
+      const pinCoords = state.geo; // what the user pinned (or null on NTR/address path)
+      // Stamp the user's pin coords onto pin-seeded candidates so the
+      // chooser can render the comparison map without round-tripping.
+      const candidatesWithPin = anyPinSeeded && pinCoords
+        ? candidates.map((c) =>
+            c.address_source === 'pin_reverse_geocode'
+              ? { ...c, pin_lat: pinCoords.lat, pin_lng: pinCoords.lng }
+              : c
+          )
+        : candidates;
+      const resolver_result: ResolveResponse = {
+        ...(json.data as ResolveResponse),
+        candidates: candidatesWithPin,
+      };
+
+      let nextStep: QuickScanState['step'];
+      if (status === 'error') {
+        nextStep = 'resolver-failure';
+      } else if (candidatesWithPin.length === 0 || status === 'no_match') {
+        nextStep = 'resolver-nomatch';
+      } else if (anyPinSeeded || candidatesWithPin.length > 1) {
+        nextStep = 'resolver-chooser';
+      } else {
+        nextStep = 2;
+      }
+      setState((s) => ({ ...s, resolver_result, step: nextStep }));
     } catch {
       stepTimers.forEach(clearTimeout);
       setResolveError('Nepavyko prisijungti prie serverio. Bandykite dar kartą.');
@@ -2243,33 +2316,81 @@ function ResolverChooser({
     }));
   };
 
+  // P7-H3: pin-aware confirmation. Any candidate flagged
+  // `address_source === "pin_reverse_geocode"` is here because the
+  // user pinned the map; we render a real static map comparing the
+  // pinned point (blue "P") against the resolved building's centroid
+  // (red "B") so the user catches an off-by-a-property-line mismatch
+  // the text-only address row can miss. For non-pin flows the
+  // original placeholder is kept.
+  const pinSeeded = candidates.find((c) => c.address_source === 'pin_reverse_geocode');
+  const pinLat = pinSeeded?.pin_lat ?? null;
+  const pinLng = pinSeeded?.pin_lng ?? null;
+  const selectedCandidate = candidates.find((c) => c.candidate_id === selectedId);
+  const bldgLat = (selectedCandidate?.lat ?? null) as number | null;
+  const bldgLng = (selectedCandidate?.lng ?? null) as number | null;
+  const showPinMap = pinLat != null && pinLng != null && bldgLat != null && bldgLng != null;
+  const mapsKey = (import.meta as any).env?.PUBLIC_GOOGLE_MAPS_KEY ?? '';
+  const staticMapUrl = showPinMap
+    ? `https://maps.googleapis.com/maps/api/staticmap?size=600x300&scale=2`
+      + `&markers=color:blue%7Clabel:P%7C${pinLat},${pinLng}`
+      + `&markers=color:red%7Clabel:B%7C${bldgLat},${bldgLng}`
+      + `&maptype=roadmap&zoom=17`
+      + (mapsKey ? `&key=${mapsKey}` : '')
+    : null;
+  const isPinFlow = pinSeeded != null;
+
   return (
     <div style={{ maxWidth: 1100, margin: '80px auto 0', padding: '0 32px' }}>
-      <h2 className="text-[24px] font-semibold text-[#1A1A2E] mb-1">Pasirinkite tikslų objektą</h2>
-      <p className="text-[15px] text-[#64748B] mb-6">Radome kelis galimus atitikmenis. Pasirinkite vieną.</p>
+      <h2 className="text-[24px] font-semibold text-[#1A1A2E] mb-1">
+        {isPinFlow ? 'Patvirtinkite pažymėtą pastatą' : 'Pasirinkite tikslų objektą'}
+      </h2>
+      <p className="text-[15px] text-[#64748B] mb-6">
+        {isPinFlow
+          ? 'Pagal Jūsų pažymėtą tašką žemėlapyje radome šį pastatą. Patikrinkite, ar tai tas pats objektas — taškas gali atitikti gretimą pastatą.'
+          : 'Radome kelis galimus atitikmenis. Pasirinkite vieną.'}
+      </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Left: Map placeholder */}
+        {/* Left: pin-aware static map (when pin-seeded) or placeholder */}
         <div className="rounded-xl border border-[#E2E8F0] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-6 flex flex-col">
-          <div className="flex-1 rounded-lg bg-[#F0F4F8] flex items-center justify-center min-h-[200px] md:min-h-[300px] relative">
-            {/* Pin placeholders */}
-            {candidates.map((c, i) => (
-              <div key={c.candidate_id}
-                className={`absolute w-7 h-7 rounded-full flex items-center justify-center text-white text-[12px] font-semibold cursor-pointer transition-all ${selectedId === c.candidate_id ? 'bg-[#0D7377] scale-110 shadow-lg' : 'bg-[#1E3A5F]'}`}
-                style={{ top: `${30 + i * 25}%`, left: `${25 + i * 20}%` }}
-                onClick={() => setSelectedId(c.candidate_id)}
-              >
-                {i + 1}
+          {showPinMap && staticMapUrl ? (
+            <>
+              <div className="rounded-lg overflow-hidden border border-[#E2E8F0]" style={{ minHeight: 200 }}>
+                <img
+                  src={staticMapUrl}
+                  alt="Pažymėto taško ir rasto pastato palyginimas"
+                  className="w-full block"
+                  style={{ display: 'block', maxHeight: 300, objectFit: 'cover' }}
+                />
               </div>
-            ))}
-            <p className="text-[13px] text-[#94A3B8] absolute bottom-3 left-0 right-0 text-center">Žemėlapis bus rodomas su aktyviu API raktu</p>
-          </div>
+              <p className="text-[13px] text-[#64748B] mt-3 leading-relaxed">
+                <span className="inline-block w-3 h-3 rounded-full mr-1 align-middle" style={{ background: '#3367D6' }} /> <strong>P</strong> — Jūsų pažymėtas taškas. {' '}
+                <span className="inline-block w-3 h-3 rounded-full mr-1 align-middle ml-2" style={{ background: '#DC2626' }} /> <strong>B</strong> — rastas pastatas.
+                {' '}Jei sutampa — pasirinkite ir tęskite. Jei ne — grįžkite ir pataisykite tašką.
+              </p>
+            </>
+          ) : (
+            <div className="flex-1 rounded-lg bg-[#F0F4F8] flex items-center justify-center min-h-[200px] md:min-h-[300px] relative">
+              {/* Pin placeholders */}
+              {candidates.map((c, i) => (
+                <div key={c.candidate_id}
+                  className={`absolute w-7 h-7 rounded-full flex items-center justify-center text-white text-[12px] font-semibold cursor-pointer transition-all ${selectedId === c.candidate_id ? 'bg-[#0D7377] scale-110 shadow-lg' : 'bg-[#1E3A5F]'}`}
+                  style={{ top: `${30 + i * 25}%`, left: `${25 + i * 20}%` }}
+                  onClick={() => setSelectedId(c.candidate_id)}
+                >
+                  {i + 1}
+                </div>
+              ))}
+              <p className="text-[13px] text-[#94A3B8] absolute bottom-3 left-0 right-0 text-center">Žemėlapis bus rodomas su aktyviu API raktu</p>
+            </div>
+          )}
           <div className="flex gap-3 mt-4">
             <button
-              onClick={() => setState(s => ({ ...s, step: 1 }))}
+              onClick={() => setState(s => ({ ...s, step: 1, resolver_result: null, geo: null, address_text: null, ntr_unique_number: null, selected_candidate_id: null }))}
               className="px-5 py-2.5 rounded-lg border border-[#E2E8F0] text-[14px] text-[#64748B] hover:border-[#1E3A5F] transition-all"
             >
-              Atgal
+              {isPinFlow ? 'Atgal — pataisyti tašką' : 'Atgal'}
             </button>
           </div>
         </div>
