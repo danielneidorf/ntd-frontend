@@ -36,7 +36,28 @@ const SUMMER_MAP: Record<string, string> = {
   HIGH: 'D',
 };
 
+// Sentinel for "couldn't assess" — kept OFF the A–E axis so it can never be
+// rendered as a band. Callers branch on it explicitly (never highlight a bar).
+export const WINTER_NOT_ASSESSED = 'NOT_ASSESSED';
+
+const WINTER_NOT_ASSESSED_REASON_LT: Record<string, string> = {
+  not_in_registry:
+    'Šiam pastatui nepavyko rasti energinio naudingumo sertifikato, o turimų duomenų nepakanka patikimam įvertinimui.',
+  technical_error:
+    'Žiemos komforto įvertinti nepavyko dėl laikinos duomenų paieškos klaidos. Bandykite vėliau.',
+  new_build_no_epc_yet:
+    'Naujam pastatui dar nėra energinio naudingumo sertifikato, todėl žiemos komforto kol kas neįvertinome.',
+  unknown:
+    'Žiemos komforto šiam pastatui įvertinti nepavyko — trūksta duomenų.',
+};
+
+export function winterNotAssessedMessage(reason?: string | null): string {
+  return WINTER_NOT_ASSESSED_REASON_LT[reason ?? 'unknown']
+    ?? WINTER_NOT_ASSESSED_REASON_LT.unknown;
+}
+
 export function mapWinterLevel(backend: string): string {
+  if (backend === WINTER_NOT_ASSESSED) return WINTER_NOT_ASSESSED;
   return WINTER_MAP[backend] ?? 'C';
 }
 

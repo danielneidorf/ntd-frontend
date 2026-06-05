@@ -34,8 +34,12 @@ export interface ReportData {
     applicable: boolean;
     neutral_message_lt?: string;
     winter: {
-      level: 'GOOD' | 'INTERMEDIATE' | 'WEAK';
-      rows: {
+      // 'NOT_ASSESSED' ⇒ no real/estimated heating value — show "Neįvertinta"
+      // + the reason, never an A–E band (the backend keeps it off the ordinal
+      // axis; the web must not fall back to 'C'/medium).
+      level: 'GOOD' | 'INTERMEDIATE' | 'WEAK' | 'NOT_ASSESSED';
+      not_assessed_reason?: string | null;
+      rows?: {
         band: string;
         label_lt: string;
         description_lt: string;

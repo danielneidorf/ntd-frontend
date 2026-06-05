@@ -59,15 +59,26 @@ export function extractReportData(): ReportTourData {
   let summerLevel = 'C';
 
   if (climateSection) {
-    // Find all ComfortBar letter labels (A/B/C/D/E) — the active one has full opacity
+    // The active bar has full opacity + taller height (34px).
     const allBars = climateSection.querySelectorAll('[style*="height: 34px"]');
-    if (allBars.length >= 1) {
-      const firstLabel = allBars[0]?.querySelector('.text-white.text-xs.font-semibold');
-      if (firstLabel) winterLevel = firstLabel.textContent?.trim() ?? 'C';
-    }
-    if (allBars.length >= 2) {
-      const secondLabel = allBars[1]?.querySelector('.text-white.text-xs.font-semibold');
-      if (secondLabel) summerLevel = secondLabel.textContent?.trim() ?? 'C';
+    const winterNotAssessed = !!climateSection.querySelector('[data-winter-not-assessed]');
+    if (winterNotAssessed) {
+      // No winter band — say so to the assistant; the only active bar is summer.
+      winterLevel = 'Neįvertinta';
+      if (allBars.length >= 1) {
+        const lbl = allBars[0]?.querySelector('.text-white.text-xs.font-semibold');
+        if (lbl) summerLevel = lbl.textContent?.trim() ?? 'C';
+      }
+    } else {
+      // Normal: allBars[0] = winter, allBars[1] = summer.
+      if (allBars.length >= 1) {
+        const firstLabel = allBars[0]?.querySelector('.text-white.text-xs.font-semibold');
+        if (firstLabel) winterLevel = firstLabel.textContent?.trim() ?? 'C';
+      }
+      if (allBars.length >= 2) {
+        const secondLabel = allBars[1]?.querySelector('.text-white.text-xs.font-semibold');
+        if (secondLabel) summerLevel = secondLabel.textContent?.trim() ?? 'C';
+      }
     }
   }
 

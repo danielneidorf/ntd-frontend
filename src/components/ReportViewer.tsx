@@ -14,6 +14,8 @@ import ComfortBarComponent, {
   SUMMER_LEVELS,
   mapWinterLevel,
   mapSummerLevel,
+  WINTER_NOT_ASSESSED,
+  winterNotAssessedMessage,
 } from './report/ComfortBar';
 
 const API_BASE = import.meta.env.PUBLIC_API_BASE ?? 'http://127.0.0.1:8100';
@@ -106,19 +108,36 @@ function WinterSummerBars({
   summer: NonNullable<ReportData['block1']['summer']>;
 }) {
   const winterActive = mapWinterLevel(winter.level);
+  const winterNotAssessed = winterActive === WINTER_NOT_ASSESSED;
   const summerActive = mapSummerLevel(summer.risk_level);
-  const winterDesc = winter.rows.find((r) => r.highlighted)?.description_lt ?? '';
+  const winterDesc = winter.rows?.find((r) => r.highlighted)?.description_lt ?? '';
   const summerDesc = summer.rows.find((r) => r.highlighted)?.description_lt ?? '';
 
   return (
     <div className="bg-slate-50 rounded-xl p-5 md:p-6 mb-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <ComfortBarComponent
-          title="Žiemos komfortas"
-          activeLevel={winterActive}
-          levels={WINTER_LEVELS}
-          description={winterDesc}
-        />
+        {winterNotAssessed ? (
+          // No band — say we couldn't assess, and why. Never an A–E bar / colour.
+          <div data-winter-not-assessed>
+            <h3 className="text-lg font-semibold text-[#1E3A5F] mb-3">Žiemos komfortas</h3>
+            <div
+              className="rounded-md flex items-center px-3"
+              style={{ height: '34px', backgroundColor: '#94A3B8', width: '100%' }}
+            >
+              <span className="text-white text-sm font-semibold">Neįvertinta</span>
+            </div>
+            <p className="text-sm text-slate-600 leading-relaxed mt-3">
+              {winterNotAssessedMessage(winter.not_assessed_reason)}
+            </p>
+          </div>
+        ) : (
+          <ComfortBarComponent
+            title="Žiemos komfortas"
+            activeLevel={winterActive}
+            levels={WINTER_LEVELS}
+            description={winterDesc}
+          />
+        )}
         <ComfortBarComponent
           title="Vasaros perkaitimo rizika"
           activeLevel={summerActive}
