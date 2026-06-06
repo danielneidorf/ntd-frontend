@@ -16,6 +16,7 @@ import ComfortBarComponent, {
   mapSummerLevel,
   WINTER_NOT_ASSESSED,
   winterNotAssessedMessage,
+  winterProvenanceMessage,
 } from './report/ComfortBar';
 
 const API_BASE = import.meta.env.PUBLIC_API_BASE ?? 'http://127.0.0.1:8100';
@@ -109,6 +110,7 @@ function WinterSummerBars({
 }) {
   const winterActive = mapWinterLevel(winter.level);
   const winterNotAssessed = winterActive === WINTER_NOT_ASSESSED;
+  const winterEstimateNote = winterProvenanceMessage(winter.provenance_label_key);
   const summerActive = mapSummerLevel(summer.risk_level);
   const winterDesc = winter.rows?.find((r) => r.highlighted)?.description_lt ?? '';
   const summerDesc = summer.rows.find((r) => r.highlighted)?.description_lt ?? '';
@@ -131,12 +133,22 @@ function WinterSummerBars({
             </p>
           </div>
         ) : (
-          <ComfortBarComponent
-            title="Žiemos komfortas"
-            activeLevel={winterActive}
-            levels={WINTER_LEVELS}
-            description={winterDesc}
-          />
+          <div>
+            <ComfortBarComponent
+              title="Žiemos komfortas"
+              activeLevel={winterActive}
+              levels={WINTER_LEVELS}
+              description={winterDesc}
+            />
+            {winterEstimateNote && (
+              <p
+                data-winter-estimate
+                className="text-xs italic text-slate-500 leading-relaxed mt-2"
+              >
+                {winterEstimateNote}
+              </p>
+            )}
+          </div>
         )}
         <ComfortBarComponent
           title="Vasaros perkaitimo rizika"

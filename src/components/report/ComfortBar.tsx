@@ -56,6 +56,23 @@ export function winterNotAssessedMessage(reason?: string | null): string {
     ?? WINTER_NOT_ASSESSED_REASON_LT.unknown;
 }
 
+// Phase 2: era→class estimate provenance. The band is a REAL rating (GOOD/etc.)
+// but derived from the building's construction era + type (no certificate) — it
+// must be labelled as an estimate, never presented as certificate-grade.
+export const WINTER_PROVENANCE_ERA_ESTIMATED = 'block1.winter.provenance.era_estimated';
+
+const WINTER_PROVENANCE_LT: Record<string, string> = {
+  [WINTER_PROVENANCE_ERA_ESTIMATED]:
+    'Apytikslis įvertinimas. Energinio naudingumo sertifikatas nerastas, todėl žiemos komfortas įvertintas pagal pastato statybos metus ir tipą.',
+};
+
+// Returns the LT estimate caption for a provenance label key, or null when the
+// band is from a certificate / typology (no estimate caption needed).
+export function winterProvenanceMessage(provenanceLabelKey?: string | null): string | null {
+  if (!provenanceLabelKey) return null;
+  return WINTER_PROVENANCE_LT[provenanceLabelKey] ?? null;
+}
+
 export function mapWinterLevel(backend: string): string {
   if (backend === WINTER_NOT_ASSESSED) return WINTER_NOT_ASSESSED;
   return WINTER_MAP[backend] ?? 'C';

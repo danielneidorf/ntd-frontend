@@ -39,6 +39,9 @@ export interface ReportData {
       // axis; the web must not fall back to 'C'/medium).
       level: 'GOOD' | 'INTERMEDIATE' | 'WEAK' | 'NOT_ASSESSED';
       not_assessed_reason?: string | null;
+      // Phase 2: when the band is an era→class ESTIMATE (no certificate), the
+      // backend sets this so the UI shows an honest "estimate + basis" caption.
+      provenance_label_key?: string | null;
       rows?: {
         band: string;
         label_lt: string;

@@ -2,7 +2,9 @@ import { describe, it, expect } from 'vitest';
 import {
   mapWinterLevel,
   WINTER_NOT_ASSESSED,
+  WINTER_PROVENANCE_ERA_ESTIMATED,
   winterNotAssessedMessage,
+  winterProvenanceMessage,
 } from '../ComfortBar';
 
 describe('mapWinterLevel', () => {
@@ -32,5 +34,20 @@ describe('winterNotAssessedMessage', () => {
   it('falls back to a generic message for a missing/unknown reason', () => {
     expect(winterNotAssessedMessage(undefined)).toContain('trūksta duomenų');
     expect(winterNotAssessedMessage('weird')).toContain('trūksta duomenų');
+  });
+});
+
+describe('winterProvenanceMessage', () => {
+  it('returns the honest estimate caption for the era_estimated key', () => {
+    const msg = winterProvenanceMessage(WINTER_PROVENANCE_ERA_ESTIMATED);
+    expect(msg).toContain('Apytikslis');
+    expect(msg).toContain('statybos metus'); // by construction era + type
+  });
+
+  it('returns null when there is no estimate provenance (real cert → no caption)', () => {
+    // A real band carries no estimate label.
+    expect(winterProvenanceMessage(undefined)).toBeNull();
+    expect(winterProvenanceMessage(null)).toBeNull();
+    expect(winterProvenanceMessage('block1.winter.provenance.from_certificate')).toBeNull();
   });
 });
