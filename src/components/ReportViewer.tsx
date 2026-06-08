@@ -310,7 +310,7 @@ function ReportFooter({ data }: { data: ReportData }) {
         Ataskaita sugeneruota: {new Date(data.generated_at).toLocaleDateString('lt-LT')}.{' '}
         NT Duomenys | ntd.lt
       </p>
-      <p className="text-sm text-slate-400 mt-1">Klausimai? info@ntd.lt</p>
+      <p className="text-sm text-slate-400 mt-1">Klausimai? ntd@ntd.lt</p>
     </footer>
   );
 }
