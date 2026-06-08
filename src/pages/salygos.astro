@@ -7,15 +7,14 @@ import Footer from '../components/Footer.astro';
   <Header />
   <main class="max-w-3xl mx-auto px-4 md:px-6 py-12">
     <h1 class="text-[36px] font-semibold text-[#1E3A5F] mb-2">Naudojimo sąlygos</h1>
-    <!-- TODO: Fill after MB registration -->
-    <p class="text-sm text-slate-500 mb-10">Galioja nuo: 2026 m. [month] [day] d.</p>
+    <!-- TODO(deploy): set "Galioja nuo" to the actual go-live date, not the commit day -->
+    <p class="text-sm text-slate-500 mb-10">Galioja nuo: 2026 m. ____ d.</p>
 
     <section class="prose prose-slate max-w-none">
 
       <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">1. Bendrosios nuostatos</h2>
       <p class="mb-3 text-[15px] leading-relaxed text-[#333]">1.1. Šios naudojimo sąlygos (toliau — Sąlygos) reglamentuoja platformos ntd.lt (toliau — Platforma) naudojimą.</p>
-      <!-- TODO: Fill after MB registration -->
-      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">1.2. Platformą administruoja [NTD įmonės pavadinimas], juridinio asmens kodas [kodas], registruotos buveinės adresas [adresas] (toliau — NTD arba Mes).</p>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">1.2. Platformą administruoja Mažoji bendrija NTD, juridinio asmens kodas 307659223, registruotos buveinės adresas Laisvės al. 85E-5, LT-44297 Kaunas (toliau — NTD arba Mes).</p>
       <p class="mb-3 text-[15px] leading-relaxed text-[#333]">1.3. Naudodamiesi Platforma, Jūs patvirtinate, kad perskaitėte, supratote ir sutinkate su šiomis Sąlygomis.</p>
 
       <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">2. Paslaugos aprašymas</h2>
@@ -43,12 +42,18 @@ import Footer from '../components/Footer.astro';
       <p class="mb-3 text-[15px] leading-relaxed text-[#333]">6.2. Jei ataskaita nebuvo pateikta arba jos turinys neatitinka Platformoje aprašytos paslaugos, kreipkitės el. paštu, nurodytu svetainėje ntd.lt — išspręsime per 5 darbo dienas.</p>
 
       <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">7. Intelektinė nuosavybė</h2>
-      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">7.1. Platformos dizainas, programinė įranga, metodologijos ir analitikos modeliai yra NTD intelektinė nuosavybė.</p>
-      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">7.2. Ataskaitos turinys (duomenys iš registrų) nėra NTD nuosavybė — tai oficialių šaltinių duomenys.</p>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">7.1. <strong>Nuosavybė.</strong> Platforma, jos programinė įranga ir dizainas, ataskaitų šablonai, NTD generuojamos ataskaitos (toliau — „Ataskaitos“ arba „Rezultatai“), jų pagrindu sukaupta ir išvesta duomenų bazė bei Metodologija (7.4 p.) yra NTD (ar jos licenciarų) intelektinė nuosavybė. Pirkdami ar naudodamiesi paslauga neįgyjate jokių intelektinės nuosavybės teisių į Platformą, Metodologiją ar duomenų bazę.</p>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">7.2. <strong>Naudojimo licencija.</strong> Įsigiję Ataskaitą gaunate neišimtinę, neperleidžiamą ir nesublicencijuojamą licenciją naudotis Ataskaita savo asmeniniais tikslais. Licencija galioja tik pačios Ataskaitos (Rezultato) atžvilgiu ir nesuteikia teisių į jos rengimo priemones, Metodologiją ar duomenų bazę. NTD šią licenciją gali atšaukti tik Jums iš esmės pažeidus šias Sąlygas. Be atskiro rašytinio NTD sutikimo Ataskaita negali būti perparduodama, platinama komercinio perpardavimo tikslais, viešai skelbiama kaip paslauga ar naudojama kuriant konkuruojančią arba išvestinę analitinę paslaugą; ši nuostata neriboja 4.2 p. numatyto asmeninio dalijimosi Ataskaita.</p>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">7.3. <strong>Registrų duomenys ir Ataskaitos statusas.</strong> Pirminiai oficialių registrų faktiniai duomenys (pvz., Registrų centro, Kadastro įrašai) patys savaime nėra išimtinė NTD nuosavybė — tai viešų oficialių šaltinių duomenys. Tačiau Ataskaita kaip kūrinys (jos atranka, sujungimas, struktūra ir pateikimas), NTD išvesti, normalizuoti ar apskaičiuoti rodikliai bei sukaupta duomenų bazė yra saugomi NTD intelektinės nuosavybės ir 7.5 p. nurodytų teisių.</p>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">7.4. <strong>Metodologija (komercinė paslaptis).</strong> Analitinė Metodologija — NTD taikomos analitinės metodikos ir sprendimai, įskaitant duomenų sintezės algoritmus, energinio naudingumo interpretavimo logiką, šiluminių etalonų lyginimus ir ataskaitos architektūrą — yra NTD komercinė (gamybinė) paslaptis. Pripažįstate šį konfidencialų statusą ir įsipareigojate nemėginti Metodologijos išgauti, dokumentuoti, atkurti ar komercinti.</p>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">7.5. <strong>Duomenų bazės teisės.</strong> NTD sukaupta duomenų bazė (per-objektų rodmenys, išvestos energinio intensyvumo reikšmės, normalizuoti faktai ir kt.) saugoma pagal Direktyvą 96/9/EB dėl duomenų bazių teisinės apsaugos (sui generis teisė) ir LR autorių teisių ir gretutinių teisių įstatymo XI skyrių. Galite naudotis savo individualia Ataskaita, tačiau negalite išgauti ar pakartotinai panaudoti esminės duomenų bazės dalies (vertinant kiekybiškai ar kokybiškai), nei sistemingai gauti ar pakartotinai naudoti neesmines dalis būdu, nesuderinamu su įprastu naudojimu. „Esminė dalis“ vertinama pagal taikytinus teisės aktus.</p>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">7.6. <strong>Apgrąžos inžinerijos draudimas.</strong> Įsipareigojate nedekompiliuoti, neardyti, neatlikti apgrąžos inžinerijos ir kitaip nemėginti atkurti Platformos, Ataskaitų ar paslaugos pirminio kodo, algoritmų, Metodologijos ar komercinių paslapčių — nei iš produkto sąsajos, Ataskaitų, API atsakymų, nei kitomis priemonėmis. Draudimas apima Metodologijos atkūrimą per sisteminę šablonų ar rezultatų analizę bei automatizuotą prieigą, viršijančią įprastą užsakymo eigą.</p>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">7.7. <strong>Dirbtinio intelekto turinys.</strong> Ataskaitose esantis dirbtinio intelekto sugeneruotas turinys (pvz., AI gido ar pokalbio funkcija) yra Ataskaitos dalis ir jam taikomos tos pačios NTD nuosavybės bei naudojimo nuostatos.</p>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">7.8. <strong>Atsiliepimai.</strong> Jei pateikiate NTD atsiliepimų, pasiūlymų ar idėjų, NTD įgyja neišimtinę, neatlygintiną, neterminuotą teisę juos naudoti paslaugai tobulinti.</p>
 
       <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">8. Baigiamosios nuostatos</h2>
       <p class="mb-3 text-[15px] leading-relaxed text-[#333]">8.1. NTD pasilieka teisę keisti šias Sąlygas. Pakeitimai skelbiami Platformoje.</p>
-      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">8.2. Šioms Sąlygoms taikoma Lietuvos Respublikos teisė. Ginčai sprendžiami Vilniaus miesto apylinkės teisme.</p>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">8.2. Šioms Sąlygoms taikoma Lietuvos Respublikos teisė. Ginčai, kylantys iš šių Sąlygų, sprendžiami kompetentinguose Lietuvos Respublikos teismuose.</p>
       <p class="mb-3 text-[15px] leading-relaxed text-[#333]">8.3. Kontaktai: el. paštu, nurodytu svetainėje ntd.lt.</p>
 
     </section>
