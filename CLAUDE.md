@@ -12,7 +12,7 @@ Font: Inter. Max-width: 1200px.
 Backend `CLAUDE.md` is canonical for entity facts (`~/dev/bustodnr/CLAUDE.md`, §"Entity Identifiers" + §"IP Layer Status"). Condensed for frontend use:
 
 - **Legal entity:** Mažoji bendrija NTD · įmonės kodas `307659223` · PVM kodas `LT100020078513` (SVS, effective 2026-05-11).
-- **Buveinė (registered, on ToS §1.2):** Laisvės al. 85E-5, LT-44297 Kaunas (Eureka). SS MTP swap pending JAR-4 — when it lands, update `salygos.astro` §1.2 + any footer/impressum reference.
+- **Buveinė (registered, on ToS §1.2):** Saulėtekio al. 15-1, LT-10224 Vilnius. SS MTP confirmed 15 Jun 2026 (JAR-1-E Nr. 49086085, status Įvykdytas). Supersedes the interim Eureka address (Laisvės al. 85E-5, LT-44297 Kaunas). Mirrored on `salygos.astro` §1.2 + the backend invoice issuer.
 - **License Agt:** MB-NTD-IP-2026-01 (signed 2026-05-17).
 - **Contact address (decided 2026-06-03):** `ntd@ntd.lt` is the **only** contact address. Do not introduce `founder@` / `info@`. Aligned across the surface via commit `db7f1a9` (Footer.astro:31 · ReportViewer.tsx:313 · QuickScanFlow already aligned).
 - **TM scope post-IP-04 (2026-05-30):** **NTD wordmark only.** No QuickScan-Lite filing. No logo SVG/PNG. Brand work stays wordmark-centric — do not commission/use a logo asset until IP-07 ships (2026-06-30) and post-launch logo work is greenlit separately.
@@ -46,7 +46,7 @@ Landing → Screen 1 (Vieta, case toggle + tabbed location) → Resolver states 
 - **Astro islands**: use `client:load` for interactive components, `client:visible` for below-fold.
 - **NTD design principles**: light theme, institutional aesthetic, generous spacing, subtle animations only.
 - **Dev ⚙️ dropdown** in header is TEMPORARY — remove before production deploy.
-- **Buveinė address** on the ToS (`salygos.astro` §1.2) stays as Laisvės al. 85E-5, LT-44297 Kaunas until JAR-4 propagates the SS MTP swap. Do not pre-emptively update.
+- **Buveinė address** on the ToS (`salygos.astro` §1.2) = Saulėtekio al. 15-1, LT-10224 Vilnius (SS MTP, confirmed 15 Jun 2026 via JAR-1-E Nr. 49086085, status Įvykdytas). The interim Eureka address (Laisvės al. 85E-5, LT-44297 Kaunas) has been superseded.
 
 ## Documentation
 
