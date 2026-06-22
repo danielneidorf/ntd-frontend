@@ -159,22 +159,22 @@ const WINTER_ROWS = [
     band: 'GOOD',
     label_lt: 'Gerai',
     description_lt:
-      'Lengva palaikyti komfortišką temperatūrą, nereikia didelių pastangų. Šildymo poreikis nuosaikus.',
+      'Įprastomis žiemos sąlygomis apie 20–22 °C gyvenamosiose patalpose pasiekiama be didesnių pastangų, šaltesnių kampų turėtų būti nedaug. Šildymo poreikis turėtų būti nuosaikus ir atitikti tikėtiną tokio tipo būstui (tikslesnę šildymo kainą rasite 2 bloke).',
     range_lt: undefined,
   },
   {
     band: 'INTERMEDIATE',
     label_lt: 'Vidutiniškai',
     description_lt:
-      'Reikės daugiau šildymo ir dėmesio — kai kurios patalpos gali jaustis vėsesnės. Sąnaudos gali būti ~10–30\u00a0% didesnės.',
-    range_lt: '~10–30\u00a0%',
+      '20–22 °C pasiekti įmanoma, bet kai kurios patalpos (pavyzdžiui, kampiniai kambariai ar zonos prie didelių langų) gali dažniau jaustis vėsesnės. Vertinant pagal techninius parametrus, norint išlaikyti komforto temperatūrą, šildymo sąnaudos gali būti maždaug 10–30 % didesnės, palyginti su techniškai efektyviu būstu tokiomis pačiomis sąlygomis (tikslesnę šildymo kainą rasite 2 bloke).',
+    range_lt: '~10–30 %',
   },
   {
     band: 'WEAK',
     label_lt: 'Silpnai',
     description_lt:
-      'Didelis šildymo poreikis komfortui — reikės intensyvaus šildymo, dalis patalpų gali likti vėsesnės. Sąnaudos gali būti ~30–60\u00a0% ir daugiau didesnės.',
-    range_lt: '~30–60\u00a0%+',
+      'Norint palaikyti apie 20–22 °C visame būste, reikės gana intensyvaus šildymo, o dalis patalpų vis tiek gali išlikti vėsesnės arba su šaltesnėmis sienomis ir grindimis. Vertinant pagal techninius parametrus, norint išlaikyti komforto temperatūrą, šildymo sąnaudos gali būti maždaug 30–60 % ar daugiau didesnės, palyginti su tuo pačiu efektyviu etaloniniu būstu (konkretesnį įvertinimą rasite 2 bloke).',
+    range_lt: '~30–60 %+',
   },
 ];
 
@@ -183,19 +183,19 @@ const SUMMER_ROWS = [
     band: 'LOW',
     label_lt: 'Maža',
     description_lt:
-      'Net ir per karštas dienas patalpos linkusios išlikti pakankamai vėsios; pakanka natūralaus vėdinimo.',
+      'Net ir per karštas dienas patalpos linkusios išlikti pakankamai vėsios; dažniausiai pakanka natūralaus vėdinimo ir paprastų saulės kontrolės priemonių (užuolaidos, žaliuzės). Papildomo vėsinimo (pavyzdžiui, kondicionavimo) poreikis tikėtinas retai, todėl papildomos elektros sąnaudos dėl vėsinimo turėtų būti nedidelės.',
   },
   {
     band: 'MODERATE',
     label_lt: 'Vidutinė',
     description_lt:
-      'Per karščio bangas kai kuriose patalpose gali tapti per šilta — reikės dažniau vėdinti/vėsinti, riboti saulę.',
+      'Per karščio bangas kai kuriose patalpose gali tapti per šilta, ypač ten, kur yra dideli langai ar viršutiniai aukštai — reikės dažnai vėdinti ir riboti tiesioginę saulę. Gali prireikti ventiliatorių ar nešiojamo kondicionieriaus per karščiausias dienas, tad dalį metų papildomai didės elektros sąnaudos dėl vėsinimo.',
   },
   {
     band: 'HIGH',
     label_lt: 'Didelė',
     description_lt:
-      'Karštomis dienomis patalpos linkusios perkaisti; be aktyvių vėsinimo priemonių gali būti nuolat per karšta.',
+      'Karštomis vasaros dienomis patalpos linkusios perkaisti; be aktyvių vėsinimo priemonių (kondicionavimo, intensyvaus naktinio vėdinimo ir pan.) gali būti nuolat per karšta. Dažnas kondicionavimo poreikis reiškia didesnį papildomą elektros suvartojimą ir atitinkamai didesnes sąskaitas už vėsinimą (konkretesnę įtaką bendroms išlaidoms bus galima matyti ilgalaikėse sąnaudose).',
   },
 ];
 
