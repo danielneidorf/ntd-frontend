@@ -20,6 +20,50 @@ export interface Block8Data {
   data: Block8Content | null;
 }
 
+// B2-13: data.block2 is the flat presentation dict from the shared backend
+// builder (block2/presentation.py) — NOT wrapped like block8. Ready reports
+// carry the priced fields; land-only carries only status + message_lt.
+export interface Block2Data {
+  status: 'ready' | 'not_applicable';
+  message_lt: string | null;
+  metric?: { eur_month: number; eur_month_raw: number; subtext_lt: string };
+  intro_lt?: string;
+  breakdown?: {
+    column_headers_lt: string[];
+    rows: { label_lt: string; eur_year: number; eur_month: number; source_indicator: string }[];
+    total: { label_lt: string; eur_year: number; eur_month: number };
+    dhw_footnote_lt: string | null;
+  };
+  explanation?: { heading_lt: string; body_lt: string };
+  info_box?: { heading_lt: string; vat_lt: string; escalation_lt: string; disclosure_lt: string };
+  confidence?: string;
+  confidence_text_lt?: string | null;
+  carrier_warning_lt?: string | null;
+  newbuild_note_lt?: string | null;
+  citations_lt?: string[];
+  household_reference?: {
+    household_size: number;
+    size_label_lt: string;
+    kwh_month: number;
+    kwh_year: number;
+    eur_month: number | null;
+  }[];
+  monthly_variation?: {
+    month: number;
+    heating_eur: number;
+    dhw_eur: number;
+    cooling_eur: number;
+    fixed_eur: number;
+    household_electricity_eur: number;
+  }[];
+  forecast_5yr?: {
+    year: number;
+    total_eur_month: number;
+    per_carrier: Record<string, number>;
+    fixed_eur_year: number;
+  }[];
+}
+
 export interface ReportData {
   address: string;
   ntr_unique_number: string | null;
@@ -29,6 +73,7 @@ export interface ReportData {
   bundle_items: { kind: string; address?: string }[];
   generated_at: string;
   order_reference: string;
+  block2?: Block2Data;
   block8?: Block8Data;
   block1: {
     applicable: boolean;
@@ -160,6 +205,80 @@ function summerRows(level: 'LOW' | 'MEDIUM' | 'HIGH') {
   return SUMMER_ROWS.map((r) => ({ ...r, highlighted: r.band === level }));
 }
 
+// --- Block 2 mock (shape mirrors block2/presentation.py output) ---
+
+const MOCK_MONTHLY = [122, 110, 90, 60, 30, 10, 5, 5, 20, 55, 95, 120].map((h, i) => ({
+  month: i + 1,
+  heating_eur: h,
+  dhw_eur: 17.6,
+  cooling_eur: 0,
+  fixed_eur: 3,
+  household_electricity_eur: 0,
+}));
+
+const MOCK_FORECAST = Array.from({ length: 5 }, (_, i) => ({
+  year: 2026 + i,
+  total_eur_month: 81 + i * 4,
+  per_carrier: { cst: 940 + i * 45 },
+  fixed_eur_year: 36,
+}));
+
+function mockBlock2(carrierWarning: string | null = null): Block2Data {
+  return {
+    status: 'ready',
+    message_lt: null,
+    metric: {
+      eur_month: 81,
+      eur_month_raw: 81.34,
+      subtext_lt: 'Vidutinė mėnesinė energijos kaina pagal dabartinius tarifus (su PVM)',
+    },
+    intro_lt:
+      'Žemiau pateikiame, kiek šiame būste apytiksliai kainuotų energija (šildymas, karštas vanduo) pagal dabartinius tarifus.',
+    breakdown: {
+      column_headers_lt: ['Komponentas', '€ per metus (su PVM)', '€ per mėnesį (su PVM)', 'Šaltinis'],
+      rows: [
+        { label_lt: 'Šildymas (centrinis šildymas)', eur_year: 729, eur_month: 61, source_indicator: '📊 pagal pastato duomenis' },
+        { label_lt: 'Karštas vanduo', eur_year: 211, eur_month: 18, source_indicator: '👥 statistinis vidurkis' },
+        { label_lt: 'Elektros pastovusis mokestis', eur_year: 36, eur_month: 2, source_indicator: '📊 pagal pastato duomenis' },
+      ],
+      total: { label_lt: 'Viso', eur_year: 976, eur_month: 81 },
+      dhw_footnote_lt: 'Karšto vandens sąnaudos rodomos atskirai nuo šildymo.',
+    },
+    explanation: {
+      heading_lt: 'Ką tai reiškia praktiškai?',
+      body_lt:
+        'Pagal D klasės pastato vertinimą energijai šildymui ir karštam vandeniui per mėnesį skirsite apie €81, o per metus — apie €976. Po 5 metų, prognozuojant tarifų augimą, mėnesinė kaina gali siekti ~€97.',
+    },
+    info_box: {
+      heading_lt: 'Iš ko remiamės šiuo vertinimu?',
+      vat_lt: 'Visos kainos nurodytos su PVM (21%).',
+      escalation_lt: 'Prognozėje taikomas tarifų augimas pagal energijos rūšį, ne mažesnis nei infliacija.',
+      disclosure_lt: 'Šildymo būdas nustatytas pagal pastato energinio naudingumo sertifikatą.',
+    },
+    confidence: 'medium',
+    confidence_text_lt:
+      'Šis įvertinimas pagrįstas registro duomenimis ir tipiniais suvartojimo modeliais, todėl faktinės sąskaitos gali skirtis priklausomai nuo gyvenimo įpročių.',
+    carrier_warning_lt: carrierWarning,
+    newbuild_note_lt: null,
+    citations_lt: [
+      'Centrinis šildymas: AB „Kauno energija“, VERT patvirtintas tarifas, galioja nuo 2026 m. gegužės (šaltinis: vert.lt)',
+      'Elektra: ESO „Namai“ planas, VERT reguliuojamas (šaltinis: eso.lt)',
+    ],
+    household_reference: [
+      { household_size: 1, size_label_lt: '1 asmuo', kwh_month: 124, kwh_year: 1490, eur_month: 14 },
+      { household_size: 2, size_label_lt: '2 asmenys', kwh_month: 205, kwh_year: 2460, eur_month: 23 },
+      { household_size: 3, size_label_lt: '3 asmenys', kwh_month: 273, kwh_year: 3280, eur_month: 30 },
+      { household_size: 4, size_label_lt: '4 asmenys', kwh_month: 325, kwh_year: 3900, eur_month: 36 },
+      { household_size: 5, size_label_lt: '5 asmenys', kwh_month: 379, kwh_year: 4545, eur_month: 42 },
+    ],
+    monthly_variation: MOCK_MONTHLY,
+    forecast_5yr: MOCK_FORECAST,
+  };
+}
+
+const MOCK_CARRIER_FALLBACK_WARNING =
+  '⚠️ Šildymo sistemos tipas nėra nurodytas šio pastato energinio naudingumo sertifikate. Vertinime naudojamas šildymo būdas (centrinis šildymas) nustatytas pagal pastato tipą ir statybos laikotarpį.';
+
 // --- Mock datasets ---
 
 export const MOCK_EXISTING: ReportData = {
@@ -175,6 +294,7 @@ export const MOCK_EXISTING: ReportData = {
   ],
   generated_at: '2026-04-01T14:30:00Z',
   order_reference: 'NTD-2026-0042',
+  block2: mockBlock2(null),
   block8: {
     id: 'recommendations',
     title_lt: '8) Rekomendacijos ir sprendimai',
@@ -295,6 +415,11 @@ export const MOCK_LAND_ONLY: ReportData = {
   bundle_items: [{ kind: 'land_plot', address: 'Sklypas prie kelio' }],
   generated_at: '2026-04-01T15:00:00Z',
   order_reference: 'NTD-2026-0043',
+  block2: {
+    status: 'not_applicable',
+    message_lt:
+      'Energijos sąnaudų vertinimas taikomas tik šildomiems pastatams; šiam objektui šis vertinimas neskaičiuojamas.',
+  },
   block8: {
     id: 'recommendations',
     title_lt: '8) Rekomendacijos ir sprendimai',
@@ -343,9 +468,17 @@ export const MOCK_LAND_ONLY: ReportData = {
   },
 };
 
+// B2-13: carrier-inference variant — same report, Block 2 shows the fallback
+// warning (heating type inferred, not from the EPC).
+export const MOCK_FALLBACK: ReportData = {
+  ...MOCK_EXISTING,
+  block2: mockBlock2(MOCK_CARRIER_FALLBACK_WARNING),
+};
+
 export const DEV_MOCKS: Record<string, ReportData> = {
   'dev-existing': MOCK_EXISTING,
   'dev-land': MOCK_LAND_ONLY,
+  'dev-fallback': MOCK_FALLBACK,
 };
 
 // Mock permits for dev mode (P7-A8)

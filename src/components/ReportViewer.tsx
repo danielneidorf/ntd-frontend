@@ -8,6 +8,7 @@ import PropertyMap from './report/PropertyMap';
 import ConstructionPermits, { type Permit } from './report/ConstructionPermits';
 import { DEV_MOCK_PERMITS } from './report/mockReportData';
 import { Block8Section } from './report/Block8Section';
+import { Block2Section } from './report/Block2Section';
 import PropertyPhoto from './report/PropertyPhoto';
 import ComfortBarComponent, {
   WINTER_LEVELS,
@@ -277,8 +278,8 @@ function InfoBox({ items }: { items: string[] }) {
 }
 
 function LockedBlocksPreview() {
+  // Block 2 (Energijos sąnaudos) is now a live section (B2-13) — no longer locked.
   const blocks = [
-    { num: 2, name: 'Energijos sąnaudos' },
     { num: 3, name: '10 metų išlaidos' },
     { num: 4, name: 'Aplinkos tarša' },
     { num: 5, name: 'Teisinės rizikos' },
@@ -522,6 +523,8 @@ export default function ReportViewer() {
             </>
           )}
         </div>
+
+        <Block2Section block2={data.block2} />
 
         <Block8Section block8={data.block8} />
 
