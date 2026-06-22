@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+  mapSummerLevel,
   mapWinterLevel,
   WINTER_NOT_ASSESSED,
   WINTER_PROVENANCE_ERA_ESTIMATED,
@@ -22,6 +23,26 @@ describe('mapWinterLevel', () => {
 
   it('still falls back to C for genuinely unknown tokens', () => {
     expect(mapWinterLevel('GIBBERISH')).toBe('C');
+  });
+});
+
+describe('mapSummerLevel', () => {
+  it('maps the 5 SummerOverheatingRisk values 1:1 onto A–E (lossless, no collapse)', () => {
+    const segs = ['VERY_LOW', 'LOW', 'MODERATE', 'HIGH', 'VERY_HIGH'].map(mapSummerLevel);
+    expect(segs).toEqual(['A', 'B', 'C', 'D', 'E']);
+    expect(new Set(segs).size).toBe(5);
+  });
+
+  it('lands the produced levels on B/C/D — lowest produced → B "Maža", not C', () => {
+    // The VERY_LOW mis-map fix: the lowest produced bucket (LOW) shows as B.
+    expect(mapSummerLevel('LOW')).toBe('B');
+    expect(mapSummerLevel('MODERATE')).toBe('C');
+    expect(mapSummerLevel('HIGH')).toBe('D');
+  });
+
+  it('reserves A "Minimali" / E "Kritinė" for the not-yet-produced extremes', () => {
+    expect(mapSummerLevel('VERY_LOW')).toBe('A');
+    expect(mapSummerLevel('VERY_HIGH')).toBe('E');
   });
 });
 

@@ -23,17 +23,24 @@ const SUMMER_LEVELS: Level[] = [
   { key: 'E', label: 'Kritinė', color: '#dc2626', width: '100%' },
 ];
 
-// Map 3-level backend output to 5-level display
+// Map backend comfort levels to the 5-segment display (A–E). Lossless: the
+// produced levels land on B/C/D; A and E stay defined-but-reserved (kept in
+// sync with the backend block1/presentation.py vocabulary).
 const WINTER_MAP: Record<string, string> = {
   GOOD: 'B',
   INTERMEDIATE: 'C',
   WEAK: 'D',
 };
 
+// Summer carries all 5 SummerOverheatingRisk values 1:1 — the producer emits
+// LOW/MODERATE/HIGH (→ B/C/D); VERY_LOW→A "Minimali" / VERY_HIGH→E "Kritinė"
+// are reserved for future granularity. Never collapse to 3.
 const SUMMER_MAP: Record<string, string> = {
+  VERY_LOW: 'A',
   LOW: 'B',
-  MEDIUM: 'C',
+  MODERATE: 'C',
   HIGH: 'D',
+  VERY_HIGH: 'E',
 };
 
 // Sentinel for "couldn't assess" — kept OFF the A–E axis so it can never be

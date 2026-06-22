@@ -96,7 +96,9 @@ export interface ReportData {
       }[];
     } | null;
     summer: {
-      risk_level: 'LOW' | 'MEDIUM' | 'HIGH';
+      // Lossless 5-value summer vocabulary (block1/presentation.py). The
+      // producer emits LOW/MODERATE/HIGH; VERY_LOW/VERY_HIGH are reserved.
+      risk_level: 'VERY_LOW' | 'LOW' | 'MODERATE' | 'HIGH' | 'VERY_HIGH';
       rows: {
         band: string;
         label_lt: string;
@@ -184,7 +186,7 @@ const SUMMER_ROWS = [
       'Net ir per karštas dienas patalpos linkusios išlikti pakankamai vėsios; pakanka natūralaus vėdinimo.',
   },
   {
-    band: 'MEDIUM',
+    band: 'MODERATE',
     label_lt: 'Vidutinė',
     description_lt:
       'Per karščio bangas kai kuriose patalpose gali tapti per šilta — reikės dažniau vėdinti/vėsinti, riboti saulę.',
@@ -201,7 +203,7 @@ function winterRows(level: 'GOOD' | 'INTERMEDIATE' | 'WEAK') {
   return WINTER_ROWS.map((r) => ({ ...r, highlighted: r.band === level }));
 }
 
-function summerRows(level: 'LOW' | 'MEDIUM' | 'HIGH') {
+function summerRows(level: 'LOW' | 'MODERATE' | 'HIGH') {
   return SUMMER_ROWS.map((r) => ({ ...r, highlighted: r.band === level }));
 }
 
@@ -327,8 +329,8 @@ export const MOCK_EXISTING: ReportData = {
       rows: winterRows('INTERMEDIATE'),
     },
     summer: {
-      risk_level: 'MEDIUM',
-      rows: summerRows('MEDIUM'),
+      risk_level: 'MODERATE',
+      rows: summerRows('MODERATE'),
     },
     summary_lt:
       'Šiame būste žiemą palaikyti komfortišką temperatūrą reikės šiek tiek daugiau pastangų nei naujame, gerai apšiltintame name. Kai kurios patalpos, ypač kampiniai kambariai ir zonos prie didelių langų, gali jaustis vėsesnės. Vasarą per karščio bangas gali prireikti papildomo vėdinimo/vėsinimo.',
