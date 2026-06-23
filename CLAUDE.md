@@ -96,3 +96,19 @@ npm run dev      # Dev server (localhost:4321)
 npm run build    # Production build → dist/
 npm run preview  # Preview production build
 ```
+
+# HARD RULE — Ground every claim in the artifact, not its proxy
+
+A claim is worth only its contact with the thing it describes. A convenient marker — a code comment, a mock, a green test suite, a rendered page, a prior "done" — and the real artifact it stands for (the primary source, the served output, the running path, the spec) routinely diverge, and the convenient marker wins by default because checking it is cheaper. This rule overrides that default. It binds both lanes: chat-lane claims about status / copy / provenance, and code-lane claims that tests are meant to prove.
+
+**1. Provenance is not a comment.** "Copy/value from X", "verbatim from the annex", "per spec" is a claim to verify against the named source — never evidence in itself. Do not trust, and do not write, a provenance comment you have not checked against the source. *(This rule exists because a mock labelled "exact copy from annex" had never touched the annex — and that false comment is what produced a downstream "verbatim" claim.)*
+
+**2. A test must cross the boundary it certifies; the fixture must not be the thing under test.** To prove "the backend serves X", assert on X read from the *served output* (API response, `data.block1`, the rendered PDF) — not from the source constant or a frontend mock. A test whose fixture is the mock proves only that the mock equals itself. *(Canonical example of doing it right: the A-now description guard asserts a distinctive annex phrase is present in the served `description_lt`, so a silent reversion to mock copy fails.)*
+
+**3. "Done" means the path is proven, not that the end-states exist.** A page that renders, a passing demo, or a green suite is not evidence that the data behind it is real or that the wiring connects. Never report or accept completeness from a looks-right surface; require the end-to-end path asserted by a test that touches every boundary between source and surface. *(The report rendered correctly against a mock while the backend served the descriptions empty — and the PDF, which cannot read the mock, was silently blank.)*
+
+**4. Trace completeness claims to the spec and the live artifact.** Never summarise "complete" / "finished" from memory or impression. "X is done" must be laid against X's spec and verified against the live artifact (or a verify-first repo report) before it is asserted — by whoever asserts it. *("Block 1 complete" had never been laid against the Script brief, which already required backend-served description text.)*
+
+**5. Distrust convenient and flattering markers most.** When a marker tells you what you hoped — the test you wanted to pass passed, the comment confirms, someone said "done" — treat it as the cue to check harder, not to relax. The marker that confirms your wish is the one least likely to have checked anything, and the one most worth verifying.
+
+**A claim that cannot be traced to the artifact it describes is not made.**
