@@ -112,7 +112,9 @@ export interface ReportData {
       label_lt: string;
       explanation_lt: string;
       active: boolean;
-      direction: 'positive' | 'negative';
+      // Risk-effect semantics (block1/presentation.py): 'increase' raises
+      // overheating risk (↗); 'decrease' is protective (↘, reserved for v2).
+      direction: 'increase' | 'decrease';
     }[];
     info_box: {
       items_lt: string[];
@@ -334,38 +336,34 @@ export const MOCK_EXISTING: ReportData = {
     },
     summary_lt:
       'Šiame būste žiemą palaikyti komfortišką temperatūrą reikės šiek tiek daugiau pastangų nei naujame, gerai apšiltintame name. Kai kurios patalpos, ypač kampiniai kambariai ir zonos prie didelių langų, gali jaustis vėsesnės. Vasarą per karščio bangas gali prireikti papildomo vėdinimo/vėsinimo.',
+    // A-next: the 3 real summer-overheating drivers (authored copy, single
+    // source = block1/presentation.py). MOCK_EXISTING is C / 1985 / low glazing,
+    // so none of the D23 thresholds fire → all inactive → section hidden (the
+    // honest result; the active-tag UI is covered by the DriversSection test).
     drivers: [
       {
-        key: 'energy_class',
-        label_lt: 'Vidutinė energinė klasė (C)',
+        key: 'high_energy_class_driver',
+        label_lt: 'Aukšta energinė klasė',
         explanation_lt:
-          'C klasės pastatas naudoja vidutiniškai energijos šildymui — nei labai efektyvus, nei labai imlus.',
-        active: true,
-        direction: 'negative',
-      },
-      {
-        key: 'year_built',
-        label_lt: 'Statybos metai (1985)',
-        explanation_lt:
-          'Pastatas statytas prieš šiuolaikinių apšiltinimo standartų įvedimą. Sienos ir langai gali praleisti daugiau šilumos.',
-        active: true,
-        direction: 'negative',
-      },
-      {
-        key: 'glazing',
-        label_lt: 'Vidutinė langų dalis',
-        explanation_lt:
-          'Langai sudaro ~30\u00a0% išorinių atitvarų. Tai vidutinis rodiklis — nei mažina, nei didina riziką reikšmingai.',
+          'Aukštesnės energinės klasės pastatai paprastai sandaresni ir geriau apšiltinti — žiemą tai taupo šilumą, bet vasarą pro langus ir iš vidaus patekusi šiluma patalpose išlieka ilgiau, todėl be tinkamo šešėliavimo ir vėdinimo perkaitimo rizika būna šiek tiek didesnė.',
         active: false,
-        direction: 'negative',
+        direction: 'increase',
       },
       {
-        key: 'ventilation',
-        label_lt: 'Natūrali ventiliacija',
+        key: 'newer_building_driver',
+        label_lt: 'Naujesnės statybos pastatas',
         explanation_lt:
-          'Būste veikia natūrali ventiliacija (langai, orlaidės). Nėra mechaninio vėdinimo su rekuperacija.',
-        active: true,
-        direction: 'negative',
+          'Naujesni pastatai paprastai sandaresni ir geriau apšiltinti, todėl be tinkamo šešėliavimo ir vėdinimo vasarą sukaupta šiluma patalpose išlieka ilgiau ir perkaitimo rizika būna šiek tiek didesnė.',
+        active: false,
+        direction: 'increase',
+      },
+      {
+        key: 'high_glazing_driver',
+        label_lt: 'Didelė langų dalis',
+        explanation_lt:
+          'Kai langų plotas didelis, saulėtomis dienomis pro stiklą patenka daug šilumos, todėl patalpos vasarą greičiau ir labiau įšyla.',
+        active: false,
+        direction: 'increase',
       },
     ],
     info_box: {

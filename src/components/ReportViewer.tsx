@@ -191,7 +191,7 @@ function SummarySection({ summary }: { summary: string }) {
   );
 }
 
-function DriversSection({ drivers }: { drivers: ReportData['block1']['drivers'] }) {
+export function DriversSection({ drivers }: { drivers: ReportData['block1']['drivers'] }) {
   const active = drivers.filter((d) => d.active);
   const [closedKeys, setClosedKeys] = useState<Set<string>>(new Set());
   if (active.length === 0) return null;
@@ -217,12 +217,14 @@ function DriversSection({ drivers }: { drivers: ReportData['block1']['drivers'] 
                 type="button"
                 onClick={() => toggle(d.key)}
                 className={`text-sm min-h-[44px] inline-flex items-center px-4 py-2 rounded-full border cursor-pointer transition-colors ${
-                  d.direction === 'positive'
-                    ? 'border-green-300 bg-green-50 text-green-800 hover:bg-green-100'
-                    : 'border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100'
+                  // Risk-effect semantics: 'increase' raises overheating risk
+                  // (↗ amber, caution); 'decrease' is protective (↘ green, reserved v1).
+                  d.direction === 'increase'
+                    ? 'border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100'
+                    : 'border-green-300 bg-green-50 text-green-800 hover:bg-green-100'
                 }`}
               >
-                {d.label_lt} {d.direction === 'positive' ? '↗' : '↘'}
+                {d.label_lt} {d.direction === 'increase' ? '↗' : '↘'}
               </button>
               <div
                 className="overflow-hidden transition-all duration-300"
