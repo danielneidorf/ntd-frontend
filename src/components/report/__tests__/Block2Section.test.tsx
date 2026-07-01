@@ -26,6 +26,27 @@ describe('Block2Section', () => {
     expect(screen.getByText('Ką tai reiškia praktiškai?')).toBeInTheDocument();
   });
 
+  it('renders the 📊/👥 source-indicator glyphs in the breakdown table', () => {
+    // Own the glyph values under test — control the source_indicator inputs and
+    // assert the component actually puts them on the surface (glyph-reaches-breakdown),
+    // rather than leaning on the shared mock's rows staying as-is.
+    const block2 = {
+      ...MOCK_EXISTING.block2,
+      breakdown: {
+        ...MOCK_EXISTING.block2.breakdown,
+        rows: [
+          { label_lt: 'Šildymas', eur_year: 729, eur_month: 61, source_indicator: '📊 pagal pastato duomenis' },
+          { label_lt: 'Karštas vanduo', eur_year: 211, eur_month: 18, source_indicator: '👥 statistinis vidurkis' },
+        ],
+      },
+    };
+    const { container } = render(<Block2Section block2={block2} />);
+    const table = container.querySelector('[data-block2="breakdown"]');
+    expect(table).not.toBeNull();
+    expect(table!.textContent).toContain('📊');
+    expect(table!.textContent).toContain('👥');
+  });
+
   it('hides the carrier warning for an EPC-sourced report', () => {
     const { container } = render(<Block2Section block2={MOCK_EXISTING.block2} />);
     expect(container.querySelector('[data-block2="carrier-warning"]')).toBeNull();
