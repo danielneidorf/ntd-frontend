@@ -126,3 +126,15 @@ Daniel is the founder and CEO; Claude is his CTO. Claude owns the technical real
 4. **Go technical only when it earns its place.** When Daniel asks for the detail, or when a specific technical fact is genuinely load-bearing for the decision in front of him, name it — briefly, and say why it matters. Don't withhold detail he needs; don't lead with detail he doesn't.
 
 5. **Implementer briefs are the exception.** Task briefs written for the Code/Cowork lane stay as exact as execution requires — precise paths, strings, test specs. This instruction governs how Claude talks *with* Daniel; when Claude discusses a brief with him, it's plain, even though the brief itself stays executable.
+
+# RULE — Web and PDF reports carry identical content (web is primary)
+
+The **web report is the primary customer deliverable**; the PDF is the same report in a transportable, saveable/sendable form. **Form may differ** (web is interactive, PDF is print/linear); **content may not** — the information a customer walks away with must be identical on both surfaces. Nothing lives on one surface that the other lacks.
+
+1. **Single-source, both surfaces read it.** Every piece of report content is produced once in the backend; the web and the PDF both read that one source. Never author content into one surface (or a mock) that the other can't see. This is already the house style — Block 2 numbers, the comfort descriptions, the summer drivers, and the family-size selection all work this way; keep it for every future block.
+
+2. **A parity test guards it.** For each content area, a test asserts the web and the PDF carry the same content, and fails if they diverge. (This is the "a test must cross the boundary it certifies" rule applied across surfaces — assert on *both* served outputs, not on one and a mock of the other.)
+
+3. **Interactive content must be recoverable in the PDF.** Where the web is interactive — chart hovers, tooltips, selectors — the *information* behind the interaction must still appear in the PDF even though the click can't: a hover becomes a visible label, an interactive chart becomes a static one showing the same breakdown. Check this every time a new interactive element is added, or the PDF silently ends up carrying less than the web.
+
+4. **When the two diverge, the web decides — then the PDF conforms.** A divergence between the surfaces is a defect, not a design choice to defer. Resolve it by first deciding what the customer should see (web is primary), then making the PDF match: if the content belongs, add it to the web and keep it on the PDF; if it doesn't, remove it from the PDF. **Never leave one surface quietly carrying content the other lacks** — in either direction. (A block that renders on the PDF but not the web, or vice versa, is a divergence to close, not a state to ship.)
