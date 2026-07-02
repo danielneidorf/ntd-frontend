@@ -116,6 +116,16 @@ export interface ReportData {
       // overheating risk (↗); 'decrease' is protective (↘, reserved for v2).
       direction: 'increase' | 'decrease';
     }[];
+    // Driver merge: winter-comfort factors under the winter bar (Option A).
+    // Same shape as `drivers`, but TWO-WAY: helpers carry 'decrease' (↘ green),
+    // drawbacks 'increase' (↗ amber). Single source = block1/presentation.py.
+    winter_factors: {
+      key: string;
+      label_lt: string;
+      explanation_lt: string;
+      active: boolean;
+      direction: 'increase' | 'decrease';
+    }[];
     info_box: {
       items_lt: string[];
     };
@@ -366,6 +376,51 @@ export const MOCK_EXISTING: ReportData = {
         direction: 'increase',
       },
     ],
+    // Driver merge: winter-comfort factors (two-way). Copy is verbatim from the
+    // backend _WINTER_FACTOR_DEFS (single source). MOCK_EXISTING is C / 1985 /
+    // low glazing → good_epc (C, a helper) active; the rest inactive.
+    winter_factors: [
+      {
+        key: 'good_epc',
+        label_lt: 'Geras energinis naudingumas',
+        explanation_lt:
+          'Geras pastato energinis naudingumas reiškia mažesnius šilumos nuostolius, todėl žiemą patalpas lengviau šildyti iki komfortiškos temperatūros, o šildymui reikia mažiau energijos.',
+        active: true,
+        direction: 'decrease',
+      },
+      {
+        key: 'new_or_renovated',
+        label_lt: 'Naujesnės statybos pastatas',
+        explanation_lt:
+          'Naujesnės statybos pastatai paprastai geriau apšiltinti ir sandaresni, todėl žiemą šiluma išlaikoma efektyviau ir jaučiama mažiau šaltų vietų ties sienomis ar kampuose.',
+        active: false,
+        direction: 'decrease',
+      },
+      {
+        key: 'risky_glazing',
+        label_lt: 'Didelė langų dalis',
+        explanation_lt:
+          'Langai šilumą praleidžia lengviau nei sienos, todėl kai jų plotas didelis, žiemą pro juos prarandama daugiau šilumos — ties langais gali būti vėsiau, o šildymo poreikis šiek tiek didesnis.',
+        active: false,
+        direction: 'increase',
+      },
+      {
+        key: 'heroic_heating',
+        label_lt: 'Efektyvi šildymo sistema',
+        explanation_lt:
+          'Efektyvi šildymo sistema komfortišką temperatūrą pasiekia greičiau ir mažesnėmis sąnaudomis, todėl žiemą patalpas lengviau tolygiai šildyti.',
+        active: false,
+        direction: 'decrease',
+      },
+      {
+        key: 'poor_heating',
+        label_lt: 'Neefektyvi šildymo sistema',
+        explanation_lt:
+          'Mažiau efektyvi šildymo sistema komfortiškai temperatūrai palaikyti reikalauja daugiau energijos ir laiko, todėl žiemą gali būti sunkiau užtikrinti tolygią šilumą visose patalpose.',
+        active: false,
+        direction: 'increase',
+      },
+    ],
     info_box: {
       items_lt: [
         'Pagrindinė prielaida: Lietuvos klimatas, gyvenamosios patalpos ~20–22\u00a0°C žiemą, įprasti namų drabužiai, lengva veikla.',
@@ -434,6 +489,7 @@ export const MOCK_LAND_ONLY: ReportData = {
     summer: null,
     summary_lt: '',
     drivers: [],
+    winter_factors: [],
     info_box: { items_lt: [] },
     inputs_snapshot: {
       effective_energy_class: null,

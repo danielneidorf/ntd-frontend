@@ -191,7 +191,15 @@ function SummarySection({ summary }: { summary: string }) {
   );
 }
 
-export function DriversSection({ drivers }: { drivers: ReportData['block1']['drivers'] }) {
+export function DriversSection({
+  drivers,
+  title = 'Pagrindiniai veiksniai',
+  sectionAttr = 'summer-drivers',
+}: {
+  drivers: ReportData['block1']['drivers'];
+  title?: string;
+  sectionAttr?: string;
+}) {
   const active = drivers.filter((d) => d.active);
   const [closedKeys, setClosedKeys] = useState<Set<string>>(new Set());
   if (active.length === 0) return null;
@@ -206,8 +214,8 @@ export function DriversSection({ drivers }: { drivers: ReportData['block1']['dri
   };
 
   return (
-    <div className="mb-6">
-      <h3 className="text-lg font-semibold text-[#1E3A5F] mb-3">Pagrindiniai veiksniai</h3>
+    <div className="mb-6" data-block1={sectionAttr}>
+      <h3 className="text-lg font-semibold text-[#1E3A5F] mb-3">{title}</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
         {active.map((d) => {
           const isOpen = !closedKeys.has(d.key);
@@ -516,6 +524,14 @@ export default function ReportViewer() {
                 {block1.winter && block1.summer && (
                   <WinterSummerBars winter={block1.winter} summer={block1.summer} />
                 )}
+                {/* Driver merge: winter-comfort factors under the winter bar
+                    (Option A, two-way). Summer tags stay in their own section
+                    below. Hidden when none active (render-safe). */}
+                <DriversSection
+                  drivers={block1.winter_factors}
+                  title="Žiemos komforto veiksniai"
+                  sectionAttr="winter-factors"
+                />
                 {block1.summary_lt && <SummarySection summary={block1.summary_lt} />}
               </div>
               <div data-guide="drivers">

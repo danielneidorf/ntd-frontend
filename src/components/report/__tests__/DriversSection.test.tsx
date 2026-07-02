@@ -41,4 +41,29 @@ describe('DriversSection', () => {
     );
     expect(container.firstChild).toBeNull();
   });
+
+  it('renders active "decrease" helpers as green ↘ tags under the winter section (two-way)', () => {
+    // Driver merge: the winter bar is two-way — a helper (good rating) reduces
+    // concern → direction="decrease" → green ↘, the opposite of the summer risk tag.
+    const HELPER: Driver = {
+      key: 'good_epc',
+      label_lt: 'Geras energinis naudingumas',
+      explanation_lt:
+        'Geras pastato energinis naudingumas reiškia mažesnius šilumos nuostolius, todėl žiemą patalpas lengviau šildyti iki komfortiškos temperatūros, o šildymui reikia mažiau energijos.',
+      active: true,
+      direction: 'decrease',
+    };
+    const { container } = render(
+      <DriversSection drivers={[HELPER]} title="Žiemos komforto veiksniai" sectionAttr="winter-factors" />,
+    );
+    const btn = container.querySelector('button');
+    expect(btn!.textContent).toContain('Geras energinis naudingumas');
+    expect(btn!.textContent).toContain('↘'); // decrease → ↘
+    expect(btn!.className).toContain('green'); // helper = reduces concern = green, not amber
+    expect(btn!.className).not.toContain('amber');
+    // Rendered under the winter-factors section with its own heading.
+    expect(container.querySelector('[data-block1="winter-factors"]')).not.toBeNull();
+    expect(container.textContent).toContain('Žiemos komforto veiksniai');
+    expect(container.textContent).toContain('mažesnius šilumos nuostolius');
+  });
 });
