@@ -141,6 +141,17 @@ function WinterSummerBars({
               levels={WINTER_LEVELS}
               description={winterDesc}
             />
+            {/* Winter band wiring: dual kWh comparison lines (A++ always;
+                C-floor for D–G). Single-sourced with the PDF. */}
+            {winter.comparison_lines_lt?.map((line, i) => (
+              <p
+                key={i}
+                data-winter-comparison
+                className="text-sm text-slate-600 leading-relaxed mt-2"
+              >
+                {line}
+              </p>
+            ))}
             {winterEstimateNote && (
               <p
                 data-winter-estimate

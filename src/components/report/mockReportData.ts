@@ -94,6 +94,9 @@ export interface ReportData {
         range_lt?: string;
         highlighted: boolean;
       }[];
+      // Winter band wiring: dual kWh comparison lines under the bar (A++ always;
+      // C-floor for D–G). Single source = block1/presentation.py.
+      comparison_lines_lt?: string[];
     } | null;
     summer: {
       // Lossless 5-value summer vocabulary (block1/presentation.py). The
@@ -339,6 +342,11 @@ export const MOCK_EXISTING: ReportData = {
     winter: {
       level: 'INTERMEDIATE',
       rows: winterRows('INTERMEDIATE'),
+      // Winter band wiring: A++ comparison line (class C → INTERMEDIATE → no
+      // C-floor line, which is D–G only).
+      comparison_lines_lt: [
+        'Palyginti su naujos statybos etalonu (A++): apie 7 kartus didesnis šildymo poreikis.',
+      ],
     },
     summer: {
       risk_level: 'MODERATE',
@@ -376,18 +384,11 @@ export const MOCK_EXISTING: ReportData = {
         direction: 'increase',
       },
     ],
-    // Driver merge: winter-comfort factors (two-way). Copy is verbatim from the
-    // backend _WINTER_FACTOR_DEFS (single source). MOCK_EXISTING is C / 1985 /
-    // low glazing → good_epc (C, a helper) active; the rest inactive.
+    // Winter-comfort factors (two-way), verbatim from the backend
+    // _WINTER_FACTOR_DEFS. good_epc (rating factor) REMOVED under letters-govern
+    // — tautological with the class verdict. Winter factors = age/windows/
+    // heating. MOCK_EXISTING is C / 1985 / low glazing → none active (honest).
     winter_factors: [
-      {
-        key: 'good_epc',
-        label_lt: 'Geras energinis naudingumas',
-        explanation_lt:
-          'Geras pastato energinis naudingumas reiškia mažesnius šilumos nuostolius, todėl žiemą patalpas lengviau šildyti iki komfortiškos temperatūros, o šildymui reikia mažiau energijos.',
-        active: true,
-        direction: 'decrease',
-      },
       {
         key: 'new_or_renovated',
         label_lt: 'Naujesnės statybos pastatas',
