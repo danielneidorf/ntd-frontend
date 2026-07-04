@@ -10,6 +10,7 @@ import { DEV_MOCK_PERMITS } from './report/mockReportData';
 import { Block8Section } from './report/Block8Section';
 import { Block2Section } from './report/Block2Section';
 import PropertyPhoto from './report/PropertyPhoto';
+import { buildPdfUrl } from './report/pdfUrl';
 import ComfortBarComponent, {
   WINTER_LEVELS,
   SUMMER_LEVELS,
@@ -26,8 +27,18 @@ type ViewState = 'loading' | 'loaded' | 'not_found' | 'error';
 
 // ─── Sub-components ───────────────────────────────────────────────
 
-function ReportHeader({ data, token }: { data: ReportData; token: string | null }) {
-  const pdfUrl = token ? `${API_BASE}/v1/reports/${token}/pdf` : null;
+function ReportHeader({
+  data,
+  token,
+  householdSize,
+}: {
+  data: ReportData;
+  token: string | null;
+  householdSize: number | null;
+}) {
+  // B2-14: the download carries the current household-size selection so the
+  // PDF renders the same personalised view the customer is looking at.
+  const pdfUrl = buildPdfUrl(API_BASE, token, householdSize);
 
   return (
     <header className="bg-[#1E3A5F] text-white">
@@ -345,6 +356,10 @@ export default function ReportViewer() {
   const [permits, setPermits] = useState<Permit[]>([]);
   const [permitsLoading, setPermitsLoading] = useState(false);
   const [token, setToken] = useState<string | null>(null);
+  // B2-14: household-size selection (null = building-only default). Lives
+  // here because both Block2Section (selector + swap) and the header's PDF
+  // link (?household_size=N) read it.
+  const [householdSize, setHouseholdSize] = useState<number | null>(null);
 
   useEffect(() => {
     const segments = window.location.pathname.split('/report/');
@@ -471,7 +486,7 @@ export default function ReportViewer() {
 
   return (
     <div className="min-h-screen bg-[#FAFBFC]">
-      <ReportHeader data={data} token={token} />
+      <ReportHeader data={data} token={token} householdSize={householdSize} />
       <main className="max-w-[1100px] mx-auto px-6 py-8 space-y-6">
         <div data-guide="street-view">
           <PropertyPhoto
@@ -553,7 +568,11 @@ export default function ReportViewer() {
           )}
         </div>
 
-        <Block2Section block2={data.block2} />
+        <Block2Section
+          block2={data.block2}
+          householdSize={householdSize}
+          onHouseholdSizeChange={setHouseholdSize}
+        />
 
         <Block8Section block8={data.block8} />
 
@@ -563,6 +582,12 @@ export default function ReportViewer() {
           snapshot={block1.inputs_snapshot}
           generatedAt={data.generated_at}
           glazingSource={data.property_profile.glazing_source}
+          block2CitationsLt={[
+            ...(data.block2?.citations_lt ?? []),
+            ...(householdSize != null && data.block2?.household_modelling
+              ? data.block2.household_modelling.citation_lt.lines_lt
+              : []),
+          ]}
         />
         <ReportFooter data={data} />
       </main>

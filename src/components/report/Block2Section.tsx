@@ -20,6 +20,11 @@ import type { Block2Data } from './mockReportData';
 
 interface Block2SectionProps {
   block2: Block2Data | undefined;
+  // B2-14 selector state lives in ReportViewer (the PDF download link needs
+  // it too); the section stays controlled. Optional so legacy call sites and
+  // payloads render the static default exactly as before.
+  householdSize?: number | null;
+  onHouseholdSizeChange?: (size: number | null) => void;
 }
 
 const MONTHS_LT = ['Sau', 'Vas', 'Kov', 'Bal', 'Geg', 'Bir', 'Lie', 'Rgp', 'Rgs', 'Spa', 'Lap', 'Gru'];
@@ -117,7 +122,11 @@ function ForecastChart({ data }: { data: NonNullable<Block2Data['forecast_5yr']>
   );
 }
 
-export function Block2Section({ block2 }: Block2SectionProps) {
+export function Block2Section({
+  block2,
+  householdSize = null,
+  onHouseholdSizeChange,
+}: Block2SectionProps) {
   if (!block2) return null;
 
   // Not-applicable (e.g. land-only): render the backend message only.
@@ -139,6 +148,31 @@ export function Block2Section({ block2 }: Block2SectionProps) {
 
   const { metric, breakdown, explanation, info_box, household_reference } = block2;
 
+  // B2-14: selection swaps to the matching backend-precomputed option — no €
+  // math and no LT copy composed here (all five views arrive served).
+  const hm = block2.household_modelling;
+  const selected =
+    (householdSize != null &&
+      hm?.options.find((o) => o.household_size === householdSize)) ||
+    null;
+
+  const shownMetric = selected
+    ? { eur_month: selected.metric.eur_month, subtext_lt: selected.metric.subtext_lt }
+    : metric;
+  const shownRows = selected ? selected.breakdown.rows : breakdown?.rows;
+  const shownTotal = selected ? selected.breakdown.total : breakdown?.total;
+  const shownMonthly = selected
+    ? selected.monthly_variation
+    : block2.monthly_variation;
+  // §7.5 family paragraph: OFF variant served on the default view, ON variant
+  // per option. §7.6 what's-not-included line switches the same way.
+  const familyNote = selected
+    ? selected.explanation_lt
+    : explanation?.family_note_lt;
+  const whatsNotIncluded = selected
+    ? selected.whats_not_included_lt
+    : info_box?.whats_not_included_lt;
+
   return (
     <section
       data-guide="block2"
@@ -151,19 +185,54 @@ export function Block2Section({ block2 }: Block2SectionProps) {
         </p>
       )}
 
-      {/* 1 — Metric bar (sibling of ComfortBar): headline €/month + subtext. */}
-      {metric && (
+      {/* 1 — Metric bar (sibling of ComfortBar): headline €/month + subtext.
+          Swaps to the selected household option's headline (B2-14). */}
+      {shownMetric && (
         <div data-block2="metric" className="bg-slate-50 rounded-xl p-5 md:p-6 mb-6">
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-semibold text-[#0D7377]">~€{metric.eur_month}</span>
+            <span className="text-3xl font-semibold text-[#0D7377]">~€{shownMetric.eur_month}</span>
             <span className="text-lg text-slate-500">/ mėn.</span>
           </div>
-          <p className="text-sm text-slate-600 leading-relaxed mt-1">{metric.subtext_lt}</p>
+          <p className="text-sm text-slate-600 leading-relaxed mt-1">{shownMetric.subtext_lt}</p>
         </div>
       )}
 
-      {/* 2 — Breakdown table (backend-rounded numbers rendered verbatim). */}
-      {breakdown && (
+      {/* 1b — B2-14 household-size selector (§7.7): [1][2][3][4][5+], toggle
+          to deselect. Rendered only when the backend served the options —
+          the residential/degradation gate stays backend-only. */}
+      {hm && hm.options.length > 0 && (
+        <div data-block2="household-selector" className="mb-6">
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Namų ūkio dydis">
+            {hm.options.map((o) => {
+              const isActive = householdSize === o.household_size;
+              return (
+                <button
+                  key={o.household_size}
+                  type="button"
+                  aria-pressed={isActive}
+                  onClick={() =>
+                    onHouseholdSizeChange?.(isActive ? null : o.household_size)
+                  }
+                  className={`text-sm font-medium min-h-[44px] min-w-[44px] px-4 py-2 rounded-lg border transition-colors cursor-pointer ${
+                    isActive
+                      ? 'bg-[#0D7377] border-[#0D7377] text-white'
+                      : 'bg-white border-slate-300 text-slate-700 hover:border-[#0D7377] hover:text-[#0D7377]'
+                  }`}
+                >
+                  {o.household_size === 5 ? '5+' : o.household_size}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+            ↑ {hm.selector_caption_lt}
+          </p>
+        </div>
+      )}
+
+      {/* 2 — Breakdown table (backend-rounded numbers rendered verbatim;
+          rows/total swap to the selected option's adjusted values). */}
+      {breakdown && shownRows && shownTotal && (
         <div className="mb-6 overflow-x-auto">
           <table data-block2="breakdown" className="w-full text-sm border-collapse">
             <thead>
@@ -174,7 +243,7 @@ export function Block2Section({ block2 }: Block2SectionProps) {
               </tr>
             </thead>
             <tbody>
-              {breakdown.rows.map((r, i) => (
+              {shownRows.map((r, i) => (
                 <tr key={i} className="border-b border-slate-100">
                   <td className="py-2 pr-3 text-slate-700">{r.label_lt}</td>
                   <td className="py-2 pr-3 text-right text-slate-700">€{r.eur_year}</td>
@@ -183,9 +252,9 @@ export function Block2Section({ block2 }: Block2SectionProps) {
                 </tr>
               ))}
               <tr className="font-semibold text-[#1E3A5F]">
-                <td className="py-2 pr-3">{breakdown.total.label_lt}</td>
-                <td className="py-2 pr-3 text-right">€{breakdown.total.eur_year}</td>
-                <td className="py-2 pr-3 text-right">€{breakdown.total.eur_month}</td>
+                <td className="py-2 pr-3">{shownTotal.label_lt}</td>
+                <td className="py-2 pr-3 text-right">€{shownTotal.eur_year}</td>
+                <td className="py-2 pr-3 text-right">€{shownTotal.eur_month}</td>
                 <td />
               </tr>
             </tbody>
@@ -196,6 +265,17 @@ export function Block2Section({ block2 }: Block2SectionProps) {
         </div>
       )}
 
+      {/* 2b — B2-14 data-source disclosure box (§7.7): only while a household
+          size is selected. Backend-served multiline text. */}
+      {selected && hm && (
+        <div
+          data-block2="disclosure-box"
+          className="bg-slate-50 border border-slate-200 rounded-lg p-5 mb-6 text-sm text-slate-600 leading-relaxed whitespace-pre-line"
+        >
+          {hm.disclosure_box_lt}
+        </div>
+      )}
+
       {/* 3 — Carrier-inference warning (only when the carrier was inferred). */}
       {block2.carrier_warning_lt && (
         <div data-block2="carrier-warning" className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6 rounded-r">
@@ -203,11 +283,13 @@ export function Block2Section({ block2 }: Block2SectionProps) {
         </div>
       )}
 
-      {/* 4 — Monthly variation chart. */}
-      {block2.monthly_variation && block2.monthly_variation.length > 0 && (
+      {/* 4 — Monthly variation chart (per-option rows when selected: DHW band
+          scaled, flat household-electricity band appears via the zero-band
+          filter). */}
+      {shownMonthly && shownMonthly.length > 0 && (
         <div className="mb-8">
           <h3 className="text-base font-semibold text-slate-800 mb-3">Mėnesinė energijos kaina per metus</h3>
-          <MonthlyChart data={block2.monthly_variation} />
+          <MonthlyChart data={shownMonthly} />
         </div>
       )}
 
@@ -219,21 +301,27 @@ export function Block2Section({ block2 }: Block2SectionProps) {
         </div>
       )}
 
-      {/* 6 — Practical explanation. */}
+      {/* 6 — Practical explanation (+ §7.5 family paragraph, OFF/ON variant). */}
       {explanation && (
         <div data-block2="explanation" className="mb-6">
           <h3 className="text-base font-semibold text-slate-800 mb-2">{explanation.heading_lt}</h3>
           <p className="text-sm text-slate-700 leading-relaxed">{explanation.body_lt}</p>
+          {familyNote && (
+            <p data-block2="family-note" className="text-sm text-slate-700 leading-relaxed mt-2">
+              {familyNote}
+            </p>
+          )}
         </div>
       )}
 
-      {/* 7 — Info box. */}
+      {/* 7 — Info box (+ §7.6 conditional what's-not-included line). */}
       {info_box && (
         <div data-block2="info-box" className="bg-slate-50 rounded-lg p-5 mb-6 text-sm text-slate-600 leading-relaxed space-y-1">
           <p className="font-semibold text-slate-800">{info_box.heading_lt}</p>
           <p>{info_box.vat_lt}</p>
           <p>{info_box.escalation_lt}</p>
           <p>{info_box.disclosure_lt}</p>
+          {whatsNotIncluded && <p data-block2="whats-not-included">{whatsNotIncluded}</p>}
         </div>
       )}
 
@@ -244,7 +332,8 @@ export function Block2Section({ block2 }: Block2SectionProps) {
         </p>
       )}
 
-      {/* 9 — Household-electricity reference table (static; selector is B2-14). */}
+      {/* 9 — Household-electricity reference table (always visible regardless
+          of selection, §7.7; served only for residential reports). */}
       {household_reference && household_reference.length > 0 && (
         <div className="overflow-x-auto">
           <h3 className="text-base font-semibold text-slate-800 mb-3">Tipinės namų ūkio elektros sąnaudos</h3>

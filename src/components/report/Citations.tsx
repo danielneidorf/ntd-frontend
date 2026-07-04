@@ -66,12 +66,20 @@ export default function Citations({
   snapshot,
   generatedAt,
   glazingSource,
+  block2CitationsLt,
 }: {
   snapshot: Snapshot;
   generatedAt: string;
   glazingSource: string | null;
+  // B2-14 (§7.8): the served Block 2 citations — tariffs, forecast basis and,
+  // while a household size is selected, the 👥 household-modelling lines —
+  // appended to the same numbered list the PDF appends them to.
+  block2CitationsLt?: string[];
 }) {
-  const citations = buildCitations(snapshot, generatedAt, glazingSource);
+  const citations = [
+    ...buildCitations(snapshot, generatedAt, glazingSource),
+    ...(block2CitationsLt ?? []),
+  ];
 
   return (
     <section className="mt-10 border-t border-gray-200 pt-6">
