@@ -16,7 +16,7 @@ const READY_BLOCK8: Block8Data = {
       'Apžiūrėkite izoliaciją ir langų sandarumą.',
     ],
     negotiation_angles_lt: [
-      'Šildymo sąnaudos gali būti 10–30 % didesnės nei efektyviame pastate.',
+      'Šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyviame analogiškame pastate — tai apie €580 per metus.',
     ],
     forward_note_lt: 'Tikslesnį įvertinimą rasite 2 bloke.',
     caveat_lt: null,
@@ -38,7 +38,8 @@ describe('Block8Section', () => {
     expect(
       screen.getByText(/Paprašykite faktinių šildymo sąskaitų/),
     ).toBeInTheDocument();
-    expect(screen.getByText(/10–30 %/)).toBeInTheDocument();
+    expect(screen.getByText(/apie 6,5 karto/)).toBeInTheDocument();
+    expect(screen.getByText(/€580/)).toBeInTheDocument();
     expect(screen.getByText(/Tikslesnį įvertinimą/)).toBeInTheDocument();
   });
 

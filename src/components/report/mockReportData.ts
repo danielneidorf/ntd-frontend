@@ -1270,19 +1270,22 @@ export const MOCK_EXISTING: ReportData = {
     data: {
       pattern: 'B',
       scope_prefix: 'Šilumos komforto požiūriu',
+      // B2-15: strings below are the served v2 copy (captured from a real
+      // _build_report_data run on the same CST fixture as block2 above —
+      // €76/€57 figures match block2's displayed cells by construction).
       intro_lt:
-        'Šilumos komforto požiūriu, šis pastatas kelia šildymo iššūkį — šildymo sąnaudos gali būti reikšmingai didesnės nei efektyviame pastate, todėl verta atkreipti dėmesį į keletą dalykų.',
+        'Šilumos komforto požiūriu, šis pastatas kelia šildymo iššūkį — šildymo sąnaudos gali būti reikšmingai didesnės nei efektyviame pastate, todėl verta atkreipti dėmesį į keletą dalykų. Šio pastato šildymo poreikis yra apie 35 % mažesnis nei vidutinio tos pačios energinės klasės pastato Lietuvoje. Bendra energijos kaina šiam pastatui — apie €76 per mėnesį.',
       viewing_questions_lt: [
         'Paprašykite faktinių šildymo sąskaitų už paskutinius 2–3 žiemos sezonus — ne įvertinimų, o tikrų sąskaitų.',
         'Apžiūrėkite izoliaciją: stogo / pastogės apšiltinimą, grindų / rūsio izoliaciją, sienų būklę (matomi plyšiai, drėgmės žymės).',
         'Patikrinkite langų būklę: dvigubas ar trigubas stiklo paketas, rėmų būklė, ar jaučiamas skersvėjis.',
       ],
       negotiation_angles_lt: [
-        'Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 10–30 % didesnės nei techniškai efektyviame pastate. Tai reiškia konkretų pokytį jūsų mėnesinėse sąskaitose.',
+        'Bendra energijos kaina šiam pastatui — apie €76 per mėnesį; iš šios sumos šildymui tenka apie €57 per mėnesį. Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyviame analogiškame pastate — tai apie €580 per metus. Per 5 metus, įvertinus prognozuojamą energijos kainų augimą (pagal 10 metų kainų tendencijas), skirtumas sudarytų apie €3260. Nerenovavus pastato, vien šildymas kainuotų apie €340 per metus daugiau nei renovuotame (C klasės) pastate.',
         'Šio laikotarpio pastatai dažnai turi silpnesnę izoliaciją — verta paklausti pardavėjo, ar buvo atlikta modernizacija.',
       ],
       forward_note_lt:
-        'Kiek konkrečiai kainuos šildymas eurais per mėnesį, parodys 2 blokas (Energijos sąnaudos). 10 metų bendrą gyvenimo kainą — 3 blokas (Gyvenimo kaina).',
+        'Kiek konkrečiai kainuoja šildymas eurais per mėnesį, rasite 2 bloke (Energijos sąnaudos). 10 metų bendrą gyvenimo kainą parodys 3 blokas (Gyvenimo kaina), kai jis bus pridėtas.',
       caveat_lt: null,
       scope_disclaimer_lt:
         'Šios rekomendacijos apima tik šilumos komforto aspektą. Visapusiškas derybų strategijas ir pasiūlymo kainą pateiks pilnas 8 blokų rinkinys, kai visi blokai bus pridėti.',
