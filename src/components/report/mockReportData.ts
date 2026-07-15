@@ -82,6 +82,8 @@ export interface Block2Data {
     vat_lt: string;
     escalation_lt: string;
     disclosure_lt: string;
+    // B2-16 (R9): the €→kWh conversion staleness note (€-bills mode only).
+    bill_note_lt?: string | null;
     whats_not_included_lt?: string;
   };
   confidence?: string;

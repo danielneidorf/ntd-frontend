@@ -12,7 +12,7 @@ export interface Candidate {
   kind: 'whole_building' | 'unit_in_building' | 'land_plot';
   confidence: 'high' | 'medium' | 'low';
   primary_object: Record<string, unknown>;
-  bundle_items: unknown[];
+  bundle_items?: unknown[] | null;
   bundle_confidence: 'HIGH' | 'AMBIGUOUS' | 'LOW';
   // Resolver-side provenance: where this candidate's identifying data
   // came from. Drives the success-handler routing (P7-H3): any
@@ -40,6 +40,9 @@ export interface Candidate {
   // "unit_requested_building_resolved") — surfaced from the backend for
   // diagnostics / future user-facing chips.
   resolver_warnings?: string[];
+  // B2-16: order-time €-gate + HP hints (server re-enforces at /confirm)
+  bill_eur_supported?: boolean;
+  bill_hp_metered?: boolean;
 }
 
 export interface ResolveResponse {
@@ -74,12 +77,9 @@ export interface QuickScanState {
   project_doc_id: string | null;
   resolver_result: ResolveResponse | null;
   selected_candidate_id: string | null;
-  user_epc: {
-    energy_class?: string;
-    kwhm2_year?: number;
-    issue_year?: number;
-    year_unknown?: boolean;
-  } | null;
+  // B2-16: one card, three units — kWh/m² → intensity channel,
+  // €/kWh → Channel-2 bill (see utils/userEnergyInput.ts).
+  user_energy_input: UserEnergyInput | null;
   quote: QuoteData | null;
   email: string;
   consent_accepted: boolean;
@@ -210,7 +210,7 @@ const initialState = (): QuickScanState => {
   project_doc_id: null,
   resolver_result,
   selected_candidate_id: resolver_result ? resolver_result.candidates[0]?.candidate_id ?? null : null,
-  user_epc: null,
+  user_energy_input: null,
   quote,
   email,
   consent_accepted,
@@ -311,6 +311,19 @@ const CASE_LABELS: Record<CaseType, string> = {
   new_build_project: 'Naujai statomas ar ką tik baigtas pastatas/patalpos.',
   land_only: 'Tik žemės sklypas.',
 };
+
+// B2-16: user energy-input card logic (pure helpers, unit-tested)
+import {
+  buildUserEnergyPayload,
+  echoBackLt,
+  getEnergyPreflight,
+  HP_WHOLE_BILL_NOTE_LT,
+  isInputComplete,
+  kwhm2HintLt,
+  missingPartsNoteLt,
+  monthGenitiveLt,
+  type UserEnergyInput,
+} from '../utils/userEnergyInput';
 
 const NTR_REGEX = /^\d{4}-\d{4}-\d{4}(:\d{1,6})?$/;
 
@@ -452,7 +465,8 @@ function Screen1({
   const geoValid = state.geo !== null;
   const mapPinActive = geoValid && geoSource === 'map';
   const locationValid = ntrValid || addressValid || geoValid;
-  const canProceed = !!selected && locationValid;
+  const canProceed = !!selected && locationValid
+    && isInputComplete(state.user_energy_input);
 
   // P7-B8.2: pending candidates ref for the fill_address → select_address_candidate flow
   const pendingCandidatesRef = useRef<
@@ -1036,39 +1050,127 @@ function Screen1({
               </p>
           </div>
 
-          {/* kWh card — existing_object only, fades in/out */}
+          {/* B2-16 energy card — one card, three units, existing_object only */}
           {state.case_type === 'existing_object' && (
           <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col"
             style={{ animation: 'fadeSlideIn 0.3s ease forwards' }} data-guide="qs-energy">
               <label className="block text-[15px] font-medium text-[#1A1A2E] mb-1">
-                Faktinės energijos sąnaudos
+                Faktinės energijos sąnaudos (pasirinktinai)
               </label>
-              <p className="text-[14px] text-[#64748B] mb-2">Jei žinote faktines sąnaudas iš sąskaitų ar skaitiklių — įveskite čia. Padės tiksliau įvertinti komfortą.</p>
+              <p className="text-[14px] text-[#64748B] mb-3">Jei turite šildymo sąskaitą, skaitiklio duomenis ar energinio naudingumo sertifikatą, įveskite sąnaudas — vertinimas bus tikslesnis.</p>
+              {/* Unit router — a unit must be actively chosen before the field unlocks */}
+              <div className="flex flex-wrap border-b border-[#E2E8F0] mb-3">
+                {([
+                  { unit: 'eur' as const, label: '€', sub: 'suma iš sąskaitos', badge: 'Dažniausia' },
+                  { unit: 'kwh' as const, label: 'kWh', sub: 'iš sąskaitos ar skaitiklio', badge: null },
+                  { unit: 'kwhm2' as const, label: 'kWh/m²', sub: 'iš energinio naudingumo sertifikato', badge: null },
+                ]).map(u => (
+                  <button
+                    key={u.unit}
+                    type="button"
+                    onClick={() => setState(s => ({
+                      ...s,
+                      user_energy_input: {
+                        ...(s.user_energy_input?.unit === u.unit ? s.user_energy_input : { value: s.user_energy_input?.value }),
+                        unit: u.unit,
+                        ...(u.unit !== 'kwhm2' && s.user_energy_input?.unit !== 'kwhm2'
+                          ? { period: s.user_energy_input?.period ?? 'month', month: s.user_energy_input?.month, scope: s.user_energy_input?.scope }
+                          : u.unit !== 'kwhm2' ? { period: 'month' } : {}),
+                      },
+                    }))}
+                    className={`px-4 py-2.5 text-[14px] border-b-2 transition-all rounded-t-md whitespace-nowrap min-h-[44px] ${
+                      state.user_energy_input?.unit === u.unit
+                        ? 'bg-[#E8F4F8] border-[#0D7377] text-[#1E3A5F] font-semibold'
+                        : 'border-transparent text-[#64748B] font-medium hover:bg-[#FAFBFC] hover:text-[#1A1A2E]'
+                    }`}
+                  >
+                    {u.label}
+                    <span className="block text-[11px] font-normal text-[#94A3B8]">{u.sub}</span>
+                    {u.badge && (
+                      <span className="ml-1 text-[10px] uppercase tracking-[0.05em] text-[#0D7377] bg-[#E8F4F8] px-1.5 py-0.5 rounded" style={{ fontSize: '10px' }}>{u.badge}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
               <div className="flex gap-3 items-center mb-3">
                 <input
                   type="number"
-                  value={state.user_epc?.kwhm2_year ?? ''}
-                  onChange={e => setState(s => ({ ...s, user_epc: { ...s.user_epc, kwhm2_year: e.target.value ? Number(e.target.value) : undefined } }))}
-                  placeholder="pvz., 120"
-                  className="w-full px-4 rounded-lg border border-[#E2E8F0] bg-white text-[16px] outline-none focus:border-[#0D7377] transition-all"
+                  disabled={!state.user_energy_input?.unit}
+                  value={state.user_energy_input?.value ?? ''}
+                  onChange={e => setState(s => ({ ...s, user_energy_input: s.user_energy_input && { ...s.user_energy_input, value: e.target.value ? Number(e.target.value) : undefined } }))}
+                  placeholder={state.user_energy_input?.unit === 'kwh' ? 'pvz., 4500' : state.user_energy_input?.unit === 'kwhm2' ? 'pvz., 145' : 'pvz., 65'}
+                  aria-label="Energijos sąnaudų suma"
+                  className={`w-full px-4 rounded-lg border border-[#E2E8F0] text-[16px] outline-none focus:border-[#0D7377] transition-all ${state.user_energy_input?.unit ? 'bg-white' : 'bg-[#FAFBFC] cursor-not-allowed'}`}
                   style={{ height: '48px' }}
                 />
-                <span className="text-[14px] text-[#64748B] whitespace-nowrap">kWh/m² per metus</span>
+                <span className="text-[14px] text-[#64748B] whitespace-nowrap">
+                  {state.user_energy_input?.unit === 'kwhm2' ? 'kWh/m² per metus'
+                    : state.user_energy_input?.unit === 'kwh' ? 'kWh'
+                    : state.user_energy_input?.unit === 'eur' ? '€' : ''}
+                </span>
               </div>
-              {/* Scope selector */}
-              <div className="flex flex-col gap-2 mb-3">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" name="kwh-scope-s1" value="heating" className="accent-[#0D7377]" defaultChecked />
-                  <span className="text-[14px] text-[#64748B]">Tik šildymas</span>
-                </label>
-                <div>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="kwh-scope-s1" value="all" className="accent-[#0D7377]" />
-                    <span className="text-[14px] text-[#64748B]">Visas komfortas (šildymas + karštas vanduo + vėsinimas)</span>
-                  </label>
-                  <p className="text-[13px] text-[#94A3B8] mt-1 ml-6">Bendra energija patalpų šildymui, karšto vandens ruošimui ir vėsinimui.</p>
-                </div>
-              </div>
+              {kwhm2HintLt(state.user_energy_input) && (
+                <p className="text-[13px] text-[#F59E0B] mb-2">{kwhm2HintLt(state.user_energy_input)}</p>
+              )}
+              {(state.user_energy_input?.unit === 'eur' || state.user_energy_input?.unit === 'kwh') && (
+                <>
+                  {/* Period toggle */}
+                  <div className="flex gap-2 mb-3">
+                    {([{ v: 'month' as const, label: 'per mėnesį' }, { v: 'year' as const, label: 'per metus' }]).map(pOpt => (
+                      <button key={pOpt.v} type="button"
+                        onClick={() => setState(s => ({ ...s, user_energy_input: s.user_energy_input && { ...s.user_energy_input, period: pOpt.v, ...(pOpt.v === 'year' ? { month: undefined } : {}) } }))}
+                        className={`px-4 py-2 rounded-lg border text-[14px] transition-all ${
+                          (state.user_energy_input?.period ?? 'month') === pOpt.v
+                            ? 'border-[#0D7377] bg-[#E8F4F8] text-[#1E3A5F] font-semibold'
+                            : 'border-[#E2E8F0] text-[#64748B] hover:border-[#94A3B8]'
+                        }`}>
+                        {pOpt.label}
+                      </button>
+                    ))}
+                  </div>
+                  {/* Month selector — active choice required, 13th option = the honest average */}
+                  {(state.user_energy_input?.period ?? 'month') === 'month' && (
+                    <div className="mb-3">
+                      <label className="block text-[14px] text-[#64748B] mb-1" htmlFor="bill-month">Kurio mėnesio sąskaita?</label>
+                      <select
+                        id="bill-month"
+                        value={state.user_energy_input?.month === undefined ? '' : String(state.user_energy_input.month)}
+                        onChange={e => setState(s => ({ ...s, user_energy_input: s.user_energy_input && { ...s.user_energy_input, month: e.target.value === '' ? undefined : e.target.value === 'average' ? 'average' : Number(e.target.value) } }))}
+                        className="w-full px-4 rounded-lg border border-[#E2E8F0] bg-white text-[15px] outline-none focus:border-[#0D7377] transition-all"
+                        style={{ height: '44px' }}
+                      >
+                        <option value="" disabled>— pasirinkite —</option>
+                        {Array.from({ length: 12 }, (_, i) => (
+                          <option key={i + 1} value={i + 1}>{monthGenitiveLt(i + 1)}</option>
+                        ))}
+                        <option value="average">Mėnesio vidurkis</option>
+                      </select>
+                    </div>
+                  )}
+                  {/* Scope clarifier — required once a value is entered */}
+                  <div className="flex flex-col gap-2 mb-3">
+                    <span className="text-[14px] text-[#64748B]">Ką apima ši suma?</span>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="bill-scope" value="heating" className="accent-[#0D7377]"
+                        checked={state.user_energy_input?.scope === 'heating'}
+                        onChange={() => setState(s => ({ ...s, user_energy_input: s.user_energy_input && { ...s.user_energy_input, scope: 'heating' } }))} />
+                      <span className="text-[14px] text-[#64748B]">Tik šildymą</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="bill-scope" value="heating_dhw" className="accent-[#0D7377]"
+                        checked={state.user_energy_input?.scope === 'heating_dhw'}
+                        onChange={() => setState(s => ({ ...s, user_energy_input: s.user_energy_input && { ...s.user_energy_input, scope: 'heating_dhw' } }))} />
+                      <span className="text-[14px] text-[#64748B]">Šildymą ir karštą vandenį</span>
+                    </label>
+                  </div>
+                </>
+              )}
+              {missingPartsNoteLt(state.user_energy_input) && (
+                <p className="text-[13px] text-[#F59E0B] mb-2">{missingPartsNoteLt(state.user_energy_input)}</p>
+              )}
+              {echoBackLt(state.user_energy_input) && (
+                <p className="text-[13px] text-[#0D7377] bg-[#E8F4F8] rounded-lg px-3 py-2" data-guide="qs-energy-echo">{echoBackLt(state.user_energy_input)}</p>
+              )}
           </div>
           )}
 
@@ -1172,78 +1274,6 @@ const KIND_LABELS: Record<Candidate['kind'], string> = {
 };
 
 
-function EpcCard({
-  state,
-  setState,
-}: {
-  state: QuickScanState;
-  setState: React.Dispatch<React.SetStateAction<QuickScanState>>;
-}) {
-  const epc = state.user_epc ?? {};
-  const kwhVal = epc.kwhm2_year;
-  const kwhWarning = kwhVal !== undefined && (kwhVal < 10 || kwhVal > 1000);
-
-  function updateEpc(patch: Partial<NonNullable<QuickScanState['user_epc']>>) {
-    setState(s => ({ ...s, user_epc: { ...s.user_epc, ...patch } }));
-  }
-
-  return (
-    <div className="rounded-xl border border-[#E2E8F0] bg-white px-6 py-5 mb-4">
-      <h3 className="text-sm font-semibold text-[#1E3A5F] mb-2">
-        Energijos naudingumo duomenys (pasirinktinai)
-      </h3>
-
-      <div className="flex flex-col gap-4">
-        {/* PDF upload */}
-        <div>
-          <label className="block text-xs font-medium text-[#1E3A5F] mb-1.5">
-            Energinio naudingumo sertifikatas (PDF)
-          </label>
-          <div className="border-2 border-dashed border-[#E2E8F0] rounded-lg p-4 text-center cursor-pointer hover:border-[#0D7377] transition-colors">
-            <div className="text-sm text-[#64748B]">📄 Įkelti sertifikatą</div>
-            <div className="text-xs text-[#94A3B8] mt-1">PDF · sistema automatiškai nuskaitys duomenis</div>
-          </div>
-        </div>
-
-        <div className="border-t border-[#E2E8F0] pt-4">
-          {/* kWh/m² manual entry */}
-          <label className="block text-xs font-medium text-[#1E3A5F] mb-1.5">
-            Faktinės energijos sąnaudos (iš sąskaitų / skaitiklių)
-          </label>
-          <div className="flex gap-3 items-center mb-3">
-            <input
-              type="number"
-              value={epc.kwhm2_year ?? ''}
-              onChange={e => updateEpc({ kwhm2_year: e.target.value ? Number(e.target.value) : undefined })}
-              placeholder="pvz. 145"
-              className={`w-32 px-3 py-2.5 border rounded-md text-sm text-[#1E3A5F] outline-none focus:border-[#0D7377] ${kwhWarning ? 'border-[#F59E0B]' : 'border-[#E2E8F0]'}`}
-            />
-            <span className="text-xs text-[#64748B]">kWh/m² per metus</span>
-          </div>
-          {kwhWarning && (
-            <p className="text-xs text-[#F59E0B] mb-2">Neįprasta reikšmė — patikrinkite.</p>
-          )}
-          {/* Scope selector */}
-          <div className="flex gap-3">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="kwh-scope" value="heating" className="accent-[#0D7377]" defaultChecked />
-              <span className="text-xs text-[#64748B]">Tik šildymas</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="kwh-scope" value="all" className="accent-[#0D7377]" />
-              <span className="text-xs text-[#64748B]">Visas komfortas (šildymas + vėsinimas + kt.)</span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <p className="text-xs text-[#94A3B8] mt-4 pt-4 border-t border-[#F1F5F9]">
-        Jei nepateiksite — vertinimui bus naudojami registrų duomenys.
-      </p>
-    </div>
-  );
-}
-
 function Screen2({
   state,
   setState,
@@ -1268,6 +1298,17 @@ function Screen2({
     isDevDuplicate ? { order_id: 'dev-dup-001', paid_at: '2026-03-30T10:15:00Z', report_url: 'https://ntd.lt/report/dev-dup-token' } : null
   );
   const [resendDone, setResendDone] = useState(false);
+  // B2-16: confirm-response energy feedback (server-authored copy) + the
+  // 400 bill-family notice. questions = the HP meter-scope prompt.
+  // Declared with the other hooks — Screen2 has early returns below, and
+  // hooks must run unconditionally on every render.
+  const [energyFeedback, setEnergyFeedback] = useState<{
+    warnings: { code: string; message_lt: string }[];
+    rejected: { field?: string; reason_code: string; message_lt: string }[];
+    questions: { code: string; message_lt: string; options: { value: string; label_lt: string }[] }[];
+  }>({ warnings: [], rejected: [], questions: [] });
+  const [energyErrorNotice, setEnergyErrorNotice] = useState<string | null>(null);
+  const [wholeBillDeclined, setWholeBillDeclined] = useState(false);
   const [showMethodSelector, setShowMethodSelector] = useState(isDevPayment);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const stripeRef = useRef<any>(null);
@@ -1486,10 +1527,45 @@ function Screen2({
     : resolver.candidates.find(c => c.candidate_id === state.selected_candidate_id);
   if (!candidate) return null;
 
-  const handleConfirmObject = async () => {
+  // Screen-2 preflight: the €-gate/HP flags exist only after /resolve, so
+  // the card accepts everything on Screen 1 and the check runs here; the
+  // server 400s stay as enforcement.
+  const energyPreflight = getEnergyPreflight(candidate, state.user_energy_input);
+
+  const clearEnergyInput = () => {
+    setState(s => ({ ...s, user_energy_input: null }));
+    setEnergyErrorNotice(null);
+    setWholeBillDeclined(false);
+  };
+
+  // HP α zone-b prompt: „Tik šilumos siurblio" re-confirms with the answer
+  // PAIRED with the bill fields (rider 3); „Visa sąskaita" drops the bill
+  // (never sent as whole_bill — the 400 is the rogue-payload backstop) and
+  // re-confirms un-billed with the helpful note.
+  const handleEnergyQuestionAnswer = (code: string, value: string) => {
+    if (code !== 'hp_meter_scope') return;
+    if (value === 'pump_only') {
+      setWholeBillDeclined(false);
+      const next = state.user_energy_input
+        ? { ...state.user_energy_input, hp_meter_scope: 'pump_only' as const }
+        : null;
+      void handleConfirmObject(next);
+    } else {
+      setWholeBillDeclined(true);
+      void handleConfirmObject(null);
+    }
+  };
+
+  const handleConfirmObject = async (inputOverride?: UserEnergyInput | null) => {
+    const energyInput = inputOverride !== undefined ? inputOverride : state.user_energy_input;
+    if (inputOverride !== undefined) {
+      setState(s => ({ ...s, user_energy_input: inputOverride }));
+    }
     setObjectConfirmed(true);
     setQuoting(true);
     setQuoteError(null);
+    setEnergyErrorNotice(null);
+    setEnergyFeedback({ warnings: [], rejected: [], questions: [] });
     try {
       const confirmRes = await fetch(`${API_BASE}/v1/quickscan-lite/confirm`, {
         method: 'POST',
@@ -1497,20 +1573,36 @@ function Screen2({
         body: JSON.stringify({
           candidate_id: candidate.candidate_id,
           case_type: state.case_type,
-          address: candidate.address,
+          // address/kind are FE ECHOES the handler deliberately distrusts
+          // (server-authoritative cache is truth) — live registry candidates
+          // omit them (null-excluded), so fall back rather than 422.
+          address: candidate.address ?? state.address_text ?? '',
           ntr_unique_number: candidate.ntr_unique_number ?? null,
           municipality: candidate.municipality ?? null,
-          kind: candidate.kind,
-          bundle_item_count: candidate.bundle_items.length,
-          user_energy_class: null,
-          user_epc_kwhm2_year: state.user_epc?.kwhm2_year ?? null,
-          user_epc_issue_year: null,
-          user_epc_issue_year_unknown: false,
+          kind: candidate.kind ?? 'unknown',
+          bundle_item_count: (candidate.bundle_items ?? []).length,
+          ...buildUserEnergyPayload(energyInput),
           discount_token: state.discount_token ?? null,
         }),
       });
       const confirmJson = await confirmRes.json();
-      if (!confirmJson.ok) throw new Error('confirm failed');
+      if (!confirmJson.ok) {
+        // Bill-family structured 400s carry customer copy — surface it and
+        // keep the user on the proof card with the removal affordance.
+        const code: string | undefined = confirmJson?.error_code;
+        const message: string | undefined = confirmJson?.message;
+        if (code && message && (code.startsWith('bill_') || code === 'user_inputs_conflict')) {
+          setEnergyErrorNotice(message);
+          setObjectConfirmed(false);
+          return;
+        }
+        throw new Error('confirm failed');
+      }
+      setEnergyFeedback({
+        warnings: confirmJson.data.warnings ?? [],
+        rejected: confirmJson.data.rejected ?? [],
+        questions: confirmJson.data.questions ?? [],
+      });
       const { bundle_signature, bundle_id, bundle_size, has_new_build_project } = confirmJson.data;
       const quoteBody: Record<string, unknown> = { bundle_signature, bundle_id, bundle_size, has_new_build_project };
       if (state.discount_token) quoteBody.promo = state.discount_token;
@@ -1775,7 +1867,7 @@ function Screen2({
               <p className="text-[16px] font-bold text-[#1E3A5F] mb-2">{candidate.address}</p>
               {candidate.ntr_unique_number && <p className="text-[14px] text-[#64748B] mb-1">Unikalus Nr.: {candidate.ntr_unique_number}</p>}
               {candidate.municipality && <p className="text-[14px] text-[#64748B] mb-1">Savivaldybė: {candidate.municipality}</p>}
-              {candidate.bundle_items.length > 0 && <p className="text-[14px] text-[#94A3B8] mt-2">Komplekte taip pat yra: {candidate.bundle_items.map((b: any) => b.kind || b.address).join(', ')}.</p>}
+              {(candidate.bundle_items ?? []).length > 0 && <p className="text-[14px] text-[#94A3B8] mt-2">Komplekte taip pat yra: {(candidate.bundle_items ?? []).map((b: any) => b.kind || b.address).join(', ')}.</p>}
             </div>
             {objectConfirmed && (
               <div className="w-8 h-8 rounded-full bg-[#059669] flex items-center justify-center flex-shrink-0">
@@ -1786,10 +1878,24 @@ function Screen2({
           <p className="text-[13px] text-[#94A3B8] mt-3 pt-3 border-t border-[#F1F5F9]">Vertinimas taikomas pagrindiniam šildomam objektui.</p>
         </div>
 
+        {/* B2-16 Screen-2 preflight + 400 notices (blocking ones disable confirm) */}
+        {!objectConfirmed && (energyPreflight.blocking || energyErrorNotice) && (
+          <div className="rounded-lg px-4 py-3 mb-3" style={{ background: '#FEF3C7', border: '1px solid #F59E0B' }} data-guide="qs-energy-preflight">
+            <p className="text-[14px] text-[#1A1A2E] mb-2">{energyErrorNotice ?? energyPreflight.blocking}</p>
+            <button onClick={clearEnergyInput}
+              className="px-3 py-1.5 rounded-md border text-[13px] transition-all"
+              style={{ borderColor: '#F59E0B', color: '#D97706' }}>
+              Pašalinti įvestį
+            </button>
+          </div>
+        )}
+        {!objectConfirmed && !energyPreflight.blocking && !energyErrorNotice && energyPreflight.info && (
+          <p className="text-[13px] text-[#64748B] bg-[#FAFBFC] border border-[#E2E8F0] rounded-lg px-3 py-2 mb-3">{energyPreflight.info}</p>
+        )}
         {!objectConfirmed && (
           <div className="flex gap-3">
-            <button onClick={handleConfirmObject} disabled={quoting}
-              className={`px-6 py-3 rounded-lg text-[14px] font-semibold transition-all flex items-center gap-2 ${quoting ? 'bg-[#CBD5E1] text-white cursor-not-allowed' : 'bg-[#0D7377] text-white hover:bg-[#0B6268] cursor-pointer'}`}>
+            <button onClick={() => handleConfirmObject()} disabled={quoting || !!energyPreflight.blocking}
+              className={`px-6 py-3 rounded-lg text-[14px] font-semibold transition-all flex items-center gap-2 ${quoting || energyPreflight.blocking ? 'bg-[#CBD5E1] text-white cursor-not-allowed' : 'bg-[#0D7377] text-white hover:bg-[#0B6268] cursor-pointer'}`}>
               {quoting ? (<><svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Tikrinama…</>) : 'Taip, teisingas'}
             </button>
             <button onClick={() => setState(s => ({ ...s, step: 1, resolver_result: null, geo: null, address_text: null, ntr_unique_number: null, selected_candidate_id: null }))}
@@ -1801,7 +1907,46 @@ function Screen2({
         {quoteError && (
           <div className="flex items-center gap-3 mt-3">
             <p className="text-sm text-[#DC3545]">{quoteError}</p>
-            <button onClick={handleConfirmObject} className="text-sm text-[#0D7377] underline">Bandyti dar kartą</button>
+            <button onClick={() => handleConfirmObject()} className="text-sm text-[#0D7377] underline">Bandyti dar kartą</button>
+          </div>
+        )}
+        {/* B2-16 confirm-response feedback: server-authored copy (soft
+            warnings, declines, the HP meter-scope prompt). Declines are
+            non-blocking — the confirm succeeded, the entry just isn't used. */}
+        {(energyFeedback.rejected.length > 0 || energyFeedback.warnings.length > 0
+          || energyFeedback.questions.length > 0 || wholeBillDeclined) && (
+          <div className="mt-4 flex flex-col gap-3" data-guide="qs-energy-feedback">
+            {energyFeedback.rejected.map(r => (
+              <div key={r.reason_code} className="rounded-lg px-4 py-3" style={{ background: '#FEF3C7', border: '1px solid #F59E0B' }}>
+                <p className="text-[14px] font-semibold text-[#1A1A2E] mb-1">
+                  {r.field === 'bill_value' ? 'Sąskaita nebus naudojama' : 'Įvesta reikšmė nebus naudojama'}
+                </p>
+                <p className="text-[14px] text-[#1A1A2E]">{r.message_lt}</p>
+              </div>
+            ))}
+            {energyFeedback.warnings.map(w => (
+              <div key={w.code} className="rounded-lg px-4 py-3" style={{ background: '#FEF3C7', border: '1px solid #F59E0B' }}>
+                <p className="text-[14px] text-[#1A1A2E]">{w.message_lt}</p>
+              </div>
+            ))}
+            {energyFeedback.questions.map(q => (
+              <div key={q.code} className="rounded-lg border border-[#0D7377] bg-[#E8F4F8] px-4 py-3">
+                <p className="text-[14px] text-[#1A1A2E] mb-2">{q.message_lt}</p>
+                <div className="flex flex-wrap gap-2">
+                  {q.options.map(o => (
+                    <button key={o.value} onClick={() => handleEnergyQuestionAnswer(q.code, o.value)}
+                      className="px-4 py-2 rounded-lg border border-[#0D7377] text-[13px] text-[#0D7377] font-medium hover:bg-[#0D7377] hover:text-white transition-all">
+                      {o.label_lt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+            {wholeBillDeclined && (
+              <div className="rounded-lg px-4 py-3" style={{ background: '#FEF3C7', border: '1px solid #F59E0B' }}>
+                <p className="text-[14px] text-[#1A1A2E]">{HP_WHOLE_BILL_NOTE_LT}</p>
+              </div>
+            )}
           </div>
         )}
       </div>

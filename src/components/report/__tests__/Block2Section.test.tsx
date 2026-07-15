@@ -209,3 +209,27 @@ describe('Block2Section', () => {
     expect(container.querySelector('[data-block2="household-reference"]')).not.toBeNull();
   });
 });
+
+// ─── B2-16: the €-bill conversion note (R9) ─────────────────────────────────
+
+describe('bill_note_lt (B2-16 R9)', () => {
+  it('renders the served note in the info box when present', () => {
+    const billNote =
+      'Pastaba: jūsų pateikta € suma perskaičiuota į energijos kiekį pagal '
+      + 'dabartinį tarifą; tarifai atnaujinami pagal dokumentuotą grafiką, '
+      + 'todėl pasikeitus tarifui išvestinis kiekis gali nežymiai kisti.';
+    const block2 = {
+      ...MOCK_EXISTING.block2!,
+      info_box: { ...MOCK_EXISTING.block2!.info_box!, bill_note_lt: billNote },
+    };
+    const { container } = render(<Block2Section block2={block2} />);
+    const note = container.querySelector('[data-block2="bill-note"]');
+    expect(note).not.toBeNull();
+    expect(note!.textContent).toBe(billNote);
+  });
+
+  it('renders no note element when the report is not €-bills mode', () => {
+    const { container } = render(<Block2Section block2={MOCK_EXISTING.block2} />);
+    expect(container.querySelector('[data-block2="bill-note"]')).toBeNull();
+  });
+});
