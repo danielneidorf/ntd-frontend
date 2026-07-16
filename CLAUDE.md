@@ -14,7 +14,7 @@ Backend `CLAUDE.md` is canonical for entity facts (`~/dev/bustodnr/CLAUDE.md`, �
 - **Legal entity:** Mažoji bendrija NTD · įmonės kodas `307659223` · PVM kodas `LT100020078513` (SVS, effective 2026-05-11).
 - **Buveinė (registered, on ToS §1.2):** Saulėtekio al. 15-1, LT-10224 Vilnius. SS MTP confirmed 15 Jun 2026 (JAR-1-E Nr. 49086085, status Įvykdytas). Supersedes the interim Eureka address (Laisvės al. 85E-5, LT-44297 Kaunas). Mirrored on `salygos.astro` §1.2 + the backend invoice issuer.
 - **License Agt:** MB-NTD-IP-2026-01 (signed 2026-05-17).
-- **Contact address (decided 2026-06-03):** `ntd@ntd.lt` is the **only** contact address. Do not introduce `founder@` / `info@`. Aligned across the surface via commit `db7f1a9` (Footer.astro:31 · ReportViewer.tsx:313 · QuickScanFlow already aligned).
+- **Contact address (decided 2026-06-03):** `ntd@ntd.lt` is the **only** contact address. Do not introduce `founder@` / `info@`. Aligned across the surface via commit `db7f1a9` (Footer.astro:31 · ReportViewer.tsx:346, ReportFooter — line drifted from :313 as the file grew; ref refreshed by B2-17 · QuickScanFlow already aligned).
 - **TM scope post-IP-04 (2026-05-30):** **NTD wordmark only.** No QuickScan-Lite filing. No logo SVG/PNG. Brand work stays wordmark-centric — do not commission/use a logo asset until IP-07 ships (2026-06-30) and post-launch logo work is greenlit separately.
 
 Legal pages shipped:
