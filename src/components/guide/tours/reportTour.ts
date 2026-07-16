@@ -15,6 +15,15 @@ interface ReportTourData {
   block8Intro: string | null;
   block8ViewingQuestions: string[];
   block8NegotiationAngles: string[];
+  // B2-17 (R2): Block 2 (energy costs) DOM-scraped content — one scrape,
+  // both consumers (chat + realtime). Angles deliberately NOT re-added.
+  energyMetric: string | null;
+  energyCarrier: string | null;
+  energyConfidence: string | null;
+  /** null = no selector on the page; { size, totalMonth } when selected. */
+  householdSelection: { size: string; totalMonth: string | null } | null | undefined;
+  measuredBasis: boolean;
+  solarNote: string | null;
 }
 
 const COMFORT_LABELS: Record<string, string> = {
@@ -111,6 +120,64 @@ export function extractReportData(): ReportTourData {
       .filter((s) => s.length > 0);
   }
 
+  // B2-17 (R2): Block 2 scrape — every read conditional on its hook
+  // (absent DOM → null/undefined → the context line is omitted).
+  const block2Section = document.querySelector('[data-guide="block2"]');
+  let energyMetric: string | null = null;
+  let energyCarrier: string | null = null;
+  let energyConfidence: string | null = null;
+  let householdSelection: ReportTourData['householdSelection'] = undefined;
+  let measuredBasis = false;
+  let solarNote: string | null = null;
+
+  if (block2Section) {
+    // metric textContent renders as "~€76/ mėn." + subtext — normalize
+    // whitespace and keep only the price part (subtext is boilerplate).
+    const metricRaw = block2Section
+      .querySelector('[data-block2="metric"]')?.textContent ?? '';
+    const metricMatch = metricRaw.replace(/\s+/g, '').match(/~€[\d.,]+\/mėn\./);
+    energyMetric = metricMatch ? metricMatch[0] : null;
+
+    // primary carrier = the first breakdown row's label, scraped faithfully
+    energyCarrier = block2Section
+      .querySelector('[data-block2="breakdown"] tbody tr td')
+      ?.textContent?.trim() ?? null;
+
+    // confidence sentence (strip the leading ℹ️ marker)
+    energyConfidence = block2Section
+      .querySelector('[data-block2="confidence"]')
+      ?.textContent?.replace(/^\s*ℹ️\s*/, '').trim() || null;
+
+    // family-modelling state: selector present → report selection or its
+    // absence; selected → the personalised total from the breakdown total row
+    const selector = block2Section.querySelector('[data-block2="household-selector"]');
+    if (selector) {
+      const active = selector.querySelector('button[aria-pressed="true"]');
+      if (active) {
+        const rows = block2Section.querySelectorAll('[data-block2="breakdown"] tbody tr');
+        const totalRow = rows[rows.length - 1];
+        // row shape: label | €/yr | €/mo | source-indicator (empty on the
+        // total row) — the personalised monthly total is the THIRD cell
+        const totalMonth = totalRow?.querySelector('td:nth-child(3)')
+          ?.textContent?.trim() || null;
+        householdSelection = {
+          size: active.textContent?.trim() ?? '',
+          totalMonth,
+        };
+      } else {
+        householdSelection = null;
+      }
+    }
+
+    // measured basis: the B2-16 bill note's presence is the flag (the note
+    // text itself is tariff jargon — the flag line suffices)
+    measuredBasis = !!block2Section.querySelector('[data-block2="bill-note"]');
+
+    // solar note: the B2-17 served note, verbatim
+    solarNote = block2Section
+      .querySelector('[data-block2="solar-note"]')?.textContent?.trim() ?? null;
+  }
+
   return {
     address,
     buildingType: buildingType || 'Pastatas',
@@ -124,6 +191,12 @@ export function extractReportData(): ReportTourData {
     block8Intro,
     block8ViewingQuestions,
     block8NegotiationAngles,
+    energyMetric,
+    energyCarrier,
+    energyConfidence,
+    householdSelection,
+    measuredBasis,
+    solarNote,
   };
 }
 

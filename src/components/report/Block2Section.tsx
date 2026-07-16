@@ -323,6 +323,8 @@ export function Block2Section({
           <p>{info_box.disclosure_lt}</p>
           {/* B2-16 (R9): €-bill conversion residual — served only in €-bills mode. */}
           {info_box.bill_note_lt && <p data-block2="bill-note">{info_box.bill_note_lt}</p>}
+          {/* B2-17: solar-thermal note (served, flag-gated). */}
+          {info_box.solar_note_lt && <p data-block2="solar-note">{info_box.solar_note_lt}</p>}
           {whatsNotIncluded && <p data-block2="whats-not-included">{whatsNotIncluded}</p>}
         </div>
       )}

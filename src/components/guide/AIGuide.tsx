@@ -53,7 +53,9 @@ async function sendChatMessage(
   }
 }
 
-function buildPropertyContext(): string | undefined {
+// Exported for the B2-17 scrape tests (the packet is otherwise only
+// observable inside the chat/voice requests).
+export function buildPropertyContext(): string | undefined {
   if (typeof window === 'undefined') return undefined;
   try {
     const data = extractReportData();
@@ -64,6 +66,17 @@ function buildPropertyContext(): string | undefined {
       data.energyClass ? `Energinė klasė: ${data.energyClass}` : null,
       `Žiemos komfortas: ${data.winterLevel}`,
       `Vasaros perkaitimo rizika: ${data.summerLevel}`,
+      // B2-17 (R2): Block 2 lines — one scrape feeds chat AND realtime.
+      data.energyMetric ? `Energijos kaina: ${data.energyMetric}` : null,
+      data.energyCarrier ? `Šildymo būdas: ${data.energyCarrier}` : null,
+      data.energyConfidence ? `Kainos įverčio patikimumas: ${data.energyConfidence}` : null,
+      data.householdSelection === undefined
+        ? null
+        : data.householdSelection === null
+          ? 'Namų ūkio dydis: nepasirinktas'
+          : `Namų ūkio dydis: ${data.householdSelection.size} asmenys${data.householdSelection.totalMonth ? ` (pritaikyta suma ${data.householdSelection.totalMonth}/mėn.)` : ''}`,
+      data.measuredBasis ? 'Skaičiavimo pagrindas: pagal kliento pateiktą sąskaitą' : null,
+      data.solarNote ? `Saulės kolektoriai: ${data.solarNote}` : null,
       data.hasPermits ? `Statybos leidimai: ${data.permitCount} rasta` : 'Statybos leidimų nerasta',
       data.isLandOnly ? 'Vertinimo tipas: Žemės sklypas' : 'Vertinimo tipas: Esamas pastatas',
       // B8-3: surface Block 8 content to the chat backend for Ona.

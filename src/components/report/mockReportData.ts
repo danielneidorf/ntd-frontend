@@ -84,6 +84,8 @@ export interface Block2Data {
     disclosure_lt: string;
     // B2-16 (R9): the €→kWh conversion staleness note (€-bills mode only).
     bill_note_lt?: string | null;
+    // B2-17: the solar-thermal note (flag-gated, served).
+    solar_note_lt?: string | null;
     whats_not_included_lt?: string;
   };
   confidence?: string;
