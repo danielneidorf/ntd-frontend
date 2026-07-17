@@ -324,6 +324,8 @@ import {
   monthGenitiveLt,
   type UserEnergyInput,
 } from '../utils/userEnergyInput';
+// NB-CONF FE stitch: evidence keys for /confirm (pure helper, unit-tested)
+import { buildEvidencePayload } from '../utils/evidencePayload';
 
 const NTR_REGEX = /^\d{4}-\d{4}-\d{4}(:\d{1,6})?$/;
 
@@ -1582,6 +1584,10 @@ function Screen2({
           kind: candidate.kind ?? 'unknown',
           bundle_item_count: (candidate.bundle_items ?? []).length,
           ...buildUserEnergyPayload(energyInput),
+          // NB-CONF FE stitch: Screen-1 evidence reaches the /confirm
+          // freeze (keys absent when not provided — the wire-format
+          // fragment is the tested builder, not a hand-built object).
+          ...buildEvidencePayload(state),
           discount_token: state.discount_token ?? null,
         }),
       });
