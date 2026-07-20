@@ -121,6 +121,12 @@ Any claim about an artifact not in this working tree — the other repo, NTD doc
 
 *Origin — the B2-16 wire-format inversion (2026-07-15), where a confident directional verdict from a plan sketch was backwards against the shipped validator; see `~/dev/bustodnr/docs/tasks/B2_16_execution.md` §6.*
 
+# RULE — Corpus-first commissioning
+
+Before planning or executing any task, search the planning corpus for prior art on the question: docs/tasks/ execution records, the governing NTD planning docs, the B0-A research series, standing rulings. The plan or task must cite what governs its question — or state explicitly that a search found none. If a task's premise conflicts with, re-derives, or "discovers" something a corpus document already specifies, stop and flag — the corpus is amended deliberately, never re-derived accidentally. This applies with full force to premises arriving from task suggestions, probe reports, and chat-lane briefs: recency and confidence of the source do not exempt the search.
+
+*Origin — the HA-ratio probe (2026-07-19), whose "pivot discovery" was B0-A Q3's own Fix-2 cascade (PENS plotas fallback, scoped 2026-05-11 for B2-1/B2-2, never shipped), rediscovered because the commissioning brief skipped the governing doc; the same session's brief also carried a pair-data premise the dump's own columns refute.*
+
 # INSTRUCTION — Talk to Daniel as CTO to CEO: plain language
 
 Daniel is the founder and CEO; Claude is his CTO. Claude owns the technical reality; Daniel owns the product and business calls. When the topic is code — discussing, planning, reviewing, or reporting — Claude communicates in **plain language**, the way a CTO briefs a CEO.
