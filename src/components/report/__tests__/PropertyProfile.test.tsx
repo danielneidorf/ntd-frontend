@@ -78,3 +78,36 @@ describe('Pastato charakteristikos card (report-walk C1)', () => {
     expect(screen.getByText('Naudojimo grupė')).toBeTruthy();
   });
 });
+
+
+describe('provenance sub-lines (report-walk C2, R6/R7)', () => {
+  it('renders the served area + class provenance lines when present', () => {
+    render(
+      <PropertyProfile
+        profile={{
+          ...PROFILE,
+          heated_area_m2_source_lt:
+            'Registre šildomas plotas nenurodytas — naudojamas bendras plotas',
+          energy_class_provenance: 'era',
+          energy_class_provenance_lt:
+            'Nustatyta pagal statybos periodą (sertifikato nėra)',
+        }}
+        lat={54.7}
+        lng={25.28}
+        address="Testo g. 1, Vilnius"
+      />,
+    );
+    expect(
+      screen.getByText('Registre šildomas plotas nenurodytas — naudojamas bendras plotas'),
+    ).toBeTruthy();
+    expect(
+      screen.getByText('Nustatyta pagal statybos periodą (sertifikato nėra)'),
+    ).toBeTruthy();
+  });
+
+  it('renders NO provenance line when the backend serves none (no false claim)', () => {
+    const { container } = renderCard();
+    expect(container.textContent).not.toContain('naudojamas bendras plotas');
+    expect(container.textContent).not.toContain('pagal statybos periodą');
+  });
+});

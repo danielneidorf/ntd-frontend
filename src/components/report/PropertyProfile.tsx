@@ -36,9 +36,12 @@ type Field = {
   // Report-walk C1: full-width muted note rendered AFTER this cell
   // (spans both grid columns; mobile stacking keeps it under the pair).
   helperAfter?: string;
+  // Report-walk C2 (R6/R7): per-cell provenance sub-line under the value
+  // (backend-served LT string — the glazing-source honesty pattern).
+  helper?: string | null;
 };
 
-function buildGroup(fields: { label: string; raw: unknown; format?: (v: any) => string; badge?: React.ReactNode; helperAfter?: string }[]): Field[] {
+function buildGroup(fields: { label: string; raw: unknown; format?: (v: any) => string; badge?: React.ReactNode; helperAfter?: string; helper?: string | null }[]): Field[] {
   return fields
     .filter((f) => f.raw != null)
     .map((f) => ({
@@ -46,6 +49,7 @@ function buildGroup(fields: { label: string; raw: unknown; format?: (v: any) => 
       value: f.format ? f.format(f.raw) : String(f.raw),
       badge: f.badge,
       helperAfter: f.helperAfter,
+      helper: f.helper,
     }));
 }
 
@@ -57,6 +61,9 @@ function FieldCell({ field }: { field: Field }) {
         {field.value}
         {field.badge}
       </p>
+      {field.helper && (
+        <p className="text-xs text-slate-400 mt-0.5">{field.helper}</p>
+      )}
     </div>
   );
 }
@@ -132,6 +139,7 @@ export default function PropertyProfile({
       label: 'Šildomas plotas',
       raw: profile.heated_area_m2,
       format: (v: number) => `${v} m²`,
+      helper: profile.heated_area_m2_source_lt,
       helperAfter:
         'Bendras plotas apima ir nešildomas erdves — balkoną, rūsį ar sandėliuką. ' +
         'Energijos sąnaudos skaičiuojamos pagal šildomą plotą.',
@@ -147,6 +155,7 @@ export default function PropertyProfile({
       label: 'Energinė klasė',
       raw: profile.energy_class,
       badge: profile.energy_class ? <EnergyBadge cls={profile.energy_class} /> : undefined,
+      helper: profile.energy_class_provenance_lt,
     },
     {
       label: 'Energijos sąnaudos',

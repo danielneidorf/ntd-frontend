@@ -305,7 +305,11 @@ export function Block2Section({
       {explanation && (
         <div data-block2="explanation" className="mb-6">
           <h3 className="text-base font-semibold text-slate-800 mb-2">{explanation.heading_lt}</h3>
-          <p className="text-sm text-slate-700 leading-relaxed">{explanation.body_lt}</p>
+          <p className="text-sm text-slate-700 leading-relaxed">
+            {/* R5: the selected option carries its own personalised body —
+                „Ši suma" then points at the figure it describes. */}
+            {selected?.body_lt ?? explanation.body_lt}
+          </p>
           {familyNote && (
             <p data-block2="family-note" className="text-sm text-slate-700 leading-relaxed mt-2">
               {familyNote}

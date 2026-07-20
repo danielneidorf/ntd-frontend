@@ -54,6 +54,9 @@ export interface Block2HouseholdOption {
   monthly_variation: Block2MonthlyRow[];
   explanation_lt: string;
   whats_not_included_lt: string;
+  // R5 (report-walk 2026-07-18): the option's own first-sentence body,
+  // quoting the PERSONALISED totals (optional — legacy captures lack it).
+  body_lt?: string;
 }
 
 export interface Block2HouseholdModelling {
@@ -208,10 +211,16 @@ export interface ReportData {
     floors: number | null;
     total_area_m2: number | null;
     heated_area_m2: number | null;
+  // R6: served provenance for the heated-area value (null → no claim)
+  heated_area_m2_source_lt?: string | null;
     wall_material: string | null;
     heating_type: string | null;
     ventilation_type: string | null;
     energy_class: string | null;
+    // R7: how the class was resolved — "certificate" | "era"; the LT line
+    // renders under the class when era-derived (null → no line).
+    energy_class_provenance?: string | null;
+    energy_class_provenance_lt?: string | null;
     epc_kwhm2_year: number | null;
     epc_source: string | null;
     epc_confidence: string | null;

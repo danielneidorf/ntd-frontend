@@ -239,3 +239,32 @@ describe('bill_note_lt (B2-16 R9)', () => {
     expect(container.querySelector('[data-block2="bill-note"]')).toBeNull();
   });
 });
+
+
+describe('family-on explanation body (report-walk R5, FE half)', () => {
+  it('swaps the body to the selected option\'s personalised sentence and restores on deselect', () => {
+    const b2 = MOCK_EXISTING.block2!;
+    const withBodies = {
+      ...b2,
+      household_modelling: {
+        ...b2.household_modelling!,
+        options: b2.household_modelling!.options.map((o) => ({
+          ...o,
+          body_lt: `PERS-BODY-${o.household_size} — €${o.metric.eur_month} per mėnesį`,
+        })),
+      },
+    };
+    render(<Harness block2={withBodies} />);
+    const btn2 = screen.getByRole('button', { name: '2' });
+
+    fireEvent.click(btn2);
+    expect(screen.getByText(/PERS-BODY-2/)).toBeInTheDocument();
+
+    fireEvent.click(btn2); // deselect → building-only body returns
+    expect(screen.queryByText(/PERS-BODY-2/)).toBeNull();
+    const baseBody = withBodies.explanation!.body_lt;
+    expect(
+      screen.getByText((t) => t.includes(baseBody.slice(0, 40))),
+    ).toBeInTheDocument();
+  });
+});
