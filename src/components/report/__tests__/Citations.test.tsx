@@ -19,8 +19,11 @@ describe('Citations', () => {
       ...b2.household_modelling!.citation_lt.lines_lt,
     ];
     render(<Citations {...PROPS} block2CitationsLt={withHousehold} />);
-    // A tariff citation from the served list…
-    expect(screen.getByText(/Kauno energija/)).toBeInTheDocument();
+    // A tariff citation from the served list — read from the mock, not a
+    // literal supplier (the regenerated capture's fixture city decides it).
+    const cstLine = b2.citations_lt!.find((c) => c.includes('Centrinis šildymas:'))!;
+    expect(cstLine).toBeTruthy();
+    expect(screen.getByText((t) => t.includes('Centrinis šildymas:'))).toBeInTheDocument();
     // …and the 👥 household line with the corrected nrg_bal_c provenance.
     expect(screen.getByText(/nrg_bal_c/)).toBeInTheDocument();
   });

@@ -40,7 +40,9 @@ describe('Block2Section', () => {
       expect(section!.querySelector(`[data-block2="${name}"]`)).not.toBeNull();
     }
     // Backend-rounded headline + a breakdown total rendered verbatim.
-    expect(screen.getByText(/~€76/)).toBeInTheDocument();
+    expect(
+      screen.getByText(`~€${MOCK_EXISTING.block2!.metric!.eur_month}`),
+    ).toBeInTheDocument();
     expect(screen.getByText('Ką tai reiškia praktiškai?')).toBeInTheDocument();
   });
 
@@ -111,7 +113,9 @@ describe('Block2Section', () => {
     expect(screen.getByText(OPTION(2).metric.subtext_lt)).toBeInTheDocument();
 
     fireEvent.click(btn2); // toggle off → building-only default
-    expect(screen.getByText(/~€76/)).toBeInTheDocument();
+    expect(
+      screen.getByText(`~€${MOCK_EXISTING.block2!.metric!.eur_month}`),
+    ).toBeInTheDocument();
     expect(
       screen.getByText(MOCK_EXISTING.block2!.metric!.subtext_lt),
     ).toBeInTheDocument();
@@ -204,7 +208,9 @@ describe('Block2Section', () => {
     expect(container.querySelector('[data-block2="family-note"]')).toBeNull();
     expect(container.querySelector('[data-block2="whats-not-included"]')).toBeNull();
     expect(container.querySelector('[data-block2="disclosure-box"]')).toBeNull();
-    expect(screen.getByText(/~€76/)).toBeInTheDocument();
+    expect(
+      screen.getByText(`~€${MOCK_EXISTING.block2!.metric!.eur_month}`),
+    ).toBeInTheDocument();
     // The static reference table still renders.
     expect(container.querySelector('[data-block2="household-reference"]')).not.toBeNull();
   });

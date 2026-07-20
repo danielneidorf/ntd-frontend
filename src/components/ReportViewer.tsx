@@ -309,33 +309,6 @@ function InfoBox({ items }: { items: string[] }) {
   );
 }
 
-function LockedBlocksPreview() {
-  // Block 2 (Energijos sąnaudos) is now a live section (B2-13) — no longer locked.
-  const blocks = [
-    { num: 3, name: '10 metų išlaidos' },
-    { num: 4, name: 'Aplinkos tarša' },
-    { num: 5, name: 'Teisinės rizikos' },
-  ];
-  return (
-    <div className="space-y-3 mt-8">
-      {blocks.map((b) => (
-        <div
-          key={b.num}
-          className="w-full bg-gray-100 rounded-xl px-6 py-4 flex items-center gap-3 opacity-50"
-        >
-          <span className="text-[18px]">&#128274;</span>
-          <div>
-            <p className="text-base font-medium text-slate-400">
-              {b.num}) {b.name} — netrukus
-            </p>
-            <p className="text-sm text-slate-300">Šis blokas bus prieinamas vėliau.</p>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function ReportFooter({ data }: { data: ReportData }) {
   return (
     <footer className="mt-12 border-t border-gray-200 pt-6 pb-8 text-center">
@@ -576,7 +549,6 @@ export default function ReportViewer() {
 
         <Block8Section block8={data.block8} />
 
-        <div data-guide="locked-blocks"><LockedBlocksPreview /></div>
         <AdditionalDocuments />
         <Citations
           snapshot={block1.inputs_snapshot}

@@ -121,12 +121,15 @@ describe('buildPropertyContext — the packet (B2-17 R2)', () => {
   });
 });
 
-describe('locked preview regression (B2-17 item 6, frontend half)', () => {
-  it('the locked-blocks preview starts at Block 3 (Block 2 is live)', () => {
+describe('locked preview removal (report-walk R4, ruling 2026-07-18)', () => {
+  it('the locked-blocks preview is intentionally ABSENT — the report ends with what was bought', () => {
+    // Flip of the B2-17 "starts at Block 3" pin: the ruling removed the
+    // teaser cards entirely (no future promises). This absence pin keeps
+    // them from silently returning.
     window.history.pushState({}, '', '/report/dev-existing');
     render(<ReportViewer />);
-    const locked = document.querySelector('[data-guide="locked-blocks"]')!;
-    expect(locked.textContent).toContain('3) 10 metų išlaidos');
-    expect(locked.textContent).not.toContain('2)');
+    expect(document.querySelector('[data-guide="locked-blocks"]')).toBeNull();
+    expect(document.body.textContent).not.toContain('netrukus');
+    expect(document.body.textContent).not.toContain('Šis blokas bus prieinamas vėliau');
   });
 });

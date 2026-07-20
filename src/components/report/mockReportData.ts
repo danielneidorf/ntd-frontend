@@ -122,6 +122,12 @@ export interface ReportData {
   bundle_items: { kind: string; address?: string }[];
   generated_at: string;
   order_reference: string;
+  // Served-but-not-yet-consumed wire sections (kept verbatim by the mock
+  // regeneration recipe so the capture needs no hand filtering).
+  envelope?: Record<string, unknown>;
+  blocks?: unknown[];
+  citations?: unknown[];
+  permits?: unknown[];
   block2?: Block2Data;
   block8?: Block8Data;
   block1: {
@@ -271,981 +277,8 @@ function summerRows(level: 'LOW' | 'MODERATE' | 'HIGH') {
   return SUMMER_ROWS.map((r) => ({ ...r, highlighted: r.band === level }));
 }
 
-// --- Block 2 mock (shape mirrors block2/presentation.py output) ---
-// Derived from a REAL `_build_report_data` run (backend CST fixture:
-// residential_multi_other, 52.4 m2, Kauno m. sav., class D — 2026-07-04),
-// floats trimmed to cents. The fixture must not be the thing under test:
-// values and shape are the served contract, incl. B2-14 standard_occupancy
-// + household_modelling (5 precomputed options, "5+ asmenys" band label,
-// DHW row 📊-indicated in the DEFAULT state — 👥 appears only inside options).
-const MOCK_BLOCK2_SERVED: Block2Data = {
-  "status": "ready",
-  "message_lt": null,
-  "metric": {
-    "eur_month": 76,
-    "eur_month_raw": 76.43,
-    "subtext_lt": "Vidutinė mėnesinė energijos kaina pagal dabartinius tarifus (su PVM)"
-  },
-  "intro_lt": "Šiame bloke pateikiame, kiek šiame būste tikėtina mokėti už energiją kiekvieną mėnesį — šildymą, karštą vandenį, vėsinimą ir ventiliaciją, bei pastovius mokesčius — pagal dabartinius tarifus ir pastato energinius parametrus. Taip pat galite sužinoti preliminarų elektros suvartojimą buities reikmėms, pasirinkę savo namų ūkio dydį.",
-  "breakdown": {
-    "column_headers_lt": [
-      "Komponentas",
-      "€ per metus (su PVM)",
-      "€ per mėnesį (su PVM)",
-      "Šaltinis"
-    ],
-    "rows": [
-      {
-        "label_lt": "Šildymas (centrinis šildymas)",
-        "eur_year": 683,
-        "eur_month": 57,
-        "source_indicator": "📊 pagal pastato duomenis"
-      },
-      {
-        "label_lt": "Karštas vanduo",
-        "eur_year": 198,
-        "eur_month": 16,
-        "source_indicator": "📊 pagal pastato duomenis"
-      },
-      {
-        "label_lt": "Elektros pastovusis mokestis",
-        "eur_year": 36,
-        "eur_month": 3,
-        "source_indicator": "📊 pagal pastato duomenis"
-      }
-    ],
-    "total": {
-      "label_lt": "Viso",
-      "eur_year": 917,
-      "eur_month": 76
-    },
-    "dhw_footnote_lt": "Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių."
-  },
-  "explanation": {
-    "heading_lt": "Ką tai reiškia praktiškai?",
-    "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos sudarys apie €76 per mėnesį arba €917 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €97.",
-    "family_note_lt": "Svarbu atsiminti, kad ši suma neapima buitinės elektros (apšvietimas, prietaisai, viryklė). Pasirinkite namų ūkio dydį žemiau, kad pamatytumėte bendrą mėnesinę energijos kainą."
-  },
-  "info_box": {
-    "heading_lt": "Iš ko remiamės šiuo vertinimu?",
-    "vat_lt": "Visos kainos nurodytos su PVM (21%)",
-    "escalation_lt": "Prognozė remiasi VERT reguliuojamų tarifų vidurkiu arba 4%/m. numatytu augimu",
-    "disclosure_lt": "Šildymo sistemos tipas (centrinis šildymas) nustatytas pagal pastato energinio naudingumo sertifikatą.",
-    "whats_not_included_lt": "Šis vertinimas neapima buitinės elektros (apšvietimas, prietaisai, viryklė) ir nėra pritaikytas konkrečiam gyventojų skaičiui. Pasirinkite namų ūkio dydį, kad vertinimas būtų išsamesnis."
-  },
-  "confidence": "medium",
-  "confidence_text_lt": "energinė klasė žinoma, bet šildymo sistemos tipas nustatytas pagal pastato tipologiją (pvz., iki 1990 m. daugiabutis → centrinis šildymas)",
-  "carrier_warning_lt": null,
-  "newbuild_note_lt": null,
-  "citations_lt": [
-    "Energinio naudingumo sertifikatas — Registrų centro energinio naudingumo sertifikatų registras (registrucentras.lt)",
-    "Šildymo sistemos tipas: Registrų centro energinio naudingumo sertifikatų registro duomenys",
-    "Centrinis šildymas: AB „Kauno energija“, VERT patvirtintas tarifas, galioja nuo 2026 m. gegužės (šaltinis: vert.lt)",
-    "Visos kainos su PVM (21%)",
-    "Tarifų augimo prognozė (per energijos rūšį): HICP CP0455 (Heat energy), GEO=LT, 2016–2025 trailing average of December YoY change",
-    "Minimalus augimo tempas: Lietuvos infliacija (Eurostat HICP, 10 metų vidurkis: 4.76%/m.)",
-    "Visos kainos su PVM (21%)"
-  ],
-  "monthly_variation": [
-    {
-      "month": 1,
-      "heating_eur": 112.28,
-      "dhw_eur": 16.51,
-      "cooling_eur": 0.0,
-      "fixed_eur": 3.0,
-      "household_electricity_eur": 0.0
-    },
-    {
-      "month": 2,
-      "heating_eur": 94.36,
-      "dhw_eur": 16.51,
-      "cooling_eur": 0.0,
-      "fixed_eur": 3.0,
-      "household_electricity_eur": 0.0
-    },
-    {
-      "month": 3,
-      "heating_eur": 93.65,
-      "dhw_eur": 16.51,
-      "cooling_eur": 0.0,
-      "fixed_eur": 3.0,
-      "household_electricity_eur": 0.0
-    },
-    {
-      "month": 4,
-      "heating_eur": 61.28,
-      "dhw_eur": 16.51,
-      "cooling_eur": 0.0,
-      "fixed_eur": 3.0,
-      "household_electricity_eur": 0.0
-    },
-    {
-      "month": 5,
-      "heating_eur": 29.39,
-      "dhw_eur": 16.51,
-      "cooling_eur": 0.0,
-      "fixed_eur": 3.0,
-      "household_electricity_eur": 0.0
-    },
-    {
-      "month": 6,
-      "heating_eur": 14.05,
-      "dhw_eur": 16.51,
-      "cooling_eur": 0.0,
-      "fixed_eur": 3.0,
-      "household_electricity_eur": 0.0
-    },
-    {
-      "month": 7,
-      "heating_eur": 4.61,
-      "dhw_eur": 16.51,
-      "cooling_eur": 0.0,
-      "fixed_eur": 3.0,
-      "household_electricity_eur": 0.0
-    },
-    {
-      "month": 8,
-      "heating_eur": 11.18,
-      "dhw_eur": 16.51,
-      "cooling_eur": 0.0,
-      "fixed_eur": 3.0,
-      "household_electricity_eur": 0.0
-    },
-    {
-      "month": 9,
-      "heating_eur": 31.59,
-      "dhw_eur": 16.51,
-      "cooling_eur": 0.0,
-      "fixed_eur": 3.0,
-      "household_electricity_eur": 0.0
-    },
-    {
-      "month": 10,
-      "heating_eur": 56.11,
-      "dhw_eur": 16.51,
-      "cooling_eur": 0.0,
-      "fixed_eur": 3.0,
-      "household_electricity_eur": 0.0
-    },
-    {
-      "month": 11,
-      "heating_eur": 78.31,
-      "dhw_eur": 16.51,
-      "cooling_eur": 0.0,
-      "fixed_eur": 3.0,
-      "household_electricity_eur": 0.0
-    },
-    {
-      "month": 12,
-      "heating_eur": 96.24,
-      "dhw_eur": 16.51,
-      "cooling_eur": 0.0,
-      "fixed_eur": 3.0,
-      "household_electricity_eur": 0.0
-    }
-  ],
-  "forecast_5yr": [
-    {
-      "year": 2026,
-      "total_eur_month": 76.43,
-      "per_carrier": {
-        "cst": 881.19
-      },
-      "fixed_eur_year": 36.0
-    },
-    {
-      "year": 2027,
-      "total_eur_month": 81.06,
-      "per_carrier": {
-        "cst": 934.86
-      },
-      "fixed_eur_year": 37.83
-    },
-    {
-      "year": 2028,
-      "total_eur_month": 85.96,
-      "per_carrier": {
-        "cst": 991.79
-      },
-      "fixed_eur_year": 39.75
-    },
-    {
-      "year": 2029,
-      "total_eur_month": 91.16,
-      "per_carrier": {
-        "cst": 1052.19
-      },
-      "fixed_eur_year": 41.77
-    },
-    {
-      "year": 2030,
-      "total_eur_month": 96.68,
-      "per_carrier": {
-        "cst": 1116.27
-      },
-      "fixed_eur_year": 43.89
-    }
-  ],
-  "household_reference": [
-    {
-      "household_size": 1,
-      "size_label_lt": "1 asmuo",
-      "kwh_month": 124,
-      "kwh_year": 1490,
-      "eur_month": 14
-    },
-    {
-      "household_size": 2,
-      "size_label_lt": "2 asmenys",
-      "kwh_month": 205,
-      "kwh_year": 2460,
-      "eur_month": 23
-    },
-    {
-      "household_size": 3,
-      "size_label_lt": "3 asmenys",
-      "kwh_month": 273,
-      "kwh_year": 3280,
-      "eur_month": 30
-    },
-    {
-      "household_size": 4,
-      "size_label_lt": "4 asmenys",
-      "kwh_month": 325,
-      "kwh_year": 3900,
-      "eur_month": 36
-    },
-    {
-      "household_size": 5,
-      "size_label_lt": "5+ asmenys",
-      "kwh_month": 379,
-      "kwh_year": 4545,
-      "eur_month": 42
-    }
-  ],
-  "standard_occupancy": 2,
-  "household_modelling": {
-    "selector_caption_lt": "Pasirinkite namų ūkio dydį, kad pamatytumėte bendrą mėnesinę energijos kainą",
-    "disclosure_box_lt": "ℹ️ Duomenų šaltiniai\n\nŠis vertinimas sujungia du duomenų tipus:\n\n📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui.\n\n👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų pasirinktą namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių.",
-    "citation_lt": {
-      "category_lt": "👥 Namų ūkio modeliavimas",
-      "lines_lt": [
-        "Buitinės elektros vidurkis: Eurostat Lietuvos gyvenamųjų pastatų elektros suvartojimas (nrg_bal_c, 2023 m.), išskaidytas pagal namų ūkio dydį (2021 m. surašymas, Destatis struktūra)",
-        "Karšto vandens pritaikymas: tipinis gyventojų skaičius pagal naudingąjį plotą (2021 m. gyventojų ir būstų surašymas, Valstybės duomenų agentūra)"
-      ]
-    },
-    "options": [
-      {
-        "household_size": 1,
-        "size_label_lt": "1 asmuo",
-        "metric": {
-          "eur_month": 82,
-          "subtext_lt": "Pastato energija + buitinė elektra (1 asmens namų ūkis)"
-        },
-        "breakdown": {
-          "rows": [
-            {
-              "label_lt": "Šildymas (centrinis šildymas)",
-              "eur_year": 683,
-              "eur_month": 57,
-              "source_indicator": "📊 pagal pastato duomenis"
-            },
-            {
-              "label_lt": "Karštas vanduo (pritaikyta 1 asmeniui)",
-              "eur_year": 99,
-              "eur_month": 8,
-              "source_indicator": "📊 pagal pastato duomenis + 👥 pritaikyta pagal namų ūkio dydį"
-            },
-            {
-              "label_lt": "Elektros pastovusis mokestis",
-              "eur_year": 36,
-              "eur_month": 3,
-              "source_indicator": "📊 pagal pastato duomenis"
-            },
-            {
-              "label_lt": "Buitinė elektra (1 asm.)",
-              "eur_year": 166,
-              "eur_month": 14,
-              "source_indicator": "👥 statistinis vidurkis"
-            }
-          ],
-          "total": {
-            "label_lt": "Viso",
-            "eur_year": 984,
-            "eur_month": 82
-          }
-        },
-        "monthly_variation": [
-          {
-            "month": 1,
-            "heating_eur": 112.28,
-            "dhw_eur": 8.26,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 14.0
-          },
-          {
-            "month": 2,
-            "heating_eur": 94.36,
-            "dhw_eur": 8.26,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 14.0
-          },
-          {
-            "month": 3,
-            "heating_eur": 93.65,
-            "dhw_eur": 8.26,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 14.0
-          },
-          {
-            "month": 4,
-            "heating_eur": 61.28,
-            "dhw_eur": 8.26,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 14.0
-          },
-          {
-            "month": 5,
-            "heating_eur": 29.39,
-            "dhw_eur": 8.26,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 14.0
-          },
-          {
-            "month": 6,
-            "heating_eur": 14.05,
-            "dhw_eur": 8.26,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 14.0
-          },
-          {
-            "month": 7,
-            "heating_eur": 4.61,
-            "dhw_eur": 8.26,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 14.0
-          },
-          {
-            "month": 8,
-            "heating_eur": 11.18,
-            "dhw_eur": 8.26,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 14.0
-          },
-          {
-            "month": 9,
-            "heating_eur": 31.59,
-            "dhw_eur": 8.26,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 14.0
-          },
-          {
-            "month": 10,
-            "heating_eur": 56.11,
-            "dhw_eur": 8.26,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 14.0
-          },
-          {
-            "month": 11,
-            "heating_eur": 78.31,
-            "dhw_eur": 8.26,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 14.0
-          },
-          {
-            "month": 12,
-            "heating_eur": 96.24,
-            "dhw_eur": 8.26,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 14.0
-          }
-        ],
-        "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 1 asmens namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
-        "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 1 asmens namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija."
-      },
-      {
-        "household_size": 2,
-        "size_label_lt": "2 asmenys",
-        "metric": {
-          "eur_month": 99,
-          "subtext_lt": "Pastato energija + buitinė elektra (2 asmenų namų ūkis)"
-        },
-        "breakdown": {
-          "rows": [
-            {
-              "label_lt": "Šildymas (centrinis šildymas)",
-              "eur_year": 683,
-              "eur_month": 57,
-              "source_indicator": "📊 pagal pastato duomenis"
-            },
-            {
-              "label_lt": "Karštas vanduo (pritaikyta 2 asmenims)",
-              "eur_year": 198,
-              "eur_month": 16,
-              "source_indicator": "📊 pagal pastato duomenis + 👥 pritaikyta pagal namų ūkio dydį"
-            },
-            {
-              "label_lt": "Elektros pastovusis mokestis",
-              "eur_year": 36,
-              "eur_month": 3,
-              "source_indicator": "📊 pagal pastato duomenis"
-            },
-            {
-              "label_lt": "Buitinė elektra (2 asm.)",
-              "eur_year": 274,
-              "eur_month": 23,
-              "source_indicator": "👥 statistinis vidurkis"
-            }
-          ],
-          "total": {
-            "label_lt": "Viso",
-            "eur_year": 1191,
-            "eur_month": 99
-          }
-        },
-        "monthly_variation": [
-          {
-            "month": 1,
-            "heating_eur": 112.28,
-            "dhw_eur": 16.51,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 23.0
-          },
-          {
-            "month": 2,
-            "heating_eur": 94.36,
-            "dhw_eur": 16.51,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 23.0
-          },
-          {
-            "month": 3,
-            "heating_eur": 93.65,
-            "dhw_eur": 16.51,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 23.0
-          },
-          {
-            "month": 4,
-            "heating_eur": 61.28,
-            "dhw_eur": 16.51,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 23.0
-          },
-          {
-            "month": 5,
-            "heating_eur": 29.39,
-            "dhw_eur": 16.51,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 23.0
-          },
-          {
-            "month": 6,
-            "heating_eur": 14.05,
-            "dhw_eur": 16.51,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 23.0
-          },
-          {
-            "month": 7,
-            "heating_eur": 4.61,
-            "dhw_eur": 16.51,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 23.0
-          },
-          {
-            "month": 8,
-            "heating_eur": 11.18,
-            "dhw_eur": 16.51,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 23.0
-          },
-          {
-            "month": 9,
-            "heating_eur": 31.59,
-            "dhw_eur": 16.51,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 23.0
-          },
-          {
-            "month": 10,
-            "heating_eur": 56.11,
-            "dhw_eur": 16.51,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 23.0
-          },
-          {
-            "month": 11,
-            "heating_eur": 78.31,
-            "dhw_eur": 16.51,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 23.0
-          },
-          {
-            "month": 12,
-            "heating_eur": 96.24,
-            "dhw_eur": 16.51,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 23.0
-          }
-        ],
-        "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 2 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
-        "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 2 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija."
-      },
-      {
-        "household_size": 3,
-        "size_label_lt": "3 asmenys",
-        "metric": {
-          "eur_month": 115,
-          "subtext_lt": "Pastato energija + buitinė elektra (3 asmenų namų ūkis)"
-        },
-        "breakdown": {
-          "rows": [
-            {
-              "label_lt": "Šildymas (centrinis šildymas)",
-              "eur_year": 683,
-              "eur_month": 57,
-              "source_indicator": "📊 pagal pastato duomenis"
-            },
-            {
-              "label_lt": "Karštas vanduo (pritaikyta 3 asmenims)",
-              "eur_year": 297,
-              "eur_month": 25,
-              "source_indicator": "📊 pagal pastato duomenis + 👥 pritaikyta pagal namų ūkio dydį"
-            },
-            {
-              "label_lt": "Elektros pastovusis mokestis",
-              "eur_year": 36,
-              "eur_month": 3,
-              "source_indicator": "📊 pagal pastato duomenis"
-            },
-            {
-              "label_lt": "Buitinė elektra (3 asm.)",
-              "eur_year": 365,
-              "eur_month": 30,
-              "source_indicator": "👥 statistinis vidurkis"
-            }
-          ],
-          "total": {
-            "label_lt": "Viso",
-            "eur_year": 1381,
-            "eur_month": 115
-          }
-        },
-        "monthly_variation": [
-          {
-            "month": 1,
-            "heating_eur": 112.28,
-            "dhw_eur": 24.77,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 30.0
-          },
-          {
-            "month": 2,
-            "heating_eur": 94.36,
-            "dhw_eur": 24.77,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 30.0
-          },
-          {
-            "month": 3,
-            "heating_eur": 93.65,
-            "dhw_eur": 24.77,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 30.0
-          },
-          {
-            "month": 4,
-            "heating_eur": 61.28,
-            "dhw_eur": 24.77,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 30.0
-          },
-          {
-            "month": 5,
-            "heating_eur": 29.39,
-            "dhw_eur": 24.77,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 30.0
-          },
-          {
-            "month": 6,
-            "heating_eur": 14.05,
-            "dhw_eur": 24.77,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 30.0
-          },
-          {
-            "month": 7,
-            "heating_eur": 4.61,
-            "dhw_eur": 24.77,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 30.0
-          },
-          {
-            "month": 8,
-            "heating_eur": 11.18,
-            "dhw_eur": 24.77,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 30.0
-          },
-          {
-            "month": 9,
-            "heating_eur": 31.59,
-            "dhw_eur": 24.77,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 30.0
-          },
-          {
-            "month": 10,
-            "heating_eur": 56.11,
-            "dhw_eur": 24.77,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 30.0
-          },
-          {
-            "month": 11,
-            "heating_eur": 78.31,
-            "dhw_eur": 24.77,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 30.0
-          },
-          {
-            "month": 12,
-            "heating_eur": 96.24,
-            "dhw_eur": 24.77,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 30.0
-          }
-        ],
-        "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 3 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
-        "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 3 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija."
-      },
-      {
-        "household_size": 4,
-        "size_label_lt": "4 asmenys",
-        "metric": {
-          "eur_month": 129,
-          "subtext_lt": "Pastato energija + buitinė elektra (4 asmenų namų ūkis)"
-        },
-        "breakdown": {
-          "rows": [
-            {
-              "label_lt": "Šildymas (centrinis šildymas)",
-              "eur_year": 683,
-              "eur_month": 57,
-              "source_indicator": "📊 pagal pastato duomenis"
-            },
-            {
-              "label_lt": "Karštas vanduo (pritaikyta 4 asmenims)",
-              "eur_year": 396,
-              "eur_month": 33,
-              "source_indicator": "📊 pagal pastato duomenis + 👥 pritaikyta pagal namų ūkio dydį"
-            },
-            {
-              "label_lt": "Elektros pastovusis mokestis",
-              "eur_year": 36,
-              "eur_month": 3,
-              "source_indicator": "📊 pagal pastato duomenis"
-            },
-            {
-              "label_lt": "Buitinė elektra (4 asm.)",
-              "eur_year": 434,
-              "eur_month": 36,
-              "source_indicator": "👥 statistinis vidurkis"
-            }
-          ],
-          "total": {
-            "label_lt": "Viso",
-            "eur_year": 1549,
-            "eur_month": 129
-          }
-        },
-        "monthly_variation": [
-          {
-            "month": 1,
-            "heating_eur": 112.28,
-            "dhw_eur": 33.02,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 36.0
-          },
-          {
-            "month": 2,
-            "heating_eur": 94.36,
-            "dhw_eur": 33.02,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 36.0
-          },
-          {
-            "month": 3,
-            "heating_eur": 93.65,
-            "dhw_eur": 33.02,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 36.0
-          },
-          {
-            "month": 4,
-            "heating_eur": 61.28,
-            "dhw_eur": 33.02,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 36.0
-          },
-          {
-            "month": 5,
-            "heating_eur": 29.39,
-            "dhw_eur": 33.02,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 36.0
-          },
-          {
-            "month": 6,
-            "heating_eur": 14.05,
-            "dhw_eur": 33.02,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 36.0
-          },
-          {
-            "month": 7,
-            "heating_eur": 4.61,
-            "dhw_eur": 33.02,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 36.0
-          },
-          {
-            "month": 8,
-            "heating_eur": 11.18,
-            "dhw_eur": 33.02,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 36.0
-          },
-          {
-            "month": 9,
-            "heating_eur": 31.59,
-            "dhw_eur": 33.02,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 36.0
-          },
-          {
-            "month": 10,
-            "heating_eur": 56.11,
-            "dhw_eur": 33.02,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 36.0
-          },
-          {
-            "month": 11,
-            "heating_eur": 78.31,
-            "dhw_eur": 33.02,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 36.0
-          },
-          {
-            "month": 12,
-            "heating_eur": 96.24,
-            "dhw_eur": 33.02,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 36.0
-          }
-        ],
-        "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 4 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
-        "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 4 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija."
-      },
-      {
-        "household_size": 5,
-        "size_label_lt": "5+ asmenys",
-        "metric": {
-          "eur_month": 143,
-          "subtext_lt": "Pastato energija + buitinė elektra (5 asmenų namų ūkis)"
-        },
-        "breakdown": {
-          "rows": [
-            {
-              "label_lt": "Šildymas (centrinis šildymas)",
-              "eur_year": 683,
-              "eur_month": 57,
-              "source_indicator": "📊 pagal pastato duomenis"
-            },
-            {
-              "label_lt": "Karštas vanduo (pritaikyta 5 asmenims)",
-              "eur_year": 495,
-              "eur_month": 41,
-              "source_indicator": "📊 pagal pastato duomenis + 👥 pritaikyta pagal namų ūkio dydį"
-            },
-            {
-              "label_lt": "Elektros pastovusis mokestis",
-              "eur_year": 36,
-              "eur_month": 3,
-              "source_indicator": "📊 pagal pastato duomenis"
-            },
-            {
-              "label_lt": "Buitinė elektra (5 asm.)",
-              "eur_year": 506,
-              "eur_month": 42,
-              "source_indicator": "👥 statistinis vidurkis"
-            }
-          ],
-          "total": {
-            "label_lt": "Viso",
-            "eur_year": 1720,
-            "eur_month": 143
-          }
-        },
-        "monthly_variation": [
-          {
-            "month": 1,
-            "heating_eur": 112.28,
-            "dhw_eur": 41.28,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 42.0
-          },
-          {
-            "month": 2,
-            "heating_eur": 94.36,
-            "dhw_eur": 41.28,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 42.0
-          },
-          {
-            "month": 3,
-            "heating_eur": 93.65,
-            "dhw_eur": 41.28,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 42.0
-          },
-          {
-            "month": 4,
-            "heating_eur": 61.28,
-            "dhw_eur": 41.28,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 42.0
-          },
-          {
-            "month": 5,
-            "heating_eur": 29.39,
-            "dhw_eur": 41.28,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 42.0
-          },
-          {
-            "month": 6,
-            "heating_eur": 14.05,
-            "dhw_eur": 41.28,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 42.0
-          },
-          {
-            "month": 7,
-            "heating_eur": 4.61,
-            "dhw_eur": 41.28,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 42.0
-          },
-          {
-            "month": 8,
-            "heating_eur": 11.18,
-            "dhw_eur": 41.28,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 42.0
-          },
-          {
-            "month": 9,
-            "heating_eur": 31.59,
-            "dhw_eur": 41.28,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 42.0
-          },
-          {
-            "month": 10,
-            "heating_eur": 56.11,
-            "dhw_eur": 41.28,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 42.0
-          },
-          {
-            "month": 11,
-            "heating_eur": 78.31,
-            "dhw_eur": 41.28,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 42.0
-          },
-          {
-            "month": 12,
-            "heating_eur": 96.24,
-            "dhw_eur": 41.28,
-            "cooling_eur": 0.0,
-            "fixed_eur": 3.0,
-            "household_electricity_eur": 42.0
-          }
-        ],
-        "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 5 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
-        "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 5 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija."
-      }
-    ]
-  }
-};
-
 function mockBlock2(carrierWarning: string | null = null): Block2Data {
-  return { ...MOCK_BLOCK2_SERVED, carrier_warning_lt: carrierWarning };
+  return { ...(MOCK_EXISTING.block2 as Block2Data), carrier_warning_lt: carrierWarning };
 }
 
 const MOCK_CARRIER_FALLBACK_WARNING =
@@ -1253,171 +286,1690 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 
 // --- Mock datasets ---
 
+// --- MOCK_EXISTING — regenerated from the backend dev fixture (R1, 2026-07-20) ---
+// ONE fixture, one truth: a verbatim capture of the same `_build_report_data`
+// output the backend serves at /v1/reports/dev-existing (fixture:
+// bustodnr reports/routes.py `_DEV_EXISTING_SNAPSHOT` — Žirmūnų g. 12-5,
+// Vilniaus m. sav., residential_multi_other, 52.4 m², class D / 145.2),
+// floats trimmed to cents. Do NOT hand-edit values — REGENERATE instead:
+//
+//   cd ~/dev/bustodnr && .venv/bin/python - <<'PY'
+//   import json, sys; sys.path.insert(0, ".")
+//   def trim(o):
+//       if isinstance(o, float):
+//           r = round(o, 2); return int(r) if r == int(r) else r
+//       if isinstance(o, dict): return {k: trim(v) for k, v in o.items()}
+//       if isinstance(o, list): return [trim(v) for v in o]
+//       return o
+//   from bustodnr_api.reports.routes import _DEV_MOCKS
+//   print(json.dumps(trim(_DEV_MOCKS["dev-existing"]), ensure_ascii=False, indent=2))
+//   PY
+//
+// …and paste the JSON as this object literal (keys stay quoted; the type's
+// passthrough keys carry served-but-not-yet-consumed sections verbatim).
+// Fidelity pins: __tests__/mockFidelity.test.ts (self-consistency — the
+// composition class of defect this regeneration killed cannot return).
 export const MOCK_EXISTING: ReportData = {
-  address: 'Vilnius, Žirmūnų g. 12-5',
-  ntr_unique_number: '4400-1234-5678',
-  municipality: 'Vilniaus m. sav.',
-  lat: 54.7104,
-  lng: 25.2865,
-  bundle_items: [
-    { kind: 'unit_in_building', address: 'Vilnius, Žirmūnų g. 12-5' },
-    { kind: 'storage', address: 'Sandėliukas Nr. 3' },
-    { kind: 'garage', address: 'Garažas Nr. 12' },
+  "envelope": {
+    "address": "Vilnius, Žirmūnų g. 12-5",
+    "request_id": "report-20260720072337",
+    "created_at": "2026-07-20T07:23:37.728574+00:00"
+  },
+  "blocks": [
+    {
+      "id": "thermal_comfort_proxy",
+      "label_lt": "1) Vidaus patalpų klimato komfortas",
+      "status": "ready",
+      "summary_lt": "Šiluminis komfortas 1, vasaros perkaitimo rizika 3.",
+      "required_inputs": [],
+      "data": {
+        "winter": {
+          "level": "WEAK",
+          "label_key": "block1.winter.weak.label",
+          "description_key": "block1.winter.weak.description",
+          "not_assessed_reason": null,
+          "provenance_label_key": null,
+          "segment": "D",
+          "description_lt": "Žema pastato energinė klasė (D ar žemesnė) rodo didelius šilumos poreikius: norint palaikyti 20–22 °C visame būste reikės intensyvaus šildymo, dalis patalpų gali likti vėsesnės, o šildymo poreikis gerokai viršija net renovuoto pastato lygį — žr. palyginimą žemiau (tikslesnę šildymo kainą rasite 2 bloke).",
+          "comparison_lines_lt": [
+            "Palyginti su naujos statybos etalonu (A++): apie 11 kartų didesnis šildymo poreikis.",
+            "Palyginti su renovuoto pastato etalonu (C klasė): ~+97% didesnis."
+          ]
+        },
+        "summer": {
+          "level": "MODERATE",
+          "label_key": "block1.summer.moderate.label",
+          "description_key": "block1.summer.moderate.description",
+          "segment": "C",
+          "description_lt": "Per karščio bangas kai kuriose patalpose gali tapti per šilta, ypač ten, kur yra dideli langai ar viršutiniai aukštai — reikės dažnai vėdinti ir riboti tiesioginę saulę. Gali prireikti ventiliatorių ar nešiojamo kondicionieriaus per karščiausias dienas, tad dalį metų papildomai didės elektros sąnaudos dėl vėsinimo."
+        },
+        "overrides": {
+          "pattern": "official_metric",
+          "hero_kind": "official",
+          "hero_metric_kind": "delivered_heat",
+          "used_official_epc": true,
+          "used_user_epc": false,
+          "used_user_kwh": false,
+          "low_confidence_epc": false,
+          "no_official_epc_reason": "none",
+          "upload_not_used_reason": "none",
+          "message_key": "block1.epc.official_metric",
+          "story_key": "block1.block1_energy.story.neutral"
+        },
+        "drivers": {
+          "good_epc": false,
+          "new_or_renovated": false,
+          "risky_glazing": false,
+          "heroic_heating": true,
+          "poor_heating": false
+        },
+        "technical": {
+          "usage_group_id": "residential_multi_other",
+          "epc_class": "D",
+          "hero_heat_kwhm2_year": 145.2,
+          "baseline_heat_kwhm2_year": 215.85,
+          "relative_vs_class_peers": 0.67,
+          "relative_vs_newbuild": 10.76,
+          "relative_vs_renovated": 1.97,
+          "diff_vs_newbuild_kwhm2_year": 131.7,
+          "diff_vs_renovated_kwhm2_year": 71.37
+        },
+        "info_box": [
+          "Svarbu: skersvėjai ir patalpų drėgmė šiame įrankyje nėra matuojami tiesiogiai – apie galimas problemas sprendžiame tik netiesiogiai pagal šildymo ir vėdinimo duomenis.",
+          "Ventiliacijos sistema: vėdinimo vėdinimo sistema; tai buvo įvertinta šiluminio komforto skaičiavimuose."
+        ],
+        "bundle_note_key": "block1.bundle.note.default",
+        "snapshot": {
+          "order_id": "ord-dev-001",
+          "bundle_id": "bdl-dev-001",
+          "bundle_primary_object_type": null,
+          "evaluation_target": "existing_object",
+          "lat": 54.72,
+          "lng": 25.28,
+          "address_text": "Vilnius, Žirmūnų g. 12-5",
+          "municipality": "Vilniaus m. sav.",
+          "address_source": "user",
+          "purpose": "Gyvenamoji",
+          "premises_type": "flat",
+          "usage_group": "residential_multi_other",
+          "heated_flag": true,
+          "building_year_built": 1975,
+          "renovation_year": null,
+          "heated_area_m2": 52.4,
+          "heating_system_type": "Centralizuotas šilumos tiekimas",
+          "glazing_share_percent": null,
+          "glazing_band": null,
+          "glazing_source": null,
+          "registry_energy_class": "D",
+          "registry_epc_kwhm2_year": 145.2,
+          "registry_epc_kwhm2_year_source": null,
+          "official_lookup_status": "not_requested",
+          "no_official_epc_reason": "none",
+          "user_energy_class": null,
+          "user_epc_kwhm2_year": null,
+          "bill_unit": null,
+          "bill_value": null,
+          "bill_period": null,
+          "bill_month": null,
+          "bill_scope": null,
+          "bill_source_tag": null,
+          "effective_energy_class": "D",
+          "effective_epc_kwhm2_year": 145.2,
+          "epc_source_class": "registry",
+          "epc_confidence_level": "high",
+          "epc_sources": [],
+          "energy_class_overridden": false,
+          "epc_kwhm2_year_overridden": false,
+          "ventilation_type": "Natūrali",
+          "project_website_url": null,
+          "project_website_url_auto": null,
+          "has_project_docs": null,
+          "doc_energy_class": null,
+          "doc_epc_kwhm2_year": null,
+          "doc_epc_issue_year": null,
+          "doc_heating_description": null,
+          "doc_ventilation_description": null,
+          "doc_glazing_hint": null,
+          "doc_source_label": null,
+          "doc_website_url_hint": null,
+          "url_user_energy_class": null,
+          "url_user_epc_kwhm2_year": null,
+          "url_user_heating_description": null,
+          "url_user_ventilation_description": null,
+          "url_user_glazing_hint": null,
+          "url_auto_energy_class": null,
+          "url_auto_epc_kwhm2_year": null,
+          "url_auto_heating_description": null,
+          "url_auto_ventilation_description": null,
+          "url_auto_glazing_hint": null,
+          "project_hint_name": null,
+          "project_hint_developer": null,
+          "project_url_auto_confidence": null,
+          "project_url_auto_reason": null,
+          "epc_resolution": {
+            "official_state": "valid",
+            "user_state": "no_input",
+            "official_lookup_status": "not_requested",
+            "resolution_pattern": "official_metric",
+            "heroes": [
+              {
+                "hero_kind": "official",
+                "metric_kind": "delivered_heat",
+                "epc_class": "D",
+                "epc_class_rank": null,
+                "metric_value": 145.2,
+                "rel_vs_newbuild": null,
+                "rel_vs_renovated": null,
+                "diff_vs_newbuild": null,
+                "diff_vs_renovated": null,
+                "label_keys": [
+                  "official_metric",
+                  "delivered_heat",
+                  "hero_official"
+                ]
+              }
+            ],
+            "no_official_epc_reason": "none",
+            "upload_not_used_reason": "none",
+            "message_key": "block1.epc.official_metric",
+            "story_key": "block1.block1_energy.story.neutral"
+          },
+          "epc_plausibility": null,
+          "epc_plausibility_note_lt": null,
+          "prior_building_energy_class": null,
+          "prior_building_kwhm2": null,
+          "source_system": null,
+          "resolver_context": null,
+          "pens_cert_number": null,
+          "pens_cert_issued_date": null,
+          "unikalus_nr": "4400-1234-5678",
+          "unikalus_nr_source": null,
+          "heated_area_m2_source": null,
+          "byproduct_coverage_fraction": null,
+          "customer_type_override": null
+        },
+        "winter_factors": [
+          {
+            "key": "new_or_renovated",
+            "label_lt": "Naujesnės statybos pastatas",
+            "explanation_lt": "Naujesnės statybos pastatai paprastai geriau apšiltinti ir sandaresni, todėl žiemą šiluma išlaikoma efektyviau ir jaučiama mažiau šaltų vietų ties sienomis ar kampuose.",
+            "active": false,
+            "direction": "decrease"
+          },
+          {
+            "key": "risky_glazing",
+            "label_lt": "Didelė langų dalis",
+            "explanation_lt": "Langai šilumą praleidžia lengviau nei sienos, todėl kai jų plotas didelis, žiemą pro juos prarandama daugiau šilumos — ties langais gali būti vėsiau, o šildymo poreikis šiek tiek didesnis.",
+            "active": false,
+            "direction": "increase"
+          },
+          {
+            "key": "heroic_heating",
+            "label_lt": "Efektyvi šildymo sistema",
+            "explanation_lt": "Efektyvi šildymo sistema komfortišką temperatūrą pasiekia greičiau ir mažesnėmis sąnaudomis, todėl žiemą patalpas lengviau tolygiai šildyti.",
+            "active": true,
+            "direction": "decrease"
+          },
+          {
+            "key": "poor_heating",
+            "label_lt": "Neefektyvi šildymo sistema",
+            "explanation_lt": "Mažiau efektyvi šildymo sistema komfortiškai temperatūrai palaikyti reikalauja daugiau energijos ir laiko, todėl žiemą gali būti sunkiau užtikrinti tolygią šilumą visose patalpose.",
+            "active": false,
+            "direction": "increase"
+          }
+        ],
+        "summer_drivers": [
+          {
+            "key": "high_energy_class_driver",
+            "label_lt": "Aukšta energinė klasė",
+            "explanation_lt": "Aukštesnės energinės klasės pastatai paprastai sandaresni ir geriau apšiltinti — žiemą tai taupo šilumą, bet vasarą pro langus ir iš vidaus patekusi šiluma patalpose išlieka ilgiau, todėl be tinkamo šešėliavimo ir vėdinimo perkaitimo rizika būna šiek tiek didesnė.",
+            "active": false,
+            "direction": "increase"
+          },
+          {
+            "key": "newer_building_driver",
+            "label_lt": "Naujesnės statybos pastatas",
+            "explanation_lt": "Naujesni pastatai paprastai sandaresni ir geriau apšiltinti, todėl be tinkamo šešėliavimo ir vėdinimo vasarą sukaupta šiluma patalpose išlieka ilgiau ir perkaitimo rizika būna šiek tiek didesnė.",
+            "active": false,
+            "direction": "increase"
+          },
+          {
+            "key": "high_glazing_driver",
+            "label_lt": "Didelė langų dalis",
+            "explanation_lt": "Kai langų plotas didelis, saulėtomis dienomis pro stiklą patenka daug šilumos, todėl patalpos vasarą greičiau ir labiau įšyla.",
+            "active": false,
+            "direction": "increase"
+          }
+        ]
+      }
+    },
+    {
+      "id": "energy_costs",
+      "label_lt": "2) Energijos sąnaudos",
+      "status": "ready",
+      "summary_lt": null,
+      "required_inputs": [],
+      "data": {
+        "status": "ready",
+        "message_lt": null,
+        "energy_month_eur": 81.34,
+        "energy_year_eur": 976.03,
+        "breakdown": [
+          {
+            "carrier": "cst",
+            "kwh_year": 9812.42,
+            "eur_year": 940.03,
+            "tariff_eur_kwh": 0.1,
+            "data_source_indicator": "epc"
+          }
+        ],
+        "components": [
+          {
+            "component_kind": "heating",
+            "label_lt": "Šildymas (centrinis šildymas)",
+            "carrier": "cst",
+            "eur_year": 728.89,
+            "eur_month": 60.74,
+            "source_lt": "📊 pagal pastato duomenis"
+          },
+          {
+            "component_kind": "dhw",
+            "label_lt": "Karštas vanduo",
+            "carrier": "cst",
+            "eur_year": 211.14,
+            "eur_month": 17.59,
+            "source_lt": "📊 pagal pastato duomenis"
+          },
+          {
+            "component_kind": "eso_standing",
+            "label_lt": "Elektros pastovusis mokestis",
+            "carrier": null,
+            "eur_year": 36,
+            "eur_month": 3,
+            "source_lt": "📊 pagal pastato duomenis"
+          }
+        ],
+        "monthly_variation": [
+          {
+            "month": 1,
+            "heating_eur": 122.06,
+            "dhw_eur": 17.59,
+            "cooling_eur": 0,
+            "fixed_eur": 3,
+            "household_electricity_eur": 0
+          },
+          {
+            "month": 2,
+            "heating_eur": 102.17,
+            "dhw_eur": 17.59,
+            "cooling_eur": 0,
+            "fixed_eur": 3,
+            "household_electricity_eur": 0
+          },
+          {
+            "month": 3,
+            "heating_eur": 92.54,
+            "dhw_eur": 17.59,
+            "cooling_eur": 0,
+            "fixed_eur": 3,
+            "household_electricity_eur": 0
+          },
+          {
+            "month": 4,
+            "heating_eur": 55.74,
+            "dhw_eur": 17.59,
+            "cooling_eur": 0,
+            "fixed_eur": 3,
+            "household_electricity_eur": 0
+          },
+          {
+            "month": 5,
+            "heating_eur": 35.9,
+            "dhw_eur": 17.59,
+            "cooling_eur": 0,
+            "fixed_eur": 3,
+            "household_electricity_eur": 0
+          },
+          {
+            "month": 6,
+            "heating_eur": 13.06,
+            "dhw_eur": 17.59,
+            "cooling_eur": 0,
+            "fixed_eur": 3,
+            "household_electricity_eur": 0
+          },
+          {
+            "month": 7,
+            "heating_eur": 8.32,
+            "dhw_eur": 17.59,
+            "cooling_eur": 0,
+            "fixed_eur": 3,
+            "household_electricity_eur": 0
+          },
+          {
+            "month": 8,
+            "heating_eur": 11.94,
+            "dhw_eur": 17.59,
+            "cooling_eur": 0,
+            "fixed_eur": 3,
+            "household_electricity_eur": 0
+          },
+          {
+            "month": 9,
+            "heating_eur": 31.33,
+            "dhw_eur": 17.59,
+            "cooling_eur": 0,
+            "fixed_eur": 3,
+            "household_electricity_eur": 0
+          },
+          {
+            "month": 10,
+            "heating_eur": 61.8,
+            "dhw_eur": 17.59,
+            "cooling_eur": 0,
+            "fixed_eur": 3,
+            "household_electricity_eur": 0
+          },
+          {
+            "month": 11,
+            "heating_eur": 85.8,
+            "dhw_eur": 17.59,
+            "cooling_eur": 0,
+            "fixed_eur": 3,
+            "household_electricity_eur": 0
+          },
+          {
+            "month": 12,
+            "heating_eur": 108.24,
+            "dhw_eur": 17.59,
+            "cooling_eur": 0,
+            "fixed_eur": 3,
+            "household_electricity_eur": 0
+          }
+        ],
+        "forecast_5yr": [
+          {
+            "year": 2026,
+            "total_eur_month": 81.34,
+            "per_carrier": {
+              "cst": 940.03
+            },
+            "fixed_eur_year": 36
+          },
+          {
+            "year": 2027,
+            "total_eur_month": 86.26,
+            "per_carrier": {
+              "cst": 997.28
+            },
+            "fixed_eur_year": 37.83
+          },
+          {
+            "year": 2028,
+            "total_eur_month": 91.48,
+            "per_carrier": {
+              "cst": 1058.01
+            },
+            "fixed_eur_year": 39.75
+          },
+          {
+            "year": 2029,
+            "total_eur_month": 97.02,
+            "per_carrier": {
+              "cst": 1122.45
+            },
+            "fixed_eur_year": 41.77
+          },
+          {
+            "year": 2030,
+            "total_eur_month": 102.89,
+            "per_carrier": {
+              "cst": 1190.8
+            },
+            "fixed_eur_year": 43.89
+          }
+        ],
+        "confidence": "medium",
+        "carrier_source": "epc",
+        "household_modelling": null,
+        "bill_override_active": null,
+        "bill_dhw_measured": null,
+        "modelled_dhw_eur_year": null,
+        "bill_unit_eur": null,
+        "bill_heating_thermal_kwh_year": null,
+        "solar_thermal_present": null,
+        "citations_lt": [
+          {
+            "category": "📊 Pastato energijos duomenys",
+            "label_lt": "Energinio naudingumo sertifikatas — Registrų centro energinio naudingumo sertifikatų registras (registrucentras.lt)",
+            "source_reference": "registrucentras.lt",
+            "dynamic_fields": {}
+          },
+          {
+            "category": "📊 Pastato energijos duomenys",
+            "label_lt": "Šildymo sistemos tipas: Registrų centro energinio naudingumo sertifikatų registro duomenys",
+            "source_reference": "block2 carrier resolution (§8 cascade)",
+            "dynamic_fields": {}
+          },
+          {
+            "category": "💰 Energijos tarifai",
+            "label_lt": "Centrinis šildymas: {supplier_name}, VERT patvirtintas tarifas, galioja nuo {effective_from} (šaltinis: vert.lt)",
+            "source_reference": "energy_tariffs.yaml",
+            "dynamic_fields": {
+              "supplier_name": "AB „Miesto gijos“",
+              "effective_from": "2026 m. gegužės"
+            }
+          },
+          {
+            "category": "💰 Energijos tarifai",
+            "label_lt": "Visos kainos su PVM (21%)",
+            "source_reference": "VAT 21%",
+            "dynamic_fields": {}
+          },
+          {
+            "category": "📈 Prognozės pagrindas",
+            "label_lt": "Tarifų augimo prognozė (per energijos rūšį): {source}",
+            "source_reference": "energy_tariffs.yaml escalation_rates",
+            "dynamic_fields": {
+              "source": "HICP CP0455 (Heat energy), GEO=LT, 2016–2025 trailing average of December YoY change"
+            }
+          },
+          {
+            "category": "📈 Prognozės pagrindas",
+            "label_lt": "Minimalus augimo tempas: Lietuvos infliacija (Eurostat HICP, 10 metų vidurkis: {hicp_rate}%/m.)",
+            "source_reference": "Eurostat HICP CP00",
+            "dynamic_fields": {
+              "hicp_rate": "4.76"
+            }
+          },
+          {
+            "category": "📈 Prognozės pagrindas",
+            "label_lt": "Visos kainos su PVM (21%)",
+            "source_reference": "VAT 21%",
+            "dynamic_fields": {}
+          }
+        ]
+      }
+    },
+    {
+      "id": "recommendations",
+      "label_lt": "8) Rekomendacijos ir sprendimai",
+      "status": "ready",
+      "summary_lt": null,
+      "required_inputs": [],
+      "data": {
+        "id": "recommendations",
+        "title_lt": "8) Rekomendacijos ir sprendimai",
+        "status": "ready",
+        "data": {
+          "pattern": "D",
+          "scope_prefix": "Šilumos komforto požiūriu",
+          "intro_lt": "Šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais — žiemą šildymo sąnaudos gali būti didelės, o vasarą patalpos linkusios perkaisti. Tai stipriausias signalas būti atidiems. Šio pastato šildymo poreikis yra apie 35 % mažesnis nei vidutinio tos pačios energinės klasės pastato Lietuvoje. Bendra energijos kaina šiam pastatui — apie €81 per mėnesį.",
+          "viewing_questions_lt": [
+            "Paprašykite faktinių šildymo sąskaitų už paskutinius 2–3 žiemos sezonus.",
+            "Apžiūrėkite izoliaciją: stogo / pastogės apšiltinimą, sienų būklę, langų sandarumą.",
+            "Jei įmanoma, aplankykite objektą šiltą popietę — pajuskite temperatūrą pietinėse ir vakarinėse patalpose.",
+            "Patikrinkite ventiliaciją ir esamas saulės apsaugos priemones (žaliuzės, markizės).",
+            "Ar pastatas buvo renovuotas? Jei taip — paprašykite renovacijos dokumentų. Jei ne — verta paklausti, ar planuojama renovacija (tai gali būti argumentas kainai derėtis)."
+          ],
+          "negotiation_angles_lt": [
+            "Šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais. Tai turėtų atsispindėti kainoje — arba tiesiogiai (mažesnė pardavimo kaina), arba per pardavėjo įsipareigojimą finansuoti dalį renovacijos.",
+            "Bendra energijos kaina šiam pastatui — apie €81 per mėnesį; iš šios sumos šildymui tenka apie €61 per mėnesį. Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyviame analogiškame pastate — tai apie €620 per metus. Per 5 metus, įvertinus prognozuojamą energijos kainų augimą (pagal 10 metų kainų tendencijas), skirtumas sudarytų apie €3480. Nerenovavus pastato, vien šildymas kainuotų apie €360 per metus daugiau nei renovuotame (C klasės) pastate.",
+            "Pastatas statytas iki 1993 m. — šio laikotarpio pastatai dažnai turi silpnesnę izoliaciją ir pasenusias inžinerines sistemas. Tai sustiprina argumentą dėl kainos korekcijos."
+          ],
+          "forward_note_lt": "Tikslias šildymo sąnaudas eurais rasite 2 bloke (Energijos sąnaudos). 10 metų bendrą gyvenimo kainą parodys 3 blokas (Gyvenimo kaina), kai jis bus pridėtas. Šilumos komforto požiūriu, ši informacija yra ypač svarbi priimant sprendimą.",
+          "caveat_lt": null,
+          "scope_disclaimer_lt": "Šios rekomendacijos apima tik šilumos komforto aspektą. Visapusiškas derybų strategijas ir pasiūlymo kainą pateiks pilnas 8 blokų rinkinys, kai visi blokai bus pridėti."
+        }
+      }
+    }
   ],
-  generated_at: '2026-04-01T14:30:00Z',
-  order_reference: 'NTD-2026-0042',
-  block2: mockBlock2(null),
-  block8: {
-    id: 'recommendations',
-    title_lt: '8) Rekomendacijos ir sprendimai',
-    status: 'ready',
-    data: {
-      pattern: 'B',
-      scope_prefix: 'Šilumos komforto požiūriu',
-      // B2-15: strings below are the served v2 copy (captured from a real
-      // _build_report_data run on the same CST fixture as block2 above —
-      // €76/€57 figures match block2's displayed cells by construction).
-      intro_lt:
-        'Šilumos komforto požiūriu, šis pastatas kelia šildymo iššūkį — šildymo sąnaudos gali būti reikšmingai didesnės nei efektyviame pastate, todėl verta atkreipti dėmesį į keletą dalykų. Šio pastato šildymo poreikis yra apie 35 % mažesnis nei vidutinio tos pačios energinės klasės pastato Lietuvoje. Bendra energijos kaina šiam pastatui — apie €76 per mėnesį.',
-      viewing_questions_lt: [
-        'Paprašykite faktinių šildymo sąskaitų už paskutinius 2–3 žiemos sezonus — ne įvertinimų, o tikrų sąskaitų.',
-        'Apžiūrėkite izoliaciją: stogo / pastogės apšiltinimą, grindų / rūsio izoliaciją, sienų būklę (matomi plyšiai, drėgmės žymės).',
-        'Patikrinkite langų būklę: dvigubas ar trigubas stiklo paketas, rėmų būklė, ar jaučiamas skersvėjis.',
-      ],
-      negotiation_angles_lt: [
-        'Bendra energijos kaina šiam pastatui — apie €76 per mėnesį; iš šios sumos šildymui tenka apie €57 per mėnesį. Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyviame analogiškame pastate — tai apie €580 per metus. Per 5 metus, įvertinus prognozuojamą energijos kainų augimą (pagal 10 metų kainų tendencijas), skirtumas sudarytų apie €3260. Nerenovavus pastato, vien šildymas kainuotų apie €340 per metus daugiau nei renovuotame (C klasės) pastate.',
-        'Šio laikotarpio pastatai dažnai turi silpnesnę izoliaciją — verta paklausti pardavėjo, ar buvo atlikta modernizacija.',
-      ],
-      forward_note_lt:
-        'Kiek konkrečiai kainuoja šildymas eurais per mėnesį, rasite 2 bloke (Energijos sąnaudos). 10 metų bendrą gyvenimo kainą parodys 3 blokas (Gyvenimo kaina), kai jis bus pridėtas.',
-      caveat_lt: null,
-      scope_disclaimer_lt:
-        'Šios rekomendacijos apima tik šilumos komforto aspektą. Visapusiškas derybų strategijas ir pasiūlymo kainą pateiks pilnas 8 blokų rinkinys, kai visi blokai bus pridėti.',
+  "permits": [
+    {
+      "document_type": "Statybos leidimas",
+      "document_status": "Galioja",
+      "document_date": "2020-03-15",
+      "building_name": "Daugiabučio namo renovacija",
+      "project_name": "Rekonstrukcija"
     },
+    {
+      "document_type": "Statybos užbaigimo aktas",
+      "document_status": "Įregistruotas",
+      "document_date": "2021-11-20",
+      "building_name": "Daugiabučio namo renovacija",
+      "project_name": "Rekonstrukcija"
+    }
+  ],
+  "citations": [
+    "VĮ REGISTRŲ CENTRAS. Nekilnojamojo turto registras: objekto duomenys [interaktyvus]. Vilnius: VĮ Registrų centras. Prieiga per internetą: https://www.registrucentras.lt",
+    "VĮ REGISTRŲ CENTRAS. Pastatų energinio naudingumo sertifikatų registras (PENS): energinio naudingumo sertifikatas [interaktyvus]. Vilnius: VĮ Registrų centras. Prieiga per internetą: https://www.registrucentras.lt",
+    "Lietuvos Respublikos aplinkos ministerija. Statybos techninis reglamentas STR 2.01.02:2016 „Pastatų energinio naudingumo projektavimas ir sertifikavimas“. Vilnius, 2016.",
+    "NT DUOMENYS. Vidaus klimato etalono bazė v2026.1: lyginamieji parametrai pagal pastato tipą ir statybos laikotarpį. Vilnius: NT Duomenys, 2026."
+  ],
+  "address": "Vilnius, Žirmūnų g. 12-5",
+  "ntr_unique_number": "4400-1234-5678",
+  "municipality": "Vilniaus m. sav.",
+  "lat": 54.72,
+  "lng": 25.28,
+  "bundle_items": [],
+  "generated_at": "2026-07-20T07:23:37.728574+00:00",
+  "order_reference": "NTD-DEV-001",
+  "property_profile": {
+    "purpose": "Gyvenamoji",
+    "premises_type": "flat",
+    "usage_group_label": null,
+    "year_built": 1975,
+    "floors": null,
+    "total_area_m2": null,
+    "heated_area_m2": 52.4,
+    "wall_material": null,
+    "heating_type": "Centralizuotas šilumos tiekimas",
+    "ventilation_type": "Natūrali",
+    "energy_class": "D",
+    "epc_kwhm2_year": 145.2,
+    "epc_source": "Registras (PENS)",
+    "epc_confidence": "Aukštas",
+    "glazing_percent": null,
+    "glazing_source": null,
+    "cadastral_ref": "4400-1234-5678",
+    "evaluation_target": "Esamas pastatas"
   },
-  block1: {
-    applicable: true,
-    winter: {
-      level: 'INTERMEDIATE',
-      rows: winterRows('INTERMEDIATE'),
-      // Winter band wiring: A++ comparison line (class C → INTERMEDIATE → no
-      // C-floor line, which is D–G only).
-      comparison_lines_lt: [
-        'Palyginti su naujos statybos etalonu (A++): apie 7 kartus didesnis šildymo poreikis.',
+  "block1": {
+    "applicable": true,
+    "neutral_message_lt": null,
+    "winter": {
+      "level": "WEAK",
+      "not_assessed_reason": null,
+      "provenance_label_key": null,
+      "rows": [
+        {
+          "band": "WEAK",
+          "label_lt": "Silpnai",
+          "description_lt": "Žema pastato energinė klasė (D ar žemesnė) rodo didelius šilumos poreikius: norint palaikyti 20–22 °C visame būste reikės intensyvaus šildymo, dalis patalpų gali likti vėsesnės, o šildymo poreikis gerokai viršija net renovuoto pastato lygį — žr. palyginimą žemiau (tikslesnę šildymo kainą rasite 2 bloke).",
+          "highlighted": true
+        }
       ],
+      "comparison_lines_lt": [
+        "Palyginti su naujos statybos etalonu (A++): apie 11 kartų didesnis šildymo poreikis.",
+        "Palyginti su renovuoto pastato etalonu (C klasė): ~+97% didesnis."
+      ]
     },
-    summer: {
-      risk_level: 'MODERATE',
-      rows: summerRows('MODERATE'),
+    "summer": {
+      "risk_level": "MODERATE",
+      "rows": [
+        {
+          "band": "MODERATE",
+          "label_lt": "",
+          "description_lt": "Per karščio bangas kai kuriose patalpose gali tapti per šilta, ypač ten, kur yra dideli langai ar viršutiniai aukštai — reikės dažnai vėdinti ir riboti tiesioginę saulę. Gali prireikti ventiliatorių ar nešiojamo kondicionieriaus per karščiausias dienas, tad dalį metų papildomai didės elektros sąnaudos dėl vėsinimo.",
+          "highlighted": true
+        }
+      ]
     },
-    summary_lt:
-      'Šiame būste žiemą palaikyti komfortišką temperatūrą reikės šiek tiek daugiau pastangų nei naujame, gerai apšiltintame name. Kai kurios patalpos, ypač kampiniai kambariai ir zonos prie didelių langų, gali jaustis vėsesnės. Vasarą per karščio bangas gali prireikti papildomo vėdinimo/vėsinimo.',
-    // A-next: the 3 real summer-overheating drivers (authored copy, single
-    // source = block1/presentation.py). MOCK_EXISTING is C / 1985 / low glazing,
-    // so none of the D23 thresholds fire → all inactive → section hidden (the
-    // honest result; the active-tag UI is covered by the DriversSection test).
-    drivers: [
+    "summary_lt": "Šiluminis komfortas 1, vasaros perkaitimo rizika 3.",
+    "drivers": [
       {
-        key: 'high_energy_class_driver',
-        label_lt: 'Aukšta energinė klasė',
-        explanation_lt:
-          'Aukštesnės energinės klasės pastatai paprastai sandaresni ir geriau apšiltinti — žiemą tai taupo šilumą, bet vasarą pro langus ir iš vidaus patekusi šiluma patalpose išlieka ilgiau, todėl be tinkamo šešėliavimo ir vėdinimo perkaitimo rizika būna šiek tiek didesnė.',
-        active: false,
-        direction: 'increase',
+        "key": "high_energy_class_driver",
+        "label_lt": "Aukšta energinė klasė",
+        "explanation_lt": "Aukštesnės energinės klasės pastatai paprastai sandaresni ir geriau apšiltinti — žiemą tai taupo šilumą, bet vasarą pro langus ir iš vidaus patekusi šiluma patalpose išlieka ilgiau, todėl be tinkamo šešėliavimo ir vėdinimo perkaitimo rizika būna šiek tiek didesnė.",
+        "active": false,
+        "direction": "increase"
       },
       {
-        key: 'newer_building_driver',
-        label_lt: 'Naujesnės statybos pastatas',
-        explanation_lt:
-          'Naujesni pastatai paprastai sandaresni ir geriau apšiltinti, todėl be tinkamo šešėliavimo ir vėdinimo vasarą sukaupta šiluma patalpose išlieka ilgiau ir perkaitimo rizika būna šiek tiek didesnė.',
-        active: false,
-        direction: 'increase',
+        "key": "newer_building_driver",
+        "label_lt": "Naujesnės statybos pastatas",
+        "explanation_lt": "Naujesni pastatai paprastai sandaresni ir geriau apšiltinti, todėl be tinkamo šešėliavimo ir vėdinimo vasarą sukaupta šiluma patalpose išlieka ilgiau ir perkaitimo rizika būna šiek tiek didesnė.",
+        "active": false,
+        "direction": "increase"
       },
       {
-        key: 'high_glazing_driver',
-        label_lt: 'Didelė langų dalis',
-        explanation_lt:
-          'Kai langų plotas didelis, saulėtomis dienomis pro stiklą patenka daug šilumos, todėl patalpos vasarą greičiau ir labiau įšyla.',
-        active: false,
-        direction: 'increase',
-      },
+        "key": "high_glazing_driver",
+        "label_lt": "Didelė langų dalis",
+        "explanation_lt": "Kai langų plotas didelis, saulėtomis dienomis pro stiklą patenka daug šilumos, todėl patalpos vasarą greičiau ir labiau įšyla.",
+        "active": false,
+        "direction": "increase"
+      }
     ],
-    // Winter-comfort factors (two-way), verbatim from the backend
-    // _WINTER_FACTOR_DEFS. good_epc (rating factor) REMOVED under letters-govern
-    // — tautological with the class verdict. Winter factors = age/windows/
-    // heating. MOCK_EXISTING is C / 1985 / low glazing → none active (honest).
-    winter_factors: [
+    "winter_factors": [
       {
-        key: 'new_or_renovated',
-        label_lt: 'Naujesnės statybos pastatas',
-        explanation_lt:
-          'Naujesnės statybos pastatai paprastai geriau apšiltinti ir sandaresni, todėl žiemą šiluma išlaikoma efektyviau ir jaučiama mažiau šaltų vietų ties sienomis ar kampuose.',
-        active: false,
-        direction: 'decrease',
+        "key": "new_or_renovated",
+        "label_lt": "Naujesnės statybos pastatas",
+        "explanation_lt": "Naujesnės statybos pastatai paprastai geriau apšiltinti ir sandaresni, todėl žiemą šiluma išlaikoma efektyviau ir jaučiama mažiau šaltų vietų ties sienomis ar kampuose.",
+        "active": false,
+        "direction": "decrease"
       },
       {
-        key: 'risky_glazing',
-        label_lt: 'Didelė langų dalis',
-        explanation_lt:
-          'Langai šilumą praleidžia lengviau nei sienos, todėl kai jų plotas didelis, žiemą pro juos prarandama daugiau šilumos — ties langais gali būti vėsiau, o šildymo poreikis šiek tiek didesnis.',
-        active: false,
-        direction: 'increase',
+        "key": "risky_glazing",
+        "label_lt": "Didelė langų dalis",
+        "explanation_lt": "Langai šilumą praleidžia lengviau nei sienos, todėl kai jų plotas didelis, žiemą pro juos prarandama daugiau šilumos — ties langais gali būti vėsiau, o šildymo poreikis šiek tiek didesnis.",
+        "active": false,
+        "direction": "increase"
       },
       {
-        key: 'heroic_heating',
-        label_lt: 'Efektyvi šildymo sistema',
-        explanation_lt:
-          'Efektyvi šildymo sistema komfortišką temperatūrą pasiekia greičiau ir mažesnėmis sąnaudomis, todėl žiemą patalpas lengviau tolygiai šildyti.',
-        active: false,
-        direction: 'decrease',
+        "key": "heroic_heating",
+        "label_lt": "Efektyvi šildymo sistema",
+        "explanation_lt": "Efektyvi šildymo sistema komfortišką temperatūrą pasiekia greičiau ir mažesnėmis sąnaudomis, todėl žiemą patalpas lengviau tolygiai šildyti.",
+        "active": true,
+        "direction": "decrease"
       },
       {
-        key: 'poor_heating',
-        label_lt: 'Neefektyvi šildymo sistema',
-        explanation_lt:
-          'Mažiau efektyvi šildymo sistema komfortiškai temperatūrai palaikyti reikalauja daugiau energijos ir laiko, todėl žiemą gali būti sunkiau užtikrinti tolygią šilumą visose patalpose.',
-        active: false,
-        direction: 'increase',
-      },
+        "key": "poor_heating",
+        "label_lt": "Neefektyvi šildymo sistema",
+        "explanation_lt": "Mažiau efektyvi šildymo sistema komfortiškai temperatūrai palaikyti reikalauja daugiau energijos ir laiko, todėl žiemą gali būti sunkiau užtikrinti tolygią šilumą visose patalpose.",
+        "active": false,
+        "direction": "increase"
+      }
     ],
-    info_box: {
-      items_lt: [
-        'Pagrindinė prielaida: Lietuvos klimatas, gyvenamosios patalpos ~20–22\u00a0°C žiemą, įprasti namų drabužiai, lengva veikla.',
-        'Vertinimo metodas: lyginame su techniškai efektyviu etaloniniu būstu (A/B klasė, šiuolaikinis apšiltinimas, mechaninė ventiliacija su rekuperacija) esant toms pačioms lauko sąlygoms ir panašiam būsto plotui.',
-        'Duomenų šaltinis: energijos naudingumo sertifikatas iš PENS registro. Pagrindiniai veiksniai, turintys įtaką vertinimui, nurodyti aukščiau.',
+    "info_box": {
+      "items_lt": [
+        "Svarbu: skersvėjai ir patalpų drėgmė šiame įrankyje nėra matuojami tiesiogiai – apie galimas problemas sprendžiame tik netiesiogiai pagal šildymo ir vėdinimo duomenis.",
+        "Ventiliacijos sistema: vėdinimo vėdinimo sistema; tai buvo įvertinta šiluminio komforto skaičiavimuose."
+      ]
+    },
+    "inputs_snapshot": {
+      "effective_energy_class": "D",
+      "effective_epc_kwhm2_year": 145.2,
+      "effective_year_built": 1975,
+      "glazing_share_percent": null,
+      "ventilation_type": "Natūrali",
+      "epc_source_class": "registry",
+      "epc_confidence_level": "high",
+      "evaluation_target": "existing_object",
+      "epc_plausibility": null,
+      "epc_plausibility_note_lt": null
+    }
+  },
+  "block2": {
+    "status": "ready",
+    "message_lt": null,
+    "metric": {
+      "eur_month": 81,
+      "eur_month_raw": 81.34,
+      "subtext_lt": "Vidutinė mėnesinė energijos kaina pagal dabartinius tarifus (su PVM)"
+    },
+    "intro_lt": "Šiame bloke pateikiame, kiek šiame būste tikėtina mokėti už energiją kiekvieną mėnesį — šildymą, karštą vandenį, vėsinimą ir ventiliaciją, bei pastovius mokesčius — pagal dabartinius tarifus ir pastato energinius parametrus. Taip pat galite sužinoti preliminarų elektros suvartojimą buities reikmėms, pasirinkę savo namų ūkio dydį.",
+    "breakdown": {
+      "column_headers_lt": [
+        "Komponentas",
+        "€ per metus (su PVM)",
+        "€ per mėnesį (su PVM)",
+        "Šaltinis"
       ],
+      "rows": [
+        {
+          "label_lt": "Šildymas (centrinis šildymas)",
+          "eur_year": 729,
+          "eur_month": 61,
+          "source_indicator": "📊 pagal pastato duomenis"
+        },
+        {
+          "label_lt": "Karštas vanduo",
+          "eur_year": 211,
+          "eur_month": 17,
+          "source_indicator": "📊 pagal pastato duomenis"
+        },
+        {
+          "label_lt": "Elektros pastovusis mokestis",
+          "eur_year": 36,
+          "eur_month": 3,
+          "source_indicator": "📊 pagal pastato duomenis"
+        }
+      ],
+      "total": {
+        "label_lt": "Viso",
+        "eur_year": 976,
+        "eur_month": 81
+      },
+      "dhw_footnote_lt": "Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių."
     },
-    inputs_snapshot: {
-      effective_energy_class: 'C',
-      effective_epc_kwhm2_year: 120,
-      effective_year_built: 1985,
-      glazing_share_percent: 30,
-      ventilation_type: 'natural',
-      epc_source_class: 'registry',
-      epc_confidence_level: 'HIGH',
-      evaluation_target: 'main_heated',
+    "explanation": {
+      "heading_lt": "Ką tai reiškia praktiškai?",
+      "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos sudarys apie €81 per mėnesį arba €976 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €103.",
+      "family_note_lt": "Svarbu atsiminti, kad ši suma neapima buitinės elektros (apšvietimas, prietaisai, viryklė). Pasirinkite namų ūkio dydį žemiau, kad pamatytumėte bendrą mėnesinę energijos kainą."
     },
+    "info_box": {
+      "heading_lt": "Iš ko remiamės šiuo vertinimu?",
+      "vat_lt": "Visos kainos nurodytos su PVM (21%)",
+      "escalation_lt": "Prognozė remiasi VERT reguliuojamų tarifų vidurkiu arba 4%/m. numatytu augimu",
+      "disclosure_lt": "Šildymo sistemos tipas (centrinis šildymas) nustatytas pagal pastato energinio naudingumo sertifikatą.",
+      "bill_note_lt": null,
+      "solar_note_lt": null,
+      "whats_not_included_lt": "Šis vertinimas neapima buitinės elektros (apšvietimas, prietaisai, viryklė) ir nėra pritaikytas konkrečiam gyventojų skaičiui. Pasirinkite namų ūkio dydį, kad vertinimas būtų išsamesnis."
+    },
+    "confidence": "medium",
+    "confidence_text_lt": "energinė klasė žinoma, bet šildymo sistemos tipas nustatytas pagal pastato tipologiją (pvz., iki 1990 m. daugiabutis → centrinis šildymas)",
+    "carrier_warning_lt": null,
+    "newbuild_note_lt": null,
+    "citations_lt": [
+      "Energinio naudingumo sertifikatas — Registrų centro energinio naudingumo sertifikatų registras (registrucentras.lt)",
+      "Šildymo sistemos tipas: Registrų centro energinio naudingumo sertifikatų registro duomenys",
+      "Centrinis šildymas: AB „Miesto gijos“, VERT patvirtintas tarifas, galioja nuo 2026 m. gegužės (šaltinis: vert.lt)",
+      "Visos kainos su PVM (21%)",
+      "Tarifų augimo prognozė (per energijos rūšį): HICP CP0455 (Heat energy), GEO=LT, 2016–2025 trailing average of December YoY change",
+      "Minimalus augimo tempas: Lietuvos infliacija (Eurostat HICP, 10 metų vidurkis: 4.76%/m.)",
+      "Visos kainos su PVM (21%)"
+    ],
+    "monthly_variation": [
+      {
+        "month": 1,
+        "heating_eur": 122.06,
+        "dhw_eur": 17.59,
+        "cooling_eur": 0,
+        "fixed_eur": 3,
+        "household_electricity_eur": 0
+      },
+      {
+        "month": 2,
+        "heating_eur": 102.17,
+        "dhw_eur": 17.59,
+        "cooling_eur": 0,
+        "fixed_eur": 3,
+        "household_electricity_eur": 0
+      },
+      {
+        "month": 3,
+        "heating_eur": 92.54,
+        "dhw_eur": 17.59,
+        "cooling_eur": 0,
+        "fixed_eur": 3,
+        "household_electricity_eur": 0
+      },
+      {
+        "month": 4,
+        "heating_eur": 55.74,
+        "dhw_eur": 17.59,
+        "cooling_eur": 0,
+        "fixed_eur": 3,
+        "household_electricity_eur": 0
+      },
+      {
+        "month": 5,
+        "heating_eur": 35.9,
+        "dhw_eur": 17.59,
+        "cooling_eur": 0,
+        "fixed_eur": 3,
+        "household_electricity_eur": 0
+      },
+      {
+        "month": 6,
+        "heating_eur": 13.06,
+        "dhw_eur": 17.59,
+        "cooling_eur": 0,
+        "fixed_eur": 3,
+        "household_electricity_eur": 0
+      },
+      {
+        "month": 7,
+        "heating_eur": 8.32,
+        "dhw_eur": 17.59,
+        "cooling_eur": 0,
+        "fixed_eur": 3,
+        "household_electricity_eur": 0
+      },
+      {
+        "month": 8,
+        "heating_eur": 11.94,
+        "dhw_eur": 17.59,
+        "cooling_eur": 0,
+        "fixed_eur": 3,
+        "household_electricity_eur": 0
+      },
+      {
+        "month": 9,
+        "heating_eur": 31.33,
+        "dhw_eur": 17.59,
+        "cooling_eur": 0,
+        "fixed_eur": 3,
+        "household_electricity_eur": 0
+      },
+      {
+        "month": 10,
+        "heating_eur": 61.8,
+        "dhw_eur": 17.59,
+        "cooling_eur": 0,
+        "fixed_eur": 3,
+        "household_electricity_eur": 0
+      },
+      {
+        "month": 11,
+        "heating_eur": 85.8,
+        "dhw_eur": 17.59,
+        "cooling_eur": 0,
+        "fixed_eur": 3,
+        "household_electricity_eur": 0
+      },
+      {
+        "month": 12,
+        "heating_eur": 108.24,
+        "dhw_eur": 17.59,
+        "cooling_eur": 0,
+        "fixed_eur": 3,
+        "household_electricity_eur": 0
+      }
+    ],
+    "forecast_5yr": [
+      {
+        "year": 2026,
+        "total_eur_month": 81.34,
+        "per_carrier": {
+          "cst": 940.03
+        },
+        "fixed_eur_year": 36
+      },
+      {
+        "year": 2027,
+        "total_eur_month": 86.26,
+        "per_carrier": {
+          "cst": 997.28
+        },
+        "fixed_eur_year": 37.83
+      },
+      {
+        "year": 2028,
+        "total_eur_month": 91.48,
+        "per_carrier": {
+          "cst": 1058.01
+        },
+        "fixed_eur_year": 39.75
+      },
+      {
+        "year": 2029,
+        "total_eur_month": 97.02,
+        "per_carrier": {
+          "cst": 1122.45
+        },
+        "fixed_eur_year": 41.77
+      },
+      {
+        "year": 2030,
+        "total_eur_month": 102.89,
+        "per_carrier": {
+          "cst": 1190.8
+        },
+        "fixed_eur_year": 43.89
+      }
+    ],
+    "household_reference": [
+      {
+        "household_size": 1,
+        "size_label_lt": "1 asmuo",
+        "kwh_month": 124,
+        "kwh_year": 1490,
+        "eur_month": 14
+      },
+      {
+        "household_size": 2,
+        "size_label_lt": "2 asmenys",
+        "kwh_month": 205,
+        "kwh_year": 2460,
+        "eur_month": 23
+      },
+      {
+        "household_size": 3,
+        "size_label_lt": "3 asmenys",
+        "kwh_month": 273,
+        "kwh_year": 3280,
+        "eur_month": 30
+      },
+      {
+        "household_size": 4,
+        "size_label_lt": "4 asmenys",
+        "kwh_month": 325,
+        "kwh_year": 3900,
+        "eur_month": 36
+      },
+      {
+        "household_size": 5,
+        "size_label_lt": "5+ asmenys",
+        "kwh_month": 379,
+        "kwh_year": 4545,
+        "eur_month": 42
+      }
+    ],
+    "standard_occupancy": 2,
+    "household_modelling": {
+      "selector_caption_lt": "Pasirinkite namų ūkio dydį, kad pamatytumėte bendrą mėnesinę energijos kainą",
+      "disclosure_box_lt": "ℹ️ Duomenų šaltiniai\n\nŠis vertinimas sujungia du duomenų tipus:\n\n📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui.\n\n👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų pasirinktą namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių.",
+      "citation_lt": {
+        "category_lt": "👥 Namų ūkio modeliavimas",
+        "lines_lt": [
+          "Buitinės elektros vidurkis: Eurostat Lietuvos gyvenamųjų pastatų elektros suvartojimas (nrg_bal_c, 2023 m.), išskaidytas pagal namų ūkio dydį (2021 m. surašymas, Destatis struktūra)",
+          "Karšto vandens pritaikymas: tipinis gyventojų skaičius pagal naudingąjį plotą (2021 m. gyventojų ir būstų surašymas, Valstybės duomenų agentūra)"
+        ]
+      },
+      "options": [
+        {
+          "household_size": 1,
+          "size_label_lt": "1 asmuo",
+          "metric": {
+            "eur_month": 87,
+            "subtext_lt": "Pastato energija + buitinė elektra (1 asmens namų ūkis)"
+          },
+          "breakdown": {
+            "rows": [
+              {
+                "label_lt": "Šildymas (centrinis šildymas)",
+                "eur_year": 729,
+                "eur_month": 61,
+                "source_indicator": "📊 pagal pastato duomenis"
+              },
+              {
+                "label_lt": "Karštas vanduo (pritaikyta 1 asmeniui)",
+                "eur_year": 106,
+                "eur_month": 9,
+                "source_indicator": "📊 pagal pastato duomenis + 👥 pritaikyta pagal namų ūkio dydį"
+              },
+              {
+                "label_lt": "Elektros pastovusis mokestis",
+                "eur_year": 36,
+                "eur_month": 3,
+                "source_indicator": "📊 pagal pastato duomenis"
+              },
+              {
+                "label_lt": "Buitinė elektra (1 asm.)",
+                "eur_year": 166,
+                "eur_month": 14,
+                "source_indicator": "👥 statistinis vidurkis"
+              }
+            ],
+            "total": {
+              "label_lt": "Viso",
+              "eur_year": 1036,
+              "eur_month": 87
+            }
+          },
+          "monthly_variation": [
+            {
+              "month": 1,
+              "heating_eur": 122.06,
+              "dhw_eur": 8.8,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 14
+            },
+            {
+              "month": 2,
+              "heating_eur": 102.17,
+              "dhw_eur": 8.8,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 14
+            },
+            {
+              "month": 3,
+              "heating_eur": 92.54,
+              "dhw_eur": 8.8,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 14
+            },
+            {
+              "month": 4,
+              "heating_eur": 55.74,
+              "dhw_eur": 8.8,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 14
+            },
+            {
+              "month": 5,
+              "heating_eur": 35.9,
+              "dhw_eur": 8.8,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 14
+            },
+            {
+              "month": 6,
+              "heating_eur": 13.06,
+              "dhw_eur": 8.8,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 14
+            },
+            {
+              "month": 7,
+              "heating_eur": 8.32,
+              "dhw_eur": 8.8,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 14
+            },
+            {
+              "month": 8,
+              "heating_eur": 11.94,
+              "dhw_eur": 8.8,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 14
+            },
+            {
+              "month": 9,
+              "heating_eur": 31.33,
+              "dhw_eur": 8.8,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 14
+            },
+            {
+              "month": 10,
+              "heating_eur": 61.8,
+              "dhw_eur": 8.8,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 14
+            },
+            {
+              "month": 11,
+              "heating_eur": 85.8,
+              "dhw_eur": 8.8,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 14
+            },
+            {
+              "month": 12,
+              "heating_eur": 108.24,
+              "dhw_eur": 8.8,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 14
+            }
+          ],
+          "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 1 asmens namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
+          "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 1 asmens namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija."
+        },
+        {
+          "household_size": 2,
+          "size_label_lt": "2 asmenys",
+          "metric": {
+            "eur_month": 104,
+            "subtext_lt": "Pastato energija + buitinė elektra (2 asmenų namų ūkis)"
+          },
+          "breakdown": {
+            "rows": [
+              {
+                "label_lt": "Šildymas (centrinis šildymas)",
+                "eur_year": 729,
+                "eur_month": 61,
+                "source_indicator": "📊 pagal pastato duomenis"
+              },
+              {
+                "label_lt": "Karštas vanduo (pritaikyta 2 asmenims)",
+                "eur_year": 211,
+                "eur_month": 17,
+                "source_indicator": "📊 pagal pastato duomenis + 👥 pritaikyta pagal namų ūkio dydį"
+              },
+              {
+                "label_lt": "Elektros pastovusis mokestis",
+                "eur_year": 36,
+                "eur_month": 3,
+                "source_indicator": "📊 pagal pastato duomenis"
+              },
+              {
+                "label_lt": "Buitinė elektra (2 asm.)",
+                "eur_year": 274,
+                "eur_month": 23,
+                "source_indicator": "👥 statistinis vidurkis"
+              }
+            ],
+            "total": {
+              "label_lt": "Viso",
+              "eur_year": 1250,
+              "eur_month": 104
+            }
+          },
+          "monthly_variation": [
+            {
+              "month": 1,
+              "heating_eur": 122.06,
+              "dhw_eur": 17.59,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 23
+            },
+            {
+              "month": 2,
+              "heating_eur": 102.17,
+              "dhw_eur": 17.59,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 23
+            },
+            {
+              "month": 3,
+              "heating_eur": 92.54,
+              "dhw_eur": 17.59,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 23
+            },
+            {
+              "month": 4,
+              "heating_eur": 55.74,
+              "dhw_eur": 17.59,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 23
+            },
+            {
+              "month": 5,
+              "heating_eur": 35.9,
+              "dhw_eur": 17.59,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 23
+            },
+            {
+              "month": 6,
+              "heating_eur": 13.06,
+              "dhw_eur": 17.59,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 23
+            },
+            {
+              "month": 7,
+              "heating_eur": 8.32,
+              "dhw_eur": 17.59,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 23
+            },
+            {
+              "month": 8,
+              "heating_eur": 11.94,
+              "dhw_eur": 17.59,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 23
+            },
+            {
+              "month": 9,
+              "heating_eur": 31.33,
+              "dhw_eur": 17.59,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 23
+            },
+            {
+              "month": 10,
+              "heating_eur": 61.8,
+              "dhw_eur": 17.59,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 23
+            },
+            {
+              "month": 11,
+              "heating_eur": 85.8,
+              "dhw_eur": 17.59,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 23
+            },
+            {
+              "month": 12,
+              "heating_eur": 108.24,
+              "dhw_eur": 17.59,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 23
+            }
+          ],
+          "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 2 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
+          "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 2 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija."
+        },
+        {
+          "household_size": 3,
+          "size_label_lt": "3 asmenys",
+          "metric": {
+            "eur_month": 120,
+            "subtext_lt": "Pastato energija + buitinė elektra (3 asmenų namų ūkis)"
+          },
+          "breakdown": {
+            "rows": [
+              {
+                "label_lt": "Šildymas (centrinis šildymas)",
+                "eur_year": 729,
+                "eur_month": 61,
+                "source_indicator": "📊 pagal pastato duomenis"
+              },
+              {
+                "label_lt": "Karštas vanduo (pritaikyta 3 asmenims)",
+                "eur_year": 317,
+                "eur_month": 26,
+                "source_indicator": "📊 pagal pastato duomenis + 👥 pritaikyta pagal namų ūkio dydį"
+              },
+              {
+                "label_lt": "Elektros pastovusis mokestis",
+                "eur_year": 36,
+                "eur_month": 3,
+                "source_indicator": "📊 pagal pastato duomenis"
+              },
+              {
+                "label_lt": "Buitinė elektra (3 asm.)",
+                "eur_year": 365,
+                "eur_month": 30,
+                "source_indicator": "👥 statistinis vidurkis"
+              }
+            ],
+            "total": {
+              "label_lt": "Viso",
+              "eur_year": 1447,
+              "eur_month": 120
+            }
+          },
+          "monthly_variation": [
+            {
+              "month": 1,
+              "heating_eur": 122.06,
+              "dhw_eur": 26.39,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 30
+            },
+            {
+              "month": 2,
+              "heating_eur": 102.17,
+              "dhw_eur": 26.39,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 30
+            },
+            {
+              "month": 3,
+              "heating_eur": 92.54,
+              "dhw_eur": 26.39,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 30
+            },
+            {
+              "month": 4,
+              "heating_eur": 55.74,
+              "dhw_eur": 26.39,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 30
+            },
+            {
+              "month": 5,
+              "heating_eur": 35.9,
+              "dhw_eur": 26.39,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 30
+            },
+            {
+              "month": 6,
+              "heating_eur": 13.06,
+              "dhw_eur": 26.39,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 30
+            },
+            {
+              "month": 7,
+              "heating_eur": 8.32,
+              "dhw_eur": 26.39,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 30
+            },
+            {
+              "month": 8,
+              "heating_eur": 11.94,
+              "dhw_eur": 26.39,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 30
+            },
+            {
+              "month": 9,
+              "heating_eur": 31.33,
+              "dhw_eur": 26.39,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 30
+            },
+            {
+              "month": 10,
+              "heating_eur": 61.8,
+              "dhw_eur": 26.39,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 30
+            },
+            {
+              "month": 11,
+              "heating_eur": 85.8,
+              "dhw_eur": 26.39,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 30
+            },
+            {
+              "month": 12,
+              "heating_eur": 108.24,
+              "dhw_eur": 26.39,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 30
+            }
+          ],
+          "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 3 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
+          "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 3 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija."
+        },
+        {
+          "household_size": 4,
+          "size_label_lt": "4 asmenys",
+          "metric": {
+            "eur_month": 135,
+            "subtext_lt": "Pastato energija + buitinė elektra (4 asmenų namų ūkis)"
+          },
+          "breakdown": {
+            "rows": [
+              {
+                "label_lt": "Šildymas (centrinis šildymas)",
+                "eur_year": 729,
+                "eur_month": 61,
+                "source_indicator": "📊 pagal pastato duomenis"
+              },
+              {
+                "label_lt": "Karštas vanduo (pritaikyta 4 asmenims)",
+                "eur_year": 422,
+                "eur_month": 35,
+                "source_indicator": "📊 pagal pastato duomenis + 👥 pritaikyta pagal namų ūkio dydį"
+              },
+              {
+                "label_lt": "Elektros pastovusis mokestis",
+                "eur_year": 36,
+                "eur_month": 3,
+                "source_indicator": "📊 pagal pastato duomenis"
+              },
+              {
+                "label_lt": "Buitinė elektra (4 asm.)",
+                "eur_year": 434,
+                "eur_month": 36,
+                "source_indicator": "👥 statistinis vidurkis"
+              }
+            ],
+            "total": {
+              "label_lt": "Viso",
+              "eur_year": 1621,
+              "eur_month": 135
+            }
+          },
+          "monthly_variation": [
+            {
+              "month": 1,
+              "heating_eur": 122.06,
+              "dhw_eur": 35.19,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 36
+            },
+            {
+              "month": 2,
+              "heating_eur": 102.17,
+              "dhw_eur": 35.19,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 36
+            },
+            {
+              "month": 3,
+              "heating_eur": 92.54,
+              "dhw_eur": 35.19,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 36
+            },
+            {
+              "month": 4,
+              "heating_eur": 55.74,
+              "dhw_eur": 35.19,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 36
+            },
+            {
+              "month": 5,
+              "heating_eur": 35.9,
+              "dhw_eur": 35.19,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 36
+            },
+            {
+              "month": 6,
+              "heating_eur": 13.06,
+              "dhw_eur": 35.19,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 36
+            },
+            {
+              "month": 7,
+              "heating_eur": 8.32,
+              "dhw_eur": 35.19,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 36
+            },
+            {
+              "month": 8,
+              "heating_eur": 11.94,
+              "dhw_eur": 35.19,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 36
+            },
+            {
+              "month": 9,
+              "heating_eur": 31.33,
+              "dhw_eur": 35.19,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 36
+            },
+            {
+              "month": 10,
+              "heating_eur": 61.8,
+              "dhw_eur": 35.19,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 36
+            },
+            {
+              "month": 11,
+              "heating_eur": 85.8,
+              "dhw_eur": 35.19,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 36
+            },
+            {
+              "month": 12,
+              "heating_eur": 108.24,
+              "dhw_eur": 35.19,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 36
+            }
+          ],
+          "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 4 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
+          "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 4 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija."
+        },
+        {
+          "household_size": 5,
+          "size_label_lt": "5+ asmenys",
+          "metric": {
+            "eur_month": 150,
+            "subtext_lt": "Pastato energija + buitinė elektra (5 asmenų namų ūkis)"
+          },
+          "breakdown": {
+            "rows": [
+              {
+                "label_lt": "Šildymas (centrinis šildymas)",
+                "eur_year": 729,
+                "eur_month": 61,
+                "source_indicator": "📊 pagal pastato duomenis"
+              },
+              {
+                "label_lt": "Karštas vanduo (pritaikyta 5 asmenims)",
+                "eur_year": 528,
+                "eur_month": 44,
+                "source_indicator": "📊 pagal pastato duomenis + 👥 pritaikyta pagal namų ūkio dydį"
+              },
+              {
+                "label_lt": "Elektros pastovusis mokestis",
+                "eur_year": 36,
+                "eur_month": 3,
+                "source_indicator": "📊 pagal pastato duomenis"
+              },
+              {
+                "label_lt": "Buitinė elektra (5 asm.)",
+                "eur_year": 506,
+                "eur_month": 42,
+                "source_indicator": "👥 statistinis vidurkis"
+              }
+            ],
+            "total": {
+              "label_lt": "Viso",
+              "eur_year": 1799,
+              "eur_month": 150
+            }
+          },
+          "monthly_variation": [
+            {
+              "month": 1,
+              "heating_eur": 122.06,
+              "dhw_eur": 43.99,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 42
+            },
+            {
+              "month": 2,
+              "heating_eur": 102.17,
+              "dhw_eur": 43.99,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 42
+            },
+            {
+              "month": 3,
+              "heating_eur": 92.54,
+              "dhw_eur": 43.99,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 42
+            },
+            {
+              "month": 4,
+              "heating_eur": 55.74,
+              "dhw_eur": 43.99,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 42
+            },
+            {
+              "month": 5,
+              "heating_eur": 35.9,
+              "dhw_eur": 43.99,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 42
+            },
+            {
+              "month": 6,
+              "heating_eur": 13.06,
+              "dhw_eur": 43.99,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 42
+            },
+            {
+              "month": 7,
+              "heating_eur": 8.32,
+              "dhw_eur": 43.99,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 42
+            },
+            {
+              "month": 8,
+              "heating_eur": 11.94,
+              "dhw_eur": 43.99,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 42
+            },
+            {
+              "month": 9,
+              "heating_eur": 31.33,
+              "dhw_eur": 43.99,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 42
+            },
+            {
+              "month": 10,
+              "heating_eur": 61.8,
+              "dhw_eur": 43.99,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 42
+            },
+            {
+              "month": 11,
+              "heating_eur": 85.8,
+              "dhw_eur": 43.99,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 42
+            },
+            {
+              "month": 12,
+              "heating_eur": 108.24,
+              "dhw_eur": 43.99,
+              "cooling_eur": 0,
+              "fixed_eur": 3,
+              "household_electricity_eur": 42
+            }
+          ],
+          "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 5 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
+          "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 5 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija."
+        }
+      ]
+    }
   },
-  property_profile: {
-    purpose: 'Gyvenamoji',
-    premises_type: 'Daugiabutis namas',
-    usage_group_label: 'Gyvenamieji daugiabučiai pastatai',
-    year_built: 1985,
-    floors: 5,
-    total_area_m2: 68.5,
-    heated_area_m2: 62.0,
-    wall_material: 'Gelžbetonio plokštės',
-    heating_type: 'Centrinis šildymas',
-    ventilation_type: 'Natūrali ventiliacija',
-    energy_class: 'C',
-    epc_kwhm2_year: 120,
-    epc_source: 'Registras (PENS)',
-    epc_confidence: 'Vidutinis',
-    glazing_percent: 20,
-    glazing_source: 'Statybos periodo ir tipo numatytoji reikšmė',
-    cadastral_ref: null,
-    evaluation_target: 'Esamas pastatas',
-  },
+  "block8": {
+    "id": "recommendations",
+    "title_lt": "8) Rekomendacijos ir sprendimai",
+    "status": "ready",
+    "data": {
+      "pattern": "D",
+      "scope_prefix": "Šilumos komforto požiūriu",
+      "intro_lt": "Šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais — žiemą šildymo sąnaudos gali būti didelės, o vasarą patalpos linkusios perkaisti. Tai stipriausias signalas būti atidiems. Šio pastato šildymo poreikis yra apie 35 % mažesnis nei vidutinio tos pačios energinės klasės pastato Lietuvoje. Bendra energijos kaina šiam pastatui — apie €81 per mėnesį.",
+      "viewing_questions_lt": [
+        "Paprašykite faktinių šildymo sąskaitų už paskutinius 2–3 žiemos sezonus.",
+        "Apžiūrėkite izoliaciją: stogo / pastogės apšiltinimą, sienų būklę, langų sandarumą.",
+        "Jei įmanoma, aplankykite objektą šiltą popietę — pajuskite temperatūrą pietinėse ir vakarinėse patalpose.",
+        "Patikrinkite ventiliaciją ir esamas saulės apsaugos priemones (žaliuzės, markizės).",
+        "Ar pastatas buvo renovuotas? Jei taip — paprašykite renovacijos dokumentų. Jei ne — verta paklausti, ar planuojama renovacija (tai gali būti argumentas kainai derėtis)."
+      ],
+      "negotiation_angles_lt": [
+        "Šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais. Tai turėtų atsispindėti kainoje — arba tiesiogiai (mažesnė pardavimo kaina), arba per pardavėjo įsipareigojimą finansuoti dalį renovacijos.",
+        "Bendra energijos kaina šiam pastatui — apie €81 per mėnesį; iš šios sumos šildymui tenka apie €61 per mėnesį. Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyviame analogiškame pastate — tai apie €620 per metus. Per 5 metus, įvertinus prognozuojamą energijos kainų augimą (pagal 10 metų kainų tendencijas), skirtumas sudarytų apie €3480. Nerenovavus pastato, vien šildymas kainuotų apie €360 per metus daugiau nei renovuotame (C klasės) pastate.",
+        "Pastatas statytas iki 1993 m. — šio laikotarpio pastatai dažnai turi silpnesnę izoliaciją ir pasenusias inžinerines sistemas. Tai sustiprina argumentą dėl kainos korekcijos."
+      ],
+      "forward_note_lt": "Tikslias šildymo sąnaudas eurais rasite 2 bloke (Energijos sąnaudos). 10 metų bendrą gyvenimo kainą parodys 3 blokas (Gyvenimo kaina), kai jis bus pridėtas. Šilumos komforto požiūriu, ši informacija yra ypač svarbi priimant sprendimą.",
+      "caveat_lt": null,
+      "scope_disclaimer_lt": "Šios rekomendacijos apima tik šilumos komforto aspektą. Visapusiškas derybų strategijas ir pasiūlymo kainą pateiks pilnas 8 blokų rinkinys, kai visi blokai bus pridėti."
+    }
+  }
 };
 
 export const MOCK_LAND_ONLY: ReportData = {
