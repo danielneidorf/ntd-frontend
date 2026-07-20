@@ -129,21 +129,54 @@ export default function PropertyProfile({
   // physique → systems; DOM order = semantic order — the 2-col grid fills
   // row-by-row, so adjacent array entries form the visual pairs, and the
   // 1-col mobile stack keeps each pair together.
+  // Label ruling (2026-07-20) — truth by suppression. B0-A Q3's copy rule:
+  // report copy says „plotas"/„bendras plotas", NOT „šildomas plotas",
+  // until a genuine heated-area source lands. So the „Šildomas plotas" row
+  // renders ONLY when the served source really is a heated area (registry
+  // sildomas / PENS certificate / document-extracted). On the proxy road —
+  // and on untagged legacy snapshots, where we cannot claim otherwise —
+  // the card shows ONE area row labelled „Bendras plotas" carrying that
+  // value, with the R6 disclosure beneath it. A number is never labelled
+  // something it isn't.
+  const GENUINE_HEATED_SOURCES = [
+    'registry',
+    'pens_certificate',
+    'tier_2_pens_israsas',
+    'document_extracted',
+  ];
+  const heatedIsGenuine = GENUINE_HEATED_SOURCES.includes(
+    profile.heated_area_m2_source ?? '',
+  );
+  const AREA_PAIR_HELPER =
+    'Bendras plotas apima ir nešildomas erdves — balkoną, rūsį ar sandėliuką. ' +
+    'Energijos sąnaudos skaičiuojamos pagal šildomą plotą.';
+
+  const areaFields = heatedIsGenuine
+    ? [
+        { label: 'Bendras plotas', raw: profile.total_area_m2, format: (v: number) => `${v} m²` },
+        {
+          label: 'Šildomas plotas',
+          raw: profile.heated_area_m2,
+          format: (v: number) => `${v} m²`,
+          helper: profile.heated_area_m2_source_lt,
+          helperAfter: AREA_PAIR_HELPER,
+        },
+      ]
+    : [
+        {
+          label: 'Bendras plotas',
+          raw: profile.heated_area_m2 ?? profile.total_area_m2,
+          format: (v: number) => `${v} m²`,
+          helper: profile.heated_area_m2_source_lt,
+        },
+      ];
+
   const buildingFields = buildGroup([
     { label: 'Paskirtis', raw: profile.purpose },
     { label: 'Tipas', raw: profile.premises_type },
     { label: 'Naudojimo grupė', raw: profile.usage_group_label },
     { label: 'Statybos metai', raw: profile.year_built },
-    { label: 'Bendras plotas', raw: profile.total_area_m2, format: (v: number) => `${v} m²` },
-    {
-      label: 'Šildomas plotas',
-      raw: profile.heated_area_m2,
-      format: (v: number) => `${v} m²`,
-      helper: profile.heated_area_m2_source_lt,
-      helperAfter:
-        'Bendras plotas apima ir nešildomas erdves — balkoną, rūsį ar sandėliuką. ' +
-        'Energijos sąnaudos skaičiuojamos pagal šildomą plotą.',
-    },
+    ...areaFields,
     { label: 'Aukštų skaičius', raw: profile.floors },
     { label: 'Sienų medžiaga', raw: profile.wall_material },
     { label: 'Šildymo tipas', raw: profile.heating_type },

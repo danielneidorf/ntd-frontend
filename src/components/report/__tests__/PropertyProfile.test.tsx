@@ -32,7 +32,22 @@ const PROFILE: ReportData['property_profile'] = {
   glazing_source: null,
 } as ReportData['property_profile'];
 
-const BLESSED_ORDER = [
+// Label ruling (2026-07-20): the area block has TWO render states, so the
+// blessed order has two forms. Proxy/untagged → ONE „Bendras plotas" row;
+// a genuine heated source → the pair, „Šildomas plotas" included.
+const ORDER_PROXY = [
+  'Paskirtis',
+  'Tipas',
+  'Naudojimo grupė',
+  'Statybos metai',
+  'Bendras plotas',
+  'Aukštų skaičius',
+  'Sienų medžiaga',
+  'Šildymo tipas',
+  'Ventiliacijos tipas',
+];
+
+const ORDER_GENUINE = [
   'Paskirtis',
   'Tipas',
   'Naudojimo grupė',
@@ -45,25 +60,40 @@ const BLESSED_ORDER = [
   'Ventiliacijos tipas',
 ];
 
-function renderCard() {
+const GENUINE_AREA = {
+  total_area_m2: 68.5,
+  heated_area_m2: 52.4,
+  heated_area_m2_source: 'tier_2_pens_israsas',
+  heated_area_m2_source_lt: 'Pagal energinio naudingumo sertifikatą',
+};
+
+function renderCard(extra: Record<string, unknown> = {}) {
   return render(
-    <PropertyProfile profile={PROFILE} lat={54.7} lng={25.28} address="Testo g. 1, Vilnius" />,
+    <PropertyProfile
+      profile={{ ...PROFILE, ...extra } as ReportData['property_profile']}
+      lat={54.7}
+      lng={25.28}
+      address="Testo g. 1, Vilnius"
+    />,
   );
 }
 
+function labelsInCard(): string[] {
+  const heading = screen.getByText('Pastato charakteristikos');
+  const card = heading.parentElement!;
+  return Array.from(card.querySelectorAll('p.text-sm.text-slate-500'))
+    .map((p) => p.textContent ?? '')
+    .filter((t) => ORDER_GENUINE.includes(t));
+}
+
 describe('Pastato charakteristikos card (report-walk C1)', () => {
-  it('renders the rows in the blessed semantic order (DOM order = pairs)', () => {
-    renderCard();
-    const heading = screen.getByText('Pastato charakteristikos');
-    const card = heading.parentElement!;
-    const labels = Array.from(card.querySelectorAll('p.text-sm.text-slate-500'))
-      .map((p) => p.textContent)
-      .filter((t) => BLESSED_ORDER.includes(t ?? ''));
-    expect(labels).toEqual(BLESSED_ORDER);
+  it('renders the rows in the blessed semantic order (genuine heated source)', () => {
+    renderCard(GENUINE_AREA);
+    expect(labelsInCard()).toEqual(ORDER_GENUINE);
   });
 
-  it('renders the area-pair helper after Šildomas plotas', () => {
-    renderCard();
+  it('renders the area-pair helper after Šildomas plotas (genuine source)', () => {
+    renderCard(GENUINE_AREA);
     expect(
       screen.getByText(
         'Bendras plotas apima ir nešildomas erdves — balkoną, rūsį ar sandėliuką. ' +
@@ -109,5 +139,45 @@ describe('provenance sub-lines (report-walk C2, R6/R7)', () => {
     const { container } = renderCard();
     expect(container.textContent).not.toContain('naudojamas bendras plotas');
     expect(container.textContent).not.toContain('pagal statybos periodą');
+  });
+});
+
+
+describe('area label ruling — truth by suppression (2026-07-20)', () => {
+  it('proxy source: ONE „Bendras plotas" row, no „Šildomas plotas" claim, disclosure shown', () => {
+    const { container } = renderCard({
+      total_area_m2: null,
+      heated_area_m2: 52.4,
+      heated_area_m2_source: 'total_area_proxy',
+      heated_area_m2_source_lt:
+        'Registre šildomas plotas nenurodytas — naudojamas bendras plotas',
+    });
+    expect(labelsInCard()).toEqual(ORDER_PROXY);
+    expect(container.textContent).not.toContain('Šildomas plotas');
+    // The value still shows — under the label that is TRUE for it…
+    expect(screen.getByText('52.4 m²')).toBeTruthy();
+    // …with the R6 disclosure beneath.
+    expect(
+      screen.getByText('Registre šildomas plotas nenurodytas — naudojamas bendras plotas'),
+    ).toBeTruthy();
+  });
+
+  it('untagged legacy snapshot: also suppressed (no claim we cannot support)', () => {
+    const { container } = renderCard({
+      total_area_m2: null,
+      heated_area_m2: 52.4,
+      heated_area_m2_source: null,
+      heated_area_m2_source_lt: null,
+    });
+    expect(container.textContent).not.toContain('Šildomas plotas');
+    expect(screen.getByText('Bendras plotas')).toBeTruthy();
+  });
+
+  it('genuine heated source: BOTH rows render and the heated label is earned', () => {
+    const { container } = renderCard(GENUINE_AREA);
+    expect(container.textContent).toContain('Šildomas plotas');
+    expect(screen.getByText('68.5 m²')).toBeTruthy();  // total
+    expect(screen.getByText('52.4 m²')).toBeTruthy();  // heated
+    expect(screen.getByText('Pagal energinio naudingumo sertifikatą')).toBeTruthy();
   });
 });

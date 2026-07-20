@@ -215,6 +215,9 @@ export interface ReportData {
     heated_area_m2: number | null;
   // R6: served provenance for the heated-area value (null → no claim)
   heated_area_m2_source_lt?: string | null;
+    // Label ruling (2026-07-20): the RAW source key — decides whether the
+    // card may call this value a heated area at all (never keyed on copy).
+    heated_area_m2_source?: string | null;
     wall_material: string | null;
     heating_type: string | null;
     ventilation_type: string | null;
