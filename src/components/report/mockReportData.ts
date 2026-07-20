@@ -309,11 +309,16 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 //
 //   cd ~/dev/bustodnr && .venv/bin/python - <<'PY'
 //   import json, sys; sys.path.insert(0, ".")
-//   def trim(o):
+//   # 2026-07-20: lat/lng are EXEMPT from the cents trim — rounding a
+//   # coordinate to 2 decimals moves the map pin by hundreds of metres
+//   # (the first recipe did exactly that: 54.7007624 -> 54.7).
+//   _GEO = {"lat", "lng"}
+//   def trim(o, key=None):
 //       if isinstance(o, float):
+//           if key in _GEO: return round(o, 7)
 //           r = round(o, 2); return int(r) if r == int(r) else r
-//       if isinstance(o, dict): return {k: trim(v) for k, v in o.items()}
-//       if isinstance(o, list): return [trim(v) for v in o]
+//       if isinstance(o, dict): return {k: trim(v, k) for k, v in o.items()}
+//       if isinstance(o, list): return [trim(v, key) for v in o]
 //       return o
 //   from bustodnr_api.reports.routes import _DEV_MOCKS
 //   print(json.dumps(trim(_DEV_MOCKS["dev-existing"]), ensure_ascii=False, indent=2))
@@ -326,8 +331,8 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 export const MOCK_EXISTING: ReportData = {
   "envelope": {
     "address": "Vilnius, Žirmūnų g. 12-5",
-    "request_id": "report-20260720100846",
-    "created_at": "2026-07-20T10:08:46.902666+00:00"
+    "request_id": "report-20260720130753",
+    "created_at": "2026-07-20T13:07:53.027712+00:00"
   },
   "blocks": [
     {
@@ -398,8 +403,8 @@ export const MOCK_EXISTING: ReportData = {
           "bundle_id": "bdl-dev-001",
           "bundle_primary_object_type": null,
           "evaluation_target": "existing_object",
-          "lat": 54.72,
-          "lng": 25.28,
+          "lat": 54.7007624,
+          "lng": 25.2993035,
           "address_text": "Vilnius, Žirmūnų g. 12-5",
           "municipality": "Vilniaus m. sav.",
           "address_source": "user",
@@ -861,10 +866,10 @@ export const MOCK_EXISTING: ReportData = {
   "address": "Vilnius, Žirmūnų g. 12-5",
   "ntr_unique_number": "4400-1234-5678",
   "municipality": "Vilniaus m. sav.",
-  "lat": 54.72,
-  "lng": 25.28,
+  "lat": 54.7007624,
+  "lng": 25.2993035,
   "bundle_items": [],
-  "generated_at": "2026-07-20T10:08:46.902666+00:00",
+  "generated_at": "2026-07-20T13:07:53.027712+00:00",
   "order_reference": "NTD-DEV-001",
   "property_profile": {
     "purpose": "Gyvenamoji",
@@ -875,6 +880,7 @@ export const MOCK_EXISTING: ReportData = {
     "total_area_m2": null,
     "heated_area_m2": 52.4,
     "heated_area_m2_source_lt": null,
+    "heated_area_m2_source": null,
     "wall_material": null,
     "heating_type": "Centralizuotas šilumos tiekimas",
     "ventilation_type": "Natūrali",
