@@ -1,4 +1,5 @@
 // P7-A1.1 / P7-A3.1 / P7-A7: Property Profile — separate cards per group, with map
+import { Fragment } from 'react';
 import type { ReportData } from './mockReportData';
 // PropertyMap moved to ReportViewer for data-guide separation
 
@@ -28,15 +29,23 @@ function EnergyBadge({ cls }: { cls: string }) {
   );
 }
 
-type Field = { label: string; value: string | number; badge?: React.ReactNode };
+type Field = {
+  label: string;
+  value: string | number;
+  badge?: React.ReactNode;
+  // Report-walk C1: full-width muted note rendered AFTER this cell
+  // (spans both grid columns; mobile stacking keeps it under the pair).
+  helperAfter?: string;
+};
 
-function buildGroup(fields: { label: string; raw: unknown; format?: (v: any) => string; badge?: React.ReactNode }[]): Field[] {
+function buildGroup(fields: { label: string; raw: unknown; format?: (v: any) => string; badge?: React.ReactNode; helperAfter?: string }[]): Field[] {
   return fields
     .filter((f) => f.raw != null)
     .map((f) => ({
       label: f.label,
       value: f.format ? f.format(f.raw) : String(f.raw),
       badge: f.badge,
+      helperAfter: f.helperAfter,
     }));
 }
 
@@ -71,7 +80,14 @@ function ProfileCard({
         <h2 className="text-2xl font-semibold text-[#1E3A5F] mb-4">{title}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
           {fields.map((f) => (
-            <FieldCell key={f.label} field={f} />
+            <Fragment key={f.label}>
+              <FieldCell field={f} />
+              {f.helperAfter && (
+                <p className="col-span-full text-sm text-slate-500 leading-relaxed -mt-0.5 mb-1">
+                  {f.helperAfter}
+                </p>
+              )}
+            </Fragment>
           ))}
         </div>
       </div>
@@ -102,14 +118,25 @@ export default function PropertyProfile({
   // Land-only: no building or energy cards — bundle is in the header
   if (isLand) return null;
 
+  // Report-walk C1 (ruling 2026-07-18): identity → area pair (+ helper) →
+  // physique → systems; DOM order = semantic order — the 2-col grid fills
+  // row-by-row, so adjacent array entries form the visual pairs, and the
+  // 1-col mobile stack keeps each pair together.
   const buildingFields = buildGroup([
     { label: 'Paskirtis', raw: profile.purpose },
     { label: 'Tipas', raw: profile.premises_type },
-    { label: 'Naudojimo grupė (STR 2.01.02)', raw: profile.usage_group_label },
+    { label: 'Naudojimo grupė', raw: profile.usage_group_label },
     { label: 'Statybos metai', raw: profile.year_built },
-    { label: 'Aukštų skaičius', raw: profile.floors },
     { label: 'Bendras plotas', raw: profile.total_area_m2, format: (v: number) => `${v} m²` },
-    { label: 'Šildomas plotas', raw: profile.heated_area_m2, format: (v: number) => `${v} m²` },
+    {
+      label: 'Šildomas plotas',
+      raw: profile.heated_area_m2,
+      format: (v: number) => `${v} m²`,
+      helperAfter:
+        'Bendras plotas apima ir nešildomas erdves — balkoną, rūsį ar sandėliuką. ' +
+        'Energijos sąnaudos skaičiuojamos pagal šildomą plotą.',
+    },
+    { label: 'Aukštų skaičius', raw: profile.floors },
     { label: 'Sienų medžiaga', raw: profile.wall_material },
     { label: 'Šildymo tipas', raw: profile.heating_type },
     { label: 'Ventiliacijos tipas', raw: profile.ventilation_type },
