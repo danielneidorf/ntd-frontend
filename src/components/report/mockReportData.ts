@@ -89,6 +89,8 @@ export interface Block2Data {
     bill_note_lt?: string | null;
     // B2-17: the solar-thermal note (flag-gated, served).
     solar_note_lt?: string | null;
+    // R8: price-side stale note (served when an expired record priced)
+    stale_note_lt?: string | null;
     whats_not_included_lt?: string;
   };
   confidence?: string;
@@ -321,8 +323,8 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 export const MOCK_EXISTING: ReportData = {
   "envelope": {
     "address": "Vilnius, Žirmūnų g. 12-5",
-    "request_id": "report-20260720072337",
-    "created_at": "2026-07-20T07:23:37.728574+00:00"
+    "request_id": "report-20260720100846",
+    "created_at": "2026-07-20T10:08:46.902666+00:00"
   },
   "blocks": [
     {
@@ -739,6 +741,10 @@ export const MOCK_EXISTING: ReportData = {
           }
         ],
         "confidence": "medium",
+        "confidence_cause": "stale_tariff",
+        "tariff_is_stale": true,
+        "stale_operator": "AB „Miesto gijos“",
+        "stale_until": "2026-05-31",
         "carrier_source": "epc",
         "household_modelling": null,
         "bill_override_active": null,
@@ -790,12 +796,6 @@ export const MOCK_EXISTING: ReportData = {
             "dynamic_fields": {
               "hicp_rate": "4.76"
             }
-          },
-          {
-            "category": "📈 Prognozės pagrindas",
-            "label_lt": "Visos kainos su PVM (21%)",
-            "source_reference": "VAT 21%",
-            "dynamic_fields": {}
           }
         ]
       }
@@ -826,9 +826,9 @@ export const MOCK_EXISTING: ReportData = {
             "Bendra energijos kaina šiam pastatui — apie €81 per mėnesį; iš šios sumos šildymui tenka apie €61 per mėnesį. Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyviame analogiškame pastate — tai apie €620 per metus. Per 5 metus, įvertinus prognozuojamą energijos kainų augimą (pagal 10 metų kainų tendencijas), skirtumas sudarytų apie €3480. Nerenovavus pastato, vien šildymas kainuotų apie €360 per metus daugiau nei renovuotame (C klasės) pastate.",
             "Pastatas statytas iki 1993 m. — šio laikotarpio pastatai dažnai turi silpnesnę izoliaciją ir pasenusias inžinerines sistemas. Tai sustiprina argumentą dėl kainos korekcijos."
           ],
-          "forward_note_lt": "Tikslias šildymo sąnaudas eurais rasite 2 bloke (Energijos sąnaudos). 10 metų bendrą gyvenimo kainą parodys 3 blokas (Gyvenimo kaina), kai jis bus pridėtas. Šilumos komforto požiūriu, ši informacija yra ypač svarbi priimant sprendimą.",
+          "forward_note_lt": "Tikslias šildymo sąnaudas eurais rasite 2 bloke (Energijos sąnaudos). Šilumos komforto požiūriu, ši informacija yra ypač svarbi priimant sprendimą.",
           "caveat_lt": null,
-          "scope_disclaimer_lt": "Šios rekomendacijos apima tik šilumos komforto aspektą. Visapusiškas derybų strategijas ir pasiūlymo kainą pateiks pilnas 8 blokų rinkinys, kai visi blokai bus pridėti."
+          "scope_disclaimer_lt": "Šios rekomendacijos apima tik šilumos komforto aspektą."
         }
       }
     }
@@ -861,7 +861,7 @@ export const MOCK_EXISTING: ReportData = {
   "lat": 54.72,
   "lng": 25.28,
   "bundle_items": [],
-  "generated_at": "2026-07-20T07:23:37.728574+00:00",
+  "generated_at": "2026-07-20T10:08:46.902666+00:00",
   "order_reference": "NTD-DEV-001",
   "property_profile": {
     "purpose": "Gyvenamoji",
@@ -871,10 +871,13 @@ export const MOCK_EXISTING: ReportData = {
     "floors": null,
     "total_area_m2": null,
     "heated_area_m2": 52.4,
+    "heated_area_m2_source_lt": null,
     "wall_material": null,
     "heating_type": "Centralizuotas šilumos tiekimas",
     "ventilation_type": "Natūrali",
     "energy_class": "D",
+    "energy_class_provenance": "certificate",
+    "energy_class_provenance_lt": null,
     "epc_kwhm2_year": 145.2,
     "epc_source": "Registras (PENS)",
     "epc_confidence": "Aukštas",
@@ -1041,11 +1044,12 @@ export const MOCK_EXISTING: ReportData = {
       "escalation_lt": "Prognozė remiasi VERT reguliuojamų tarifų vidurkiu arba 4%/m. numatytu augimu",
       "disclosure_lt": "Šildymo sistemos tipas (centrinis šildymas) nustatytas pagal pastato energinio naudingumo sertifikatą.",
       "bill_note_lt": null,
+      "stale_note_lt": "Kainos apskaičiuotos pagal paskutinį žinomą AB „Miesto gijos“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
       "solar_note_lt": null,
       "whats_not_included_lt": "Šis vertinimas neapima buitinės elektros (apšvietimas, prietaisai, viryklė) ir nėra pritaikytas konkrečiam gyventojų skaičiui. Pasirinkite namų ūkio dydį, kad vertinimas būtų išsamesnis."
     },
     "confidence": "medium",
-    "confidence_text_lt": "energinė klasė žinoma, bet šildymo sistemos tipas nustatytas pagal pastato tipologiją (pvz., iki 1990 m. daugiabutis → centrinis šildymas)",
+    "confidence_text_lt": "šildymo sistema ir energinė klasė žinomos, tačiau galiojančio tarifo įrašo šiuo metu nėra — skaičiuojama pagal paskutinį žinomą tarifą",
     "carrier_warning_lt": null,
     "newbuild_note_lt": null,
     "citations_lt": [
@@ -1054,8 +1058,7 @@ export const MOCK_EXISTING: ReportData = {
       "Centrinis šildymas: AB „Miesto gijos“, VERT patvirtintas tarifas, galioja nuo 2026 m. gegužės (šaltinis: vert.lt)",
       "Visos kainos su PVM (21%)",
       "Tarifų augimo prognozė (per energijos rūšį): HICP CP0455 (Heat energy), GEO=LT, 2016–2025 trailing average of December YoY change",
-      "Minimalus augimo tempas: Lietuvos infliacija (Eurostat HICP, 10 metų vidurkis: 4.76%/m.)",
-      "Visos kainos su PVM (21%)"
+      "Minimalus augimo tempas: Lietuvos infliacija (Eurostat HICP, 10 metų vidurkis: 4.76%/m.)"
     ],
     "monthly_variation": [
       {
@@ -1385,7 +1388,8 @@ export const MOCK_EXISTING: ReportData = {
             }
           ],
           "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 1 asmens namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
-          "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 1 asmens namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija."
+          "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 1 asmens namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
+          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 1 asmens namų ūkiui sudarys apie €87 per mėnesį arba €1036 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, o buitinės elektros dalis išliks dabartinio lygio, mėnesinė kaina gali pasiekti apie €117."
         },
         {
           "household_size": 2,
@@ -1526,7 +1530,8 @@ export const MOCK_EXISTING: ReportData = {
             }
           ],
           "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 2 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
-          "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 2 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija."
+          "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 2 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
+          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 2 asmenų namų ūkiui sudarys apie €104 per mėnesį arba €1250 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, o buitinės elektros dalis išliks dabartinio lygio, mėnesinė kaina gali pasiekti apie €126."
         },
         {
           "household_size": 3,
@@ -1667,7 +1672,8 @@ export const MOCK_EXISTING: ReportData = {
             }
           ],
           "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 3 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
-          "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 3 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija."
+          "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 3 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
+          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 3 asmenų namų ūkiui sudarys apie €120 per mėnesį arba €1447 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, o buitinės elektros dalis išliks dabartinio lygio, mėnesinė kaina gali pasiekti apie €133."
         },
         {
           "household_size": 4,
@@ -1808,7 +1814,8 @@ export const MOCK_EXISTING: ReportData = {
             }
           ],
           "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 4 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
-          "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 4 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija."
+          "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 4 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
+          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 4 asmenų namų ūkiui sudarys apie €135 per mėnesį arba €1621 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, o buitinės elektros dalis išliks dabartinio lygio, mėnesinė kaina gali pasiekti apie €139."
         },
         {
           "household_size": 5,
@@ -1949,7 +1956,8 @@ export const MOCK_EXISTING: ReportData = {
             }
           ],
           "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 5 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
-          "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 5 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija."
+          "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 5 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
+          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 5 asmenų namų ūkiui sudarys apie €150 per mėnesį arba €1799 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, o buitinės elektros dalis išliks dabartinio lygio, mėnesinė kaina gali pasiekti apie €145."
         }
       ]
     }
@@ -1974,9 +1982,9 @@ export const MOCK_EXISTING: ReportData = {
         "Bendra energijos kaina šiam pastatui — apie €81 per mėnesį; iš šios sumos šildymui tenka apie €61 per mėnesį. Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyviame analogiškame pastate — tai apie €620 per metus. Per 5 metus, įvertinus prognozuojamą energijos kainų augimą (pagal 10 metų kainų tendencijas), skirtumas sudarytų apie €3480. Nerenovavus pastato, vien šildymas kainuotų apie €360 per metus daugiau nei renovuotame (C klasės) pastate.",
         "Pastatas statytas iki 1993 m. — šio laikotarpio pastatai dažnai turi silpnesnę izoliaciją ir pasenusias inžinerines sistemas. Tai sustiprina argumentą dėl kainos korekcijos."
       ],
-      "forward_note_lt": "Tikslias šildymo sąnaudas eurais rasite 2 bloke (Energijos sąnaudos). 10 metų bendrą gyvenimo kainą parodys 3 blokas (Gyvenimo kaina), kai jis bus pridėtas. Šilumos komforto požiūriu, ši informacija yra ypač svarbi priimant sprendimą.",
+      "forward_note_lt": "Tikslias šildymo sąnaudas eurais rasite 2 bloke (Energijos sąnaudos). Šilumos komforto požiūriu, ši informacija yra ypač svarbi priimant sprendimą.",
       "caveat_lt": null,
-      "scope_disclaimer_lt": "Šios rekomendacijos apima tik šilumos komforto aspektą. Visapusiškas derybų strategijas ir pasiūlymo kainą pateiks pilnas 8 blokų rinkinys, kai visi blokai bus pridėti."
+      "scope_disclaimer_lt": "Šios rekomendacijos apima tik šilumos komforto aspektą."
     }
   }
 };

@@ -329,6 +329,9 @@ export function Block2Section({
           {info_box.bill_note_lt && <p data-block2="bill-note">{info_box.bill_note_lt}</p>}
           {/* B2-17: solar-thermal note (served, flag-gated). */}
           {info_box.solar_note_lt && <p data-block2="solar-note">{info_box.solar_note_lt}</p>}
+          {/* R8: the price-side honesty line — served whenever prices ride
+              an expired tariff record (one story with the confidence line). */}
+          {info_box.stale_note_lt && <p data-block2="stale-note">{info_box.stale_note_lt}</p>}
           {whatsNotIncluded && <p data-block2="whats-not-included">{whatsNotIncluded}</p>}
         </div>
       )}
