@@ -17,7 +17,10 @@ const PROFILE: ReportData['property_profile'] = {
   evaluation_target: 'Esamas pastatas',
   purpose: 'Gyvenamoji',
   premises_type: 'Butas',
-  usage_group_label: 'Daugiabučiai gyvenamieji pastatai',
+  // The annex name the backend now serves (block1_usage_group_labels;
+  // annex lines 116-148). The previous value here was mock-authored and
+  // appears in no source — a fixture must not teach a name that isn't real.
+  usage_group_label: 'Kiti gyvenamieji pastatai (daugiabučiai, bendrabučiai ir kt.)',
   year_built: 1975,
   floors: 5,
   total_area_m2: 68.5,
@@ -179,5 +182,21 @@ describe('area label ruling — truth by suppression (2026-07-20)', () => {
     expect(screen.getByText('68.5 m²')).toBeTruthy();  // total
     expect(screen.getByText('52.4 m²')).toBeTruthy();  // heated
     expect(screen.getByText('Pagal energinio naudingumo sertifikatą')).toBeTruthy();
+  });
+});
+
+
+describe('usage-group row (annex label, 2026-07-21)', () => {
+  it('renders the annex name verbatim when the backend serves one', () => {
+    const annexName = 'Kiti gyvenamieji pastatai (daugiabučiai, bendrabučiai ir kt.)';
+    renderCard({ usage_group_label: annexName });
+    expect(screen.getByText('Naudojimo grupė')).toBeTruthy();
+    // Long regulatory strings render whole — no truncation (Daniel's ruling).
+    expect(screen.getByText(annexName)).toBeTruthy();
+  });
+
+  it('omits the row entirely when the label is null (unknown or missing slug)', () => {
+    const { container } = renderCard({ usage_group_label: null });
+    expect(container.textContent).not.toContain('Naudojimo grupė');
   });
 });
