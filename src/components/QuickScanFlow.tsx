@@ -4,16 +4,34 @@ import { mapStepToScreen } from './guide/toolDefinitions';
 
 export type CaseType = 'existing_object' | 'new_build_project' | 'land_only';
 
+// Candidate wire contract (2026-07-20): this type now describes what the
+// backend ACTUALLY serves. It previously declared `address`, `confidence`,
+// `primary_object` and a required `bundle_items` — none of which existed on
+// the wire; the proof card rendered a blank address on every live resolve
+// and the chooser threw on `bundle_items.length`. The backend key-set pin
+// (tests/resolver/test_candidate_wire_contract.py) is this type's mirror:
+// any field added here must exist there first.
 export interface Candidate {
   candidate_id: string;
-  address: string;
+  // Served name. Coarse today ("locality, municipality") on the fallback
+  // road — making it identifying is the AR carry-forward, a separate task.
+  address_text: string | null;
   ntr_unique_number: string | null;
   municipality: string | null;
-  kind: 'whole_building' | 'unit_in_building' | 'land_plot';
-  confidence: 'high' | 'medium' | 'low';
-  primary_object: Record<string, unknown>;
+  // Stamped by whichever adapter resolved the object (Commit 1).
+  kind: 'whole_building' | 'unit_in_building' | 'land_plot' | null;
+  // Served name for what the FE used to call `confidence`.
+  coverage_level: 'HIGH' | 'AMBIGUOUS' | 'LOW' | 'NONE' | null;
+  // RC-gated: bundles are not in the /resolve response yet. Kept so the
+  // render paths stay alive — unimplemented spec, not dead code.
   bundle_items?: unknown[] | null;
-  bundle_confidence: 'HIGH' | 'AMBIGUOUS' | 'LOW';
+  // The primary concept ships FLAT as `is_primary`; a nested
+  // `primary_object` would be a second representation of one fact.
+  is_primary?: boolean;
+  // Served flat facts the chooser shows beneath each candidate.
+  purpose?: string | null;
+  heated_area_m2?: number | null;
+  building_year_built?: number | null;
   // Resolver-side provenance: where this candidate's identifying data
   // came from. Drives the success-handler routing (P7-H3): any
   // candidate tagged `pin_reverse_geocode` flows to the chooser
@@ -99,24 +117,28 @@ const DEV_MOCK_RESOLVER: ResolveResponse = {
   status: 'resolved',
   candidates: [{
     candidate_id: 'dev-mock-001',
-    address: 'Vilnius, Žirmūnų g. 12',
+    // Served shape (2026-07-20): address_text / coverage_level, not the
+    // invented address / confidence — the dev mock must speak the wire, or
+    // it teaches the same lie the type used to.
+    address_text: 'Vilnius, Žirmūnų g. 12',
     ntr_unique_number: '4400-1234-5678',
     municipality: 'Vilniaus m. sav.',
     kind: 'whole_building',
-    confidence: 'high',
-    primary_object: { purpose: 'Gyvenamoji', area_m2: 68, year_built: 1985, heated: true },
+    coverage_level: 'HIGH',
+    purpose: 'Gyvenamoji',
+    heated_area_m2: 68,
+    building_year_built: 1985,
     bundle_items: [
       { kind: 'garage', address: 'Žirmūnų g. 12 (garažas)' },
       { kind: 'shed', address: 'Žirmūnų g. 12 (sandėliukas)' },
     ],
-    bundle_confidence: 'HIGH',
   }],
   message_lt: null,
 };
 
 const initialState = (): QuickScanState => {
   let case_type: CaseType | null = null;
-  let step: 1 | 2 | 'success' | 'resolver-loading' | 'resolver-failure' | 'resolver-nomatch' = 1;
+  let step: QuickScanState['step'] = 1;
   let resolver_result: ResolveResponse | null = null;
   let email = '';
   let payment_complete = false;
@@ -192,9 +214,9 @@ const initialState = (): QuickScanState => {
       resolver_result = {
         status: 'ambiguous',
         candidates: [
-          { candidate_id: 'cand-001', address: 'Vilnius, Žirmūnų g. 12', ntr_unique_number: '4400-1234-5678', municipality: 'Vilniaus m. sav.', kind: 'whole_building', confidence: 'high', primary_object: { purpose: 'Gyvenamoji', area_m2: 120, year_built: 1985 }, bundle_items: [{ kind: 'garage' }, { kind: 'shed' }], bundle_confidence: 'HIGH' },
-          { candidate_id: 'cand-002', address: 'Vilnius, Minties g. 3', ntr_unique_number: '4400-2345-6789', municipality: 'Vilniaus m. sav.', kind: 'unit_in_building', confidence: 'medium', primary_object: { purpose: 'Gyvenamoji', area_m2: 68, year_built: 2005 }, bundle_items: [], bundle_confidence: 'HIGH' },
-          { candidate_id: 'cand-003', address: 'Vilnius, Žirmūnų g. 8', ntr_unique_number: '4400-3456-7890', municipality: 'Vilniaus m. sav.', kind: 'whole_building', confidence: 'medium', primary_object: { purpose: 'Gyvenamoji', area_m2: 95, year_built: 1972 }, bundle_items: [{ kind: 'garage' }], bundle_confidence: 'HIGH' },
+          { candidate_id: 'cand-001', address_text: 'Vilnius, Žirmūnų g. 12', ntr_unique_number: '4400-1234-5678', municipality: 'Vilniaus m. sav.', kind: 'whole_building', coverage_level: 'HIGH', purpose: 'Gyvenamoji', heated_area_m2: 120, building_year_built: 1985, bundle_items: [{ kind: 'garage' }, { kind: 'shed' }] },
+          { candidate_id: 'cand-002', address_text: 'Vilnius, Minties g. 3', ntr_unique_number: '4400-2345-6789', municipality: 'Vilniaus m. sav.', kind: 'unit_in_building', coverage_level: 'LOW', purpose: 'Gyvenamoji', heated_area_m2: 68, building_year_built: 2005, bundle_items: [] },
+          { candidate_id: 'cand-003', address_text: 'Vilnius, Žirmūnų g. 8', ntr_unique_number: '4400-3456-7890', municipality: 'Vilniaus m. sav.', kind: 'whole_building', coverage_level: 'LOW', purpose: 'Gyvenamoji', heated_area_m2: 95, building_year_built: 1972, bundle_items: [{ kind: 'garage' }] },
         ],
         message_lt: null,
       };
@@ -280,7 +302,12 @@ export default function QuickScanFlow() {
       {state.step === 'success' && <SuccessScreen state={state} />}
       {state.step === 'resolver-loading' && <ResolverLoading />}
       {state.step === 'resolver-failure' && <ResolverFailure setState={setState} />}
-      {state.step === 'resolver-nomatch' && <ResolverNoMatch setState={setState} />}
+      {state.step === 'resolver-nomatch' && (
+        <ResolverNoMatch
+          setState={setState}
+          messageLt={state.resolver_result?.message_lt}
+        />
+      )}
       {state.step === 'resolver-chooser' && <ResolverChooser state={state} setState={setState} />}
     </div>
   );
@@ -1269,7 +1296,12 @@ function Screen1({
   );
 }
 
-const KIND_LABELS: Record<Candidate['kind'], string> = {
+// `kind` is nullable on the wire (an adapter that fails to stamp serves
+// null; the backend pin exists to make that a test failure, not a render
+// crash). The label map is keyed on the non-null values only.
+export type CandidateKind = NonNullable<Candidate['kind']>;
+
+const KIND_LABELS: Record<CandidateKind, string> = {
   whole_building: 'Pastatas',
   unit_in_building: 'Patalpa pastate',
   land_plot: 'Žemės sklypas',
@@ -1485,14 +1517,17 @@ function Screen2({
 
   // Chooser: ambiguous + no candidate selected yet
   if (resolver.status === 'ambiguous' && state.selected_candidate_id === null) {
-    const groups: { kind: Candidate['kind']; label: string; candidates: Candidate[] }[] = [];
+    const groups: { kind: CandidateKind; label: string; candidates: Candidate[] }[] = [];
     const seen = new Set<string>();
     for (const c of resolver.candidates) {
-      if (!seen.has(c.kind)) {
-        seen.add(c.kind);
-        groups.push({ kind: c.kind, label: KIND_LABELS[c.kind], candidates: [] });
+      // Unstamped candidates group with buildings rather than keying on
+      // null — the backend pin is what keeps them from arriving at all.
+      const kind: CandidateKind = c.kind ?? 'whole_building';
+      if (!seen.has(kind)) {
+        seen.add(kind);
+        groups.push({ kind, label: KIND_LABELS[kind], candidates: [] });
       }
-      groups.find(g => g.kind === c.kind)!.candidates.push(c);
+      groups.find(g => g.kind === kind)!.candidates.push(c);
     }
     return (
       <div className="max-w-2xl">
@@ -1506,7 +1541,7 @@ function Screen2({
                 {g.candidates.map(c => (
                   <div key={c.candidate_id} onClick={() => setState(s => ({ ...s, selected_candidate_id: c.candidate_id }))}
                     className="cursor-pointer rounded-lg border border-[#E2E8F0] bg-white px-5 py-4 hover:border-[#0D7377] hover:bg-[#EEF9F9] transition-all">
-                    <p className="text-sm font-semibold text-[#1E3A5F]">{c.address}</p>
+                    <p className="text-sm font-semibold text-[#1E3A5F]">{c.address_text}</p>
                     {c.ntr_unique_number && <p className="text-xs text-[#64748B] mt-1">Unikalus Nr.: {c.ntr_unique_number}</p>}
                     {c.municipality && <p className="text-xs text-[#64748B]">Savivaldybė: {c.municipality}</p>}
                   </div>
@@ -1578,7 +1613,7 @@ function Screen2({
           // address/kind are FE ECHOES the handler deliberately distrusts
           // (server-authoritative cache is truth) — live registry candidates
           // omit them (null-excluded), so fall back rather than 422.
-          address: candidate.address ?? state.address_text ?? '',
+          address: candidate.address_text ?? state.address_text ?? '',
           ntr_unique_number: candidate.ntr_unique_number ?? null,
           municipality: candidate.municipality ?? null,
           kind: candidate.kind ?? 'unknown',
@@ -1870,7 +1905,14 @@ function Screen2({
           style={objectConfirmed ? { position: 'sticky', top: 80, zIndex: 5 } : undefined}>
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[16px] font-bold text-[#1E3A5F] mb-2">{candidate.address}</p>
+              <p className="text-[16px] font-bold text-[#1E3A5F] mb-2">{candidate.address_text}</p>
+              {/* The server's own coverage message (e.g. "we found the
+                  building, not your specific premises") — served since
+                  /resolve shipped and discarded here until now. No new copy,
+                  no gate: gating belongs to the RC road. */}
+              {state.resolver_result?.message_lt && (
+                <p className="text-[13px] text-[#64748B] mb-2">{state.resolver_result.message_lt}</p>
+              )}
               {candidate.ntr_unique_number && <p className="text-[14px] text-[#64748B] mb-1">Unikalus Nr.: {candidate.ntr_unique_number}</p>}
               {candidate.municipality && <p className="text-[14px] text-[#64748B] mb-1">Savivaldybė: {candidate.municipality}</p>}
               {(candidate.bundle_items ?? []).length > 0 && <p className="text-[14px] text-[#94A3B8] mt-2">Komplekte taip pat yra: {(candidate.bundle_items ?? []).map((b: any) => b.kind || b.address).join(', ')}.</p>}
@@ -2285,18 +2327,18 @@ function SuccessScreen({ state }: { state: QuickScanState }) {
 
           {candidate && (
             <div className="mb-5">
-              <p className="text-[16px] font-semibold text-[#1E3A5F] mb-1">{candidate.address}</p>
+              <p className="text-[16px] font-semibold text-[#1E3A5F] mb-1">{candidate.address_text}</p>
               {candidate.ntr_unique_number && (
                 <p className="text-[14px] text-[#64748B]">Unikalus Nr.: {candidate.ntr_unique_number}</p>
               )}
               {candidate.municipality && (
                 <p className="text-[14px] text-[#64748B]">Savivaldybė: {candidate.municipality}</p>
               )}
-              {candidate.bundle_items && candidate.bundle_items.length > 0 && (
+              {(candidate.bundle_items ?? []).length > 0 && (
                 <div className="mt-3 text-[14px] text-[#64748B]">
                   <p className="font-medium text-[#1A1A2E] mb-1">Namų ūkio komplektas:</p>
                   <p>Pagrindinis objektas: {candidate.kind === 'whole_building' ? 'Gyvenamasis pastatas' : candidate.kind === 'unit_in_building' ? 'Patalpa pastate' : 'Žemės sklypas'}</p>
-                  <p>Komplekte: {candidate.bundle_items.map((b: any) => b.kind || b.address).join(', ')}</p>
+                  <p>Komplekte: {(candidate.bundle_items ?? []).map((b: any) => b.kind || b.address).join(', ')}</p>
                 </div>
               )}
             </div>
@@ -2406,12 +2448,19 @@ function ResolverFailure({ setState }: { setState: React.Dispatch<React.SetState
   );
 }
 
-function ResolverNoMatch({ setState }: { setState: React.Dispatch<React.SetStateAction<QuickScanState>> }) {
+function ResolverNoMatch({ setState, messageLt }: {
+  setState: React.Dispatch<React.SetStateAction<QuickScanState>>;
+  // The server explains WHY it found nothing (e.g. "automatic registry
+  // search is not enabled"). This screen used to discard that and assert
+  // its own "we couldn't find the object" — which cost a browser session
+  // by making a switched-off resolver look like a missing building.
+  messageLt?: string | null;
+}) {
   return (
     <div style={{ maxWidth: 500, margin: '120px auto 0' }}>
       <div className="rounded-xl border border-[#E2E8F0] bg-white p-10 shadow-[0_2px_8px_rgba(0,0,0,0.04)] text-center">
         <div className="text-[24px] mb-4">🔍</div>
-        <p className="text-[16px] font-semibold text-[#1A1A2E] mb-2">Nepavyko rasti objekto pagal pateiktus duomenis.</p>
+        <p className="text-[16px] font-semibold text-[#1A1A2E] mb-2">{messageLt || 'Nepavyko rasti objekto pagal pateiktus duomenis.'}</p>
         <p className="text-[14px] text-[#64748B] mb-6">Prašome patikslinti arba pabandyti kitą identifikavimo būdą.</p>
         <button
           onClick={() => setState(s => ({ ...s, step: 1 }))}
@@ -2446,13 +2495,16 @@ function ResolverChooser({
   const candidates = state.resolver_result?.candidates ?? [];
   // Pre-select highest confidence
   const highestConfidence = candidates.reduce((best, c) =>
-    (c.confidence === 'high' && best.confidence !== 'high') ? c : best, candidates[0]);
+    (c.coverage_level === 'HIGH' && best.coverage_level !== 'HIGH') ? c : best, candidates[0]);
   const [selectedId, setSelectedId] = useState(highestConfidence?.candidate_id ?? null);
 
   // Group candidates by kind
   const groups: Record<string, typeof candidates> = {};
   for (const c of candidates) {
-    const key = c.kind;
+    // Commit 1 stamps `kind` on every adapter road; a null here means an
+    // unclassified candidate slipped the backend pin — group it visibly
+    // rather than keying on undefined.
+    const key = c.kind ?? 'whole_building';
     if (!groups[key]) groups[key] = [];
     groups[key].push(c);
   }
@@ -2561,7 +2613,15 @@ function ResolverChooser({
                     const globalIdx = candidates.indexOf(c);
                     // confidence badges hidden from customer (kept for internal use)
                     const isSelected = selectedId === c.candidate_id;
-                    const po = c.primary_object as any;
+                    // D2 (2026-07-20): the nested `primary_object` never existed
+                    // on the wire, and serialising one would be a second
+                    // representation of facts the candidate already carries
+                    // flat. Read the served fields directly.
+                    const detail = [
+                      c.purpose,
+                      c.heated_area_m2 != null ? `${c.heated_area_m2} m²` : null,
+                      c.building_year_built,
+                    ].filter(Boolean).join(' · ');
                     return (
                       <div
                         key={c.candidate_id}
@@ -2579,18 +2639,16 @@ function ResolverChooser({
                         {/* Content */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="text-[15px] font-semibold text-[#1A1A2E]">{c.address}</span>
+                            <span className="text-[15px] font-semibold text-[#1A1A2E]">{c.address_text}</span>
                           </div>
                           {c.ntr_unique_number && (
                             <p className="text-[13px] text-[#64748B]">Unikalus Nr.: {c.ntr_unique_number}</p>
                           )}
-                          {po && (
-                            <p className="text-[13px] text-[#94A3B8]">
-                              {[po.purpose, po.area_m2 && `${po.area_m2} m²`, po.year_built].filter(Boolean).join(' · ')}
-                            </p>
+                          {detail && (
+                            <p className="text-[13px] text-[#94A3B8]">{detail}</p>
                           )}
-                          {c.bundle_items.length > 0 && (
-                            <p className="text-[13px] text-[#64748B] mt-1">Komplekte: {c.bundle_items.map((b: any) => b.kind === 'garage' ? 'garažas' : b.kind === 'shed' ? 'sandėliukas' : b.kind).join(', ')}</p>
+                          {(c.bundle_items ?? []).length > 0 && (
+                            <p className="text-[13px] text-[#64748B] mt-1">Komplekte: {(c.bundle_items ?? []).map((b: any) => b.kind === 'garage' ? 'garažas' : b.kind === 'shed' ? 'sandėliukas' : b.kind).join(', ')}</p>
                           )}
                         </div>
                         {/* Checkmark */}
