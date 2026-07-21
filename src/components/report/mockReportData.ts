@@ -334,8 +334,8 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 export const MOCK_EXISTING: ReportData = {
   "envelope": {
     "address": "Vilnius, Žirmūnų g. 12-5",
-    "request_id": "report-20260721144023",
-    "created_at": "2026-07-21T14:40:23.259605+00:00"
+    "request_id": "report-20260721173446",
+    "created_at": "2026-07-21T17:34:46.127236+00:00"
   },
   "blocks": [
     {
@@ -412,7 +412,7 @@ export const MOCK_EXISTING: ReportData = {
           "municipality": "Vilniaus m. sav.",
           "address_source": "user",
           "purpose": "Gyvenamoji",
-          "premises_type": "flat",
+          "premises_type": null,
           "usage_group": "residential_multi_other",
           "heated_flag": true,
           "building_year_built": 1975,
@@ -874,11 +874,11 @@ export const MOCK_EXISTING: ReportData = {
   "lat": 54.7007624,
   "lng": 25.2993035,
   "bundle_items": [],
-  "generated_at": "2026-07-21T14:40:23.259605+00:00",
+  "generated_at": "2026-07-21T17:34:46.127236+00:00",
   "order_reference": "NTD-DEV-001",
   "property_profile": {
     "purpose": "Gyvenamoji",
-    "premises_type": "flat",
+    "premises_type": null,
     "usage_group_label": "Kiti gyvenamieji pastatai (daugiabučiai, bendrabučiai ir kt.)",
     "year_built": 1975,
     "floors": 5,

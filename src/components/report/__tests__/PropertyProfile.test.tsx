@@ -190,6 +190,19 @@ describe('area label ruling — truth by suppression (2026-07-20)', () => {
 });
 
 
+describe('„Tipas" row — no unit type, no row (2026-07-21)', () => {
+  it('omits the row when the backend serves no unit type', () => {
+    // `premises_type` is None on every road that answers today, so this is
+    // the ONLY state a real report reaches. The row must vanish rather than
+    // print a placeholder — and a raw code like „flat" (the fixture's
+    // retired invention) must never reach a Lithuanian customer card.
+    const { container } = renderCard({ premises_type: null });
+    expect(screen.queryByText('Tipas')).toBeNull();
+    expect(container.textContent).not.toContain('flat');
+  });
+});
+
+
 describe('each area renders when it has a value (2026-07-21)', () => {
   it('total only: one row, and it is the total', () => {
     const { container } = renderCard({

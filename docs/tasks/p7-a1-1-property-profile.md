@@ -38,7 +38,7 @@ Organise into groups. Show a field only if the value is available (non-null). If
 | Field | Label (LT) | Source | Mock value |
 |---|---|---|---|
 | purpose | Paskirtis | NTR / resolver | Gyvenamoji |
-| premises_type | Tipas | NTR / resolver | Daugiabutis namas |
+| premises_type | Tipas | NTR / resolver | Daugiabutis namas |ᴱ
 | usage_group_label | Naudojimo grupė (STR 2.01.02) | internal CSV | Gyvenamieji daugiabučiai pastatai |
 | year_built | Statybos metai | NTR / resolver | 1985 |
 | floors | Aukštų skaičius | NTR (future) | 5 |
@@ -47,6 +47,8 @@ Organise into groups. Show a field only if the value is available (non-null). If
 | wall_material | Sienų medžiaga | NTR (future) | Gelžbetonio plokštės |
 | heating_type | Šildymo tipas | NTR / resolver | Centrinis šildymas |
 | ventilation_type | Ventiliacijos tipas | snapshot | Natūrali ventiliacija |
+
+> ᴱ **Erratum (2026-07-21) — the „Tipas" row was never comparable.** Every mockup-vs-card review of this row compared a *designed* value („Daugiabutis namas", a building type from NTR) against a *fixture invention* („flat", a code no road, contract or consumer ever produced) — so both sides were fictions and the row's real state was never in view. The truthful current state is **an absent row**: `premises_type` is None on every road that answers today. Rebuild is filed with the RC-activation items in the backend's `docs/deferred_backlog.md`.
 
 **Group 3: Energinis naudingumas (Energy performance)**
 | Field | Label (LT) | Source | Mock value |
