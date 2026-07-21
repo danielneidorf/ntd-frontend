@@ -26,7 +26,7 @@ const SOURCE = readFileSync(resolve(HERE, '../QuickScanFlow.tsx'), 'utf-8');
 // may be read here; a field NOT there must never be.
 const SERVED_CANDIDATE_KEYS = [
   'address_source', 'address_text', 'building_year_built', 'coverage_level',
-  'glazing_band', 'glazing_share_percent', 'heated_area_m2',
+  'floors', 'glazing_band', 'glazing_share_percent', 'heated_area_m2',
   'heated_area_m2_source', 'heated_flag', 'heating_system_type', 'is_primary',
   'kind', 'lat', 'lng', 'match_score', 'municipality', 'ntr_unique_number',
   'premises_type', 'purpose', 'registry_energy_class',

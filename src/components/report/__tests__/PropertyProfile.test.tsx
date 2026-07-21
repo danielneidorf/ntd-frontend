@@ -200,3 +200,19 @@ describe('usage-group row (annex label, 2026-07-21)', () => {
     expect(container.textContent).not.toContain('Naudojimo grupė');
   });
 });
+
+
+describe('floors row (Aukštų skaičius, 2026-07-21)', () => {
+  it('renders the served whole number', () => {
+    renderCard({ floors: 5 });
+    expect(screen.getByText('Aukštų skaičius')).toBeTruthy();
+    expect(screen.getByText('5')).toBeTruthy();
+  });
+
+  it('omits the row when the backend serves no floor count', () => {
+    // RC's source field is a named empty slot today, so the RC road lands
+    // here — no count, no row, no guess.
+    const { container } = renderCard({ floors: null });
+    expect(container.textContent).not.toContain('Aukštų skaičius');
+  });
+});
