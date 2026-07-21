@@ -300,7 +300,7 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 
 // --- Mock datasets ---
 
-// --- MOCK_EXISTING — regenerated from the backend dev fixture (R1, 2026-07-20) ---
+// --- MOCK_EXISTING — regenerated from the backend dev fixture (2026-07-21) ---
 // ONE fixture, one truth: a verbatim capture of the same `_build_report_data`
 // output the backend serves at /v1/reports/dev-existing (fixture:
 // bustodnr reports/routes.py `_DEV_EXISTING_SNAPSHOT` — Žirmūnų g. 12-5,
@@ -331,8 +331,8 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 export const MOCK_EXISTING: ReportData = {
   "envelope": {
     "address": "Vilnius, Žirmūnų g. 12-5",
-    "request_id": "report-20260720130753",
-    "created_at": "2026-07-20T13:07:53.027712+00:00"
+    "request_id": "report-20260721135502",
+    "created_at": "2026-07-21T13:55:02.243850+00:00"
   },
   "blocks": [
     {
@@ -415,6 +415,7 @@ export const MOCK_EXISTING: ReportData = {
           "building_year_built": 1975,
           "renovation_year": null,
           "heated_area_m2": 52.4,
+          "floors": 5,
           "heating_system_type": "Centralizuotas šilumos tiekimas",
           "glazing_share_percent": null,
           "glazing_band": null,
@@ -869,12 +870,12 @@ export const MOCK_EXISTING: ReportData = {
   "lat": 54.7007624,
   "lng": 25.2993035,
   "bundle_items": [],
-  "generated_at": "2026-07-20T13:07:53.027712+00:00",
+  "generated_at": "2026-07-21T13:55:02.243850+00:00",
   "order_reference": "NTD-DEV-001",
   "property_profile": {
     "purpose": "Gyvenamoji",
     "premises_type": "flat",
-    "usage_group_label": null,
+    "usage_group_label": "Kiti gyvenamieji pastatai (daugiabučiai, bendrabučiai ir kt.)",
     "year_built": 1975,
     "floors": 5,
     "total_area_m2": null,
