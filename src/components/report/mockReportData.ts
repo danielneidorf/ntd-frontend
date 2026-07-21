@@ -218,6 +218,9 @@ export interface ReportData {
     // Label ruling (2026-07-20): the RAW source key — decides whether the
     // card may call this value a heated area at all (never keyed on copy).
     heated_area_m2_source?: string | null;
+    // 2026-07-21: the DECISION, served. The card reads this instead of
+    // re-deriving it from the raw tag, so one rule governs both surfaces.
+    heated_area_m2_is_genuine?: boolean;
     wall_material: string | null;
     heating_type: string | null;
     ventilation_type: string | null;
@@ -331,8 +334,8 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 export const MOCK_EXISTING: ReportData = {
   "envelope": {
     "address": "Vilnius, Žirmūnų g. 12-5",
-    "request_id": "report-20260721135502",
-    "created_at": "2026-07-21T13:55:02.243850+00:00"
+    "request_id": "report-20260721144023",
+    "created_at": "2026-07-21T14:40:23.259605+00:00"
   },
   "blocks": [
     {
@@ -414,6 +417,7 @@ export const MOCK_EXISTING: ReportData = {
           "heated_flag": true,
           "building_year_built": 1975,
           "renovation_year": null,
+          "total_area_m2": 58.7,
           "heated_area_m2": 52.4,
           "floors": 5,
           "heating_system_type": "Centralizuotas šilumos tiekimas",
@@ -504,7 +508,7 @@ export const MOCK_EXISTING: ReportData = {
           "pens_cert_issued_date": null,
           "unikalus_nr": "4400-1234-5678",
           "unikalus_nr_source": null,
-          "heated_area_m2_source": null,
+          "heated_area_m2_source": "tier_2_pens_israsas",
           "byproduct_coverage_fraction": null,
           "customer_type_override": null
         },
@@ -870,7 +874,7 @@ export const MOCK_EXISTING: ReportData = {
   "lat": 54.7007624,
   "lng": 25.2993035,
   "bundle_items": [],
-  "generated_at": "2026-07-21T13:55:02.243850+00:00",
+  "generated_at": "2026-07-21T14:40:23.259605+00:00",
   "order_reference": "NTD-DEV-001",
   "property_profile": {
     "purpose": "Gyvenamoji",
@@ -878,10 +882,11 @@ export const MOCK_EXISTING: ReportData = {
     "usage_group_label": "Kiti gyvenamieji pastatai (daugiabučiai, bendrabučiai ir kt.)",
     "year_built": 1975,
     "floors": 5,
-    "total_area_m2": null,
+    "total_area_m2": 58.7,
     "heated_area_m2": 52.4,
-    "heated_area_m2_source_lt": null,
-    "heated_area_m2_source": null,
+    "heated_area_m2_source_lt": "Pagal energinio naudingumo sertifikatą",
+    "heated_area_m2_source": "tier_2_pens_israsas",
+    "heated_area_m2_is_genuine": true,
     "wall_material": null,
     "heating_type": "Centralizuotas šilumos tiekimas",
     "ventilation_type": "Natūrali",

@@ -31,7 +31,8 @@ const SERVED_CANDIDATE_KEYS = [
   'kind', 'lat', 'lng', 'match_score', 'municipality', 'ntr_unique_number',
   'premises_type', 'purpose', 'registry_energy_class',
   'registry_epc_kwhm2_year', 'registry_object_id', 'renovation_year',
-  'resolver_sources', 'resolver_warnings', 'usage_group', 'ventilation_type',
+  'resolver_sources', 'resolver_warnings', 'total_area_m2', 'usage_group',
+  'ventilation_type',
 ];
 
 describe('candidate wire contract (frontend half)', () => {

@@ -63,11 +63,15 @@ const ORDER_GENUINE = [
   'Ventiliacijos tipas',
 ];
 
+// `heated_area_m2_is_genuine` is the BACKEND's decision, served (2026-07-21).
+// The card no longer keeps its own copy of the genuine-source list, so the
+// fixture must carry the served flag — not just the raw tag it derives from.
 const GENUINE_AREA = {
   total_area_m2: 68.5,
   heated_area_m2: 52.4,
   heated_area_m2_source: 'tier_2_pens_israsas',
   heated_area_m2_source_lt: 'Pagal energinio naudingumo sertifikatą',
+  heated_area_m2_is_genuine: true,
 };
 
 function renderCard(extra: Record<string, unknown> = {}) {
@@ -182,6 +186,56 @@ describe('area label ruling — truth by suppression (2026-07-20)', () => {
     expect(screen.getByText('68.5 m²')).toBeTruthy();  // total
     expect(screen.getByText('52.4 m²')).toBeTruthy();  // heated
     expect(screen.getByText('Pagal energinio naudingumo sertifikatą')).toBeTruthy();
+  });
+});
+
+
+describe('each area renders when it has a value (2026-07-21)', () => {
+  it('total only: one row, and it is the total', () => {
+    const { container } = renderCard({
+      total_area_m2: 68.5,
+      heated_area_m2: null,
+      heated_area_m2_source: null,
+      heated_area_m2_is_genuine: false,
+    });
+    expect(screen.getByText('Bendras plotas')).toBeTruthy();
+    expect(screen.getByText('68.5 m²')).toBeTruthy();
+    expect(container.textContent).not.toContain('Šildomas plotas');
+  });
+
+  it('genuine heated only: one row, and it is the heated one', () => {
+    const { container } = renderCard({ ...GENUINE_AREA, total_area_m2: null });
+    expect(screen.getByText('Šildomas plotas')).toBeTruthy();
+    expect(screen.getByText('52.4 m²')).toBeTruthy();
+    // The empty total collapses — no blank row, no dash.
+    expect(container.textContent).not.toContain('Bendras plotas apima');
+    expect(screen.queryByText('Bendras plotas')).toBeNull();
+  });
+
+  it('the pair sits in ONE grid row even when an odd number precedes it', () => {
+    // The 2-column grid fills row-by-row, so array adjacency alone would put
+    // the two areas in different rows whenever an upstream row is empty —
+    // which is exactly what the live road does („Tipas" is empty there).
+    const { container } = renderCard({ ...GENUINE_AREA, premises_type: null });
+    const pair = container.querySelector('[data-pair="area"]');
+    expect(pair).toBeTruthy();
+    const labels = Array.from(pair!.querySelectorAll('p.text-sm.text-slate-500'))
+      .map((p) => p.textContent);
+    expect(labels).toEqual(['Bendras plotas', 'Šildomas plotas']);
+  });
+
+  it('a heated area we cannot vouch for never pairs with the total', () => {
+    // Proxy road: one number, one row. Both areas carry the same value, so a
+    // pair here would print it twice under two different claims.
+    const { container } = renderCard({
+      total_area_m2: 52.4,
+      heated_area_m2: 52.4,
+      heated_area_m2_source: 'total_area_proxy',
+      heated_area_m2_is_genuine: false,
+    });
+    expect(container.querySelector('[data-pair="area"]')).toBeNull();
+    expect(container.textContent).not.toContain('Šildomas plotas');
+    expect(screen.getAllByText('52.4 m²')).toHaveLength(1);
   });
 });
 

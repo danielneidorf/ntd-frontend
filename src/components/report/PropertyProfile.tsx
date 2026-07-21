@@ -39,9 +39,11 @@ type Field = {
   // Report-walk C2 (R6/R7): per-cell provenance sub-line under the value
   // (backend-served LT string — the glazing-source honesty pattern).
   helper?: string | null;
+  // Cells sharing a pairGroup are rendered side by side in one grid row.
+  pairGroup?: string;
 };
 
-function buildGroup(fields: { label: string; raw: unknown; format?: (v: any) => string; badge?: React.ReactNode; helperAfter?: string; helper?: string | null }[]): Field[] {
+function buildGroup(fields: { label: string; raw: unknown; format?: (v: any) => string; badge?: React.ReactNode; helperAfter?: string; helper?: string | null; pairGroup?: string }[]): Field[] {
   return fields
     .filter((f) => f.raw != null)
     .map((f) => ({
@@ -50,7 +52,56 @@ function buildGroup(fields: { label: string; raw: unknown; format?: (v: any) => 
       badge: f.badge,
       helperAfter: f.helperAfter,
       helper: f.helper,
+      pairGroup: f.pairGroup,
     }));
+}
+
+function HelperAfter({ text }: { text: string }) {
+  return (
+    <p className="col-span-full text-sm text-slate-500 leading-relaxed -mt-0.5 mb-1">
+      {text}
+    </p>
+  );
+}
+
+// The 2-column grid fills row-by-row, so two adjacent entries only LOOK
+// like a pair when an even number of cells happens to precede them — which
+// stops being true the moment an upstream row is empty (and it varies by
+// road: „Tipas" is empty on the live one). Cells sharing a pairGroup are
+// therefore rendered inside their own full-width 2-column block, so the
+// „Bendras | Šildomas" pairing holds by construction rather than by luck.
+// Pairing is by group, never by position: when only one of a pair survives
+// the null filter it renders as an ordinary cell.
+function renderFields(fields: Field[]): React.ReactNode[] {
+  const out: React.ReactNode[] = [];
+  for (let i = 0; i < fields.length; i += 1) {
+    const f = fields[i];
+    const next = fields[i + 1];
+    if (f.pairGroup && next?.pairGroup === f.pairGroup) {
+      out.push(
+        <div
+          key={f.label}
+          className="col-span-full grid grid-cols-1 md:grid-cols-2 gap-x-8"
+          data-pair={f.pairGroup}
+        >
+          <FieldCell field={f} />
+          <FieldCell field={next} />
+        </div>,
+      );
+      if (next.helperAfter) {
+        out.push(<HelperAfter key={`${next.label}-after`} text={next.helperAfter} />);
+      }
+      i += 1;
+      continue;
+    }
+    out.push(
+      <Fragment key={f.label}>
+        <FieldCell field={f} />
+        {f.helperAfter && <HelperAfter text={f.helperAfter} />}
+      </Fragment>,
+    );
+  }
+  return out;
 }
 
 function FieldCell({ field }: { field: Field }) {
@@ -86,16 +137,7 @@ function ProfileCard({
       <div {...(dataGuide ? { 'data-guide': dataGuide } : {})}>
         <h2 className="text-2xl font-semibold text-[#1E3A5F] mb-4">{title}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
-          {fields.map((f) => (
-            <Fragment key={f.label}>
-              <FieldCell field={f} />
-              {f.helperAfter && (
-                <p className="col-span-full text-sm text-slate-500 leading-relaxed -mt-0.5 mb-1">
-                  {f.helperAfter}
-                </p>
-              )}
-            </Fragment>
-          ))}
+          {renderFields(fields)}
         </div>
       </div>
     </div>
@@ -138,28 +180,38 @@ export default function PropertyProfile({
   // the card shows ONE area row labelled „Bendras plotas" carrying that
   // value, with the R6 disclosure beneath it. A number is never labelled
   // something it isn't.
-  const GENUINE_HEATED_SOURCES = [
-    'registry',
-    'pens_certificate',
-    'tier_2_pens_israsas',
-    'document_extracted',
-  ];
-  const heatedIsGenuine = GENUINE_HEATED_SOURCES.includes(
-    profile.heated_area_m2_source ?? '',
-  );
+  // The decision is the BACKEND's (2026-07-21): `heated_area_m2_is_genuine`
+  // is served, so the web and the PDF apply one rule. This component used to
+  // keep its own copy of the source list while the PDF had no such rule at
+  // all — two specifications of one contract, which drift silently.
+  const heatedIsGenuine = profile.heated_area_m2_is_genuine === true;
   const AREA_PAIR_HELPER =
     'Bendras plotas apima ir nešildomas erdves — balkoną, rūsį ar sandėliuką. ' +
     'Energijos sąnaudos skaičiuojamos pagal šildomą plotą.';
 
+  // Each area that has a value gets a row; the one that doesn't collapses
+  // (buildGroup drops nulls). `pairGroup` keeps the two side by side — see
+  // renderFields: pairing is by group, not by position, so when only one
+  // survives it renders as an ordinary cell instead of pairing with an
+  // unrelated neighbour.
   const areaFields = heatedIsGenuine
     ? [
-        { label: 'Bendras plotas', raw: profile.total_area_m2, format: (v: number) => `${v} m²` },
+        {
+          label: 'Bendras plotas',
+          raw: profile.total_area_m2,
+          format: (v: number) => `${v} m²`,
+          pairGroup: 'area',
+        },
         {
           label: 'Šildomas plotas',
           raw: profile.heated_area_m2,
           format: (v: number) => `${v} m²`,
           helper: profile.heated_area_m2_source_lt,
-          helperAfter: AREA_PAIR_HELPER,
+          // The note exists to explain why the two numbers DIFFER. With no
+          // total row it would explain a row that isn't on the card.
+          helperAfter:
+            profile.total_area_m2 != null ? AREA_PAIR_HELPER : undefined,
+          pairGroup: 'area',
         },
       ]
     : [
