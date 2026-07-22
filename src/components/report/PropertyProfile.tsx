@@ -63,33 +63,6 @@ function buildGroup(fields: { label: string; raw: unknown; format?: (v: any) => 
     }));
 }
 
-// The area unit's annotation zone: the served provenance line and the
-// pair caption, sharing one left edge and one width constraint so they read
-// as a single annotation under the areas. Before this pass the caption ran
-// the full 988px card width (a de-facto divider) while the provenance sat in
-// the second column at x=656 — two stray lines at two different left edges.
-// 65ch keeps a measured line length; the caption belongs to the pair above,
-// so it sits tight to it and puts the air underneath.
-function AreaAnnotation({
-  provenance,
-  caption,
-}: {
-  provenance?: string | null;
-  caption?: string;
-}) {
-  if (!provenance && !caption) return null;
-  return (
-    <div className="max-w-[65ch] mt-1 mb-2">
-      {provenance && (
-        <p className="text-[13px] text-slate-400 leading-relaxed">{provenance}</p>
-      )}
-      {caption && (
-        <p className="text-[13px] text-slate-400 leading-relaxed mt-[2px]">{caption}</p>
-      )}
-    </div>
-  );
-}
-
 // The 2-column grid fills row-by-row, so two adjacent entries only LOOK
 // like a pair when an even number of cells happens to precede them — which
 // stops being true the moment an upstream row is empty (and it varies by
@@ -141,13 +114,9 @@ function renderFields(fields: Field[]): React.ReactNode[] {
             className="grid grid-cols-1 md:grid-cols-2 gap-x-8"
             data-pair={f.pairGroup}
           >
-            <FieldCell field={f} suppressHelper />
-            <FieldCell field={next} suppressHelper />
+            <FieldCell field={f} />
+            <FieldCell field={next} />
           </div>
-          <AreaAnnotation
-            provenance={f.helper || next.helper}
-            caption={next.helperAfter || f.helperAfter}
-          />
         </div>,
       );
       i += 1;
@@ -184,15 +153,7 @@ function renderFields(fields: Field[]): React.ReactNode[] {
 // thing you read when scanning. Rhythm comes from the cell's own padding
 // (py-2.5) rather than a grid row-gap, so every row breathes identically
 // whether or not it carries a provenance sub-line.
-function FieldCell({
-  field,
-  suppressHelper = false,
-}: {
-  field: Field;
-  // The area pair hoists its provenance into the shared annotation zone
-  // below the pair, so the cell must not also render it.
-  suppressHelper?: boolean;
-}) {
+function FieldCell({ field }: { field: Field }) {
   return (
     <div className="py-1.5" data-cell={field.label}>
       <p className="text-[13px] leading-tight text-slate-400 mb-0.5">{field.label}</p>
@@ -200,8 +161,8 @@ function FieldCell({
         {field.value}
         {field.badge}
       </p>
-      {!suppressHelper && field.helper && (
-        <p className="text-xs text-slate-400 mt-0.5 max-w-[65ch]">{field.helper}</p>
+      {field.helper && (
+        <p className="text-[13px] leading-tight text-slate-400 mt-1 max-w-[65ch]">{field.helper}</p>
       )}
     </div>
   );
@@ -273,10 +234,12 @@ export default function PropertyProfile({
   // keep its own copy of the source list while the PDF had no such rule at
   // all — two specifications of one contract, which drift silently.
   const heatedIsGenuine = profile.heated_area_m2_is_genuine === true;
-  const AREA_PAIR_HELPER =
-    'Bendras plotas apima ir nešildomas erdves — balkoną, rūsį ar sandėliuką. ' +
-    'Energijos sąnaudos skaičiuojamos pagal šildomą plotą.';
-
+  // The total-vs-heated explainer was REMOVED from the card (2026-07-22).
+  // It was prose in a data grid: two sentences that had to be width-capped,
+  // re-aligned and re-spaced twice without ever sitting comfortably. Neither
+  // surface carries it now, so web/PDF parity holds by absence. The copy is
+  // on the B8-4 list as available-but-unplaced; if it belongs anywhere it is
+  // Block 2's „Iš ko remiamės" box, where prose lives — a copy-review call.
   // Each area that has a value gets a row; the one that doesn't collapses
   // (buildGroup drops nulls). `pairGroup` keeps the two side by side — see
   // renderFields: pairing is by group, not by position, so when only one
@@ -294,11 +257,9 @@ export default function PropertyProfile({
           label: 'Šildomas plotas',
           raw: profile.heated_area_m2,
           format: (v: number) => `${v} m²`,
+          // R6 provenance stays, attached to ITS value as a compact
+          // sub-line — the pattern the glazing row already uses.
           helper: profile.heated_area_m2_source_lt,
-          // The note exists to explain why the two numbers DIFFER. With no
-          // total row it would explain a row that isn't on the card.
-          helperAfter:
-            profile.total_area_m2 != null ? AREA_PAIR_HELPER : undefined,
           pairGroup: 'area',
         },
       ]

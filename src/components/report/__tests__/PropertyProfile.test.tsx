@@ -100,14 +100,24 @@ describe('Pastato charakteristikos card (report-walk C1)', () => {
     expect(labelsInCard()).toEqual(ORDER_GENUINE);
   });
 
-  it('renders the area-pair helper after Šildomas plotas (genuine source)', () => {
+  it('carries NO total-vs-heated prose — the card is a data grid', () => {
+    // Removed 2026-07-22 (was: an area-pair helper rendered under the pair).
+    // Two sentences of prose in a grid of values; it never sat comfortably
+    // and neither surface carries it now, so parity holds by absence. Pinned
+    // as a REMOVAL rather than deleted, so a well-meaning re-add is a test
+    // failure and a conversation, not a silent regression.
+    const { container } = renderCard(GENUINE_AREA);
+    expect(container.textContent).not.toContain('nešildomas erdves');
+    expect(container.textContent).not.toContain('skaičiuojamos pagal šildomą plotą');
+  });
+
+  it('keeps the R6 provenance, attached to its own value', () => {
+    // The honesty ruling is untouched by the prose removal: the served
+    // provenance still renders, as a compact sub-line inside the Šildomas
+    // cell — the pattern the glazing row uses.
     renderCard(GENUINE_AREA);
-    expect(
-      screen.getByText(
-        'Bendras plotas apima ir nešildomas erdves — balkoną, rūsį ar sandėliuką. ' +
-          'Energijos sąnaudos skaičiuojamos pagal šildomą plotą.',
-      ),
-    ).toBeTruthy();
+    const heated = document.querySelector('[data-cell="Šildomas plotas"]');
+    expect(heated?.textContent).toContain('Pagal energinio naudingumo sertifikatą');
   });
 
   it('the Naudojimo grupė label carries no STR code (the code lives in the citations)', () => {
