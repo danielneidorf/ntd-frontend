@@ -41,8 +41,11 @@ type Field = {
   helper?: string | null;
   // Cells sharing a pairGroup are rendered side by side in one grid row.
   pairGroup?: string;
-  // Starts a new visual group: adds the same mt-3 the area block uses, so
-  // the groups read as ruled without any borders or backgrounds.
+  // Starts a new visual group. Emits a full-width spacer BEFORE the cell —
+  // never a margin on the cell itself: a one-cell margin shifts one column
+  // and leaves its row-mate behind, which is exactly how „Aukštų" and
+  // „Šildymo" ended up at different heights. Spanning the row also starts
+  // the group at column 1, so groups read as ruled without any borders.
   groupStart?: boolean;
 };
 
@@ -76,10 +79,12 @@ function AreaAnnotation({
 }) {
   if (!provenance && !caption) return null;
   return (
-    <div className="max-w-[65ch] mt-1 mb-3">
-      {provenance && <p className="text-xs text-slate-400">{provenance}</p>}
+    <div className="max-w-[65ch] mt-1 mb-2">
+      {provenance && (
+        <p className="text-[13px] text-slate-400 leading-relaxed">{provenance}</p>
+      )}
       {caption && (
-        <p className="text-sm text-slate-500 leading-relaxed">{caption}</p>
+        <p className="text-[13px] text-slate-400 leading-relaxed mt-[2px]">{caption}</p>
       )}
     </div>
   );
@@ -95,14 +100,43 @@ function AreaAnnotation({
 // the null filter it renders as an ordinary cell.
 function renderFields(fields: Field[]): React.ReactNode[] {
   const out: React.ReactNode[] = [];
+  // Explicit ROWS. The grid used to auto-flow, which made "which cells share
+  // a row" an accident of how many fields happened to survive the null
+  // filter — so a group break landed mid-row and shifted ONE column, leaving
+  // „Aukštų" and „Šildymo" side by side at different heights. Rows are now
+  // containers: a group break is a margin on the row, so both columns move
+  // together and row-mates always share a baseline by construction.
+  let row: Field[] = [];
+  let rowStartsGroup = false;
+
+  const flushRow = () => {
+    if (!row.length) return;
+    const key = row.map((f) => f.label).join('|');
+    out.push(
+      <div
+        key={key}
+        className={`col-span-full grid grid-cols-1 md:grid-cols-2 gap-x-8${rowStartsGroup ? ' mt-2' : ''}`}
+        data-row=""
+      >
+        {row.map((f) => (
+          <FieldCell key={f.label} field={f} />
+        ))}
+      </div>,
+    );
+    row = [];
+    rowStartsGroup = false;
+  };
+
   for (let i = 0; i < fields.length; i += 1) {
     const f = fields[i];
     const next = fields[i + 1];
+
     if (f.pairGroup && next?.pairGroup === f.pairGroup) {
+      flushRow();
       // ONE visual block: the pair and its annotation live in the same
       // container, so the caption reads as the pair's, not the card's.
       out.push(
-        <div key={f.label} className="col-span-full mt-3">
+        <div key={f.label} className="col-span-full mt-2">
           <div
             className="grid grid-cols-1 md:grid-cols-2 gap-x-8"
             data-pair={f.pairGroup}
@@ -119,17 +153,29 @@ function renderFields(fields: Field[]): React.ReactNode[] {
       i += 1;
       continue;
     }
-    out.push(
-      <Fragment key={f.label}>
-        <FieldCell field={f} />
-        {f.helperAfter && (
-          <p className="col-span-full max-w-[65ch] text-sm text-slate-500 leading-relaxed mt-1 mb-3">
-            {f.helperAfter}
-          </p>
-        )}
-      </Fragment>,
-    );
+
+    // A group break starts a fresh row so the whole row carries the spacing.
+    if (f.groupStart) {
+      flushRow();
+      rowStartsGroup = true;
+    }
+
+    row.push(f);
+    if (row.length === 2) flushRow();
+
+    if (f.helperAfter) {
+      flushRow();
+      out.push(
+        <p
+          key={`${f.label}-after`}
+          className="col-span-full max-w-[65ch] text-[13px] text-slate-400 leading-relaxed mt-1 mb-2"
+        >
+          {f.helperAfter}
+        </p>,
+      );
+    }
   }
+  flushRow();
   return out;
 }
 
@@ -148,9 +194,9 @@ function FieldCell({
   suppressHelper?: boolean;
 }) {
   return (
-    <div className={`py-2.5${field.groupStart ? ' mt-3' : ''}`} data-cell={field.label}>
-      <p className="text-[13px] text-slate-400 mb-0.5">{field.label}</p>
-      <p className="text-[15px] text-slate-900 font-medium">
+    <div className="py-1.5" data-cell={field.label}>
+      <p className="text-[13px] leading-tight text-slate-400 mb-0.5">{field.label}</p>
+      <p className="text-[15px] leading-snug text-slate-900 font-medium">
         {field.value}
         {field.badge}
       </p>
