@@ -232,7 +232,10 @@ export default function PropertyProfile({
     { label: 'Aukštų skaičius', raw: profile.floors },
     { label: 'Sienų medžiaga', raw: profile.wall_material },
     { label: 'Šildymo tipas', raw: profile.heating_type },
-    { label: 'Ventiliacijos tipas', raw: profile.ventilation_type },
+    // „Ventiliacija" (F3): the value is now a complete nominative phrase
+    // („Natūrali"), so „…tipas" would read as a fragment's leftover label.
+    // Matches the PDF, which already used this label.
+    { label: 'Ventiliacija', raw: profile.ventilation_type },
   ]);
 
   const energyFields = buildGroup([

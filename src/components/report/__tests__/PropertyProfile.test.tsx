@@ -47,7 +47,7 @@ const ORDER_PROXY = [
   'Aukštų skaičius',
   'Sienų medžiaga',
   'Šildymo tipas',
-  'Ventiliacijos tipas',
+  'Ventiliacija',
 ];
 
 const ORDER_GENUINE = [
@@ -60,7 +60,7 @@ const ORDER_GENUINE = [
   'Aukštų skaičius',
   'Sienų medžiaga',
   'Šildymo tipas',
-  'Ventiliacijos tipas',
+  'Ventiliacija',
 ];
 
 // `heated_area_m2_is_genuine` is the BACKEND's decision, served (2026-07-21).

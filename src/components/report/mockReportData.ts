@@ -96,6 +96,10 @@ export interface Block2Data {
   confidence?: string;
   confidence_text_lt?: string | null;
   carrier_warning_lt?: string | null;
+  // THE carrier name for this report (2026-07-21). The property card's
+  // heating row renders this same value, so one carrier cannot end up with
+  // two names across the report. null when nothing resolved.
+  carrier_label_lt?: string | null;
   newbuild_note_lt?: string | null;
   citations_lt?: string[];
   household_reference?: {
@@ -334,8 +338,8 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 export const MOCK_EXISTING: ReportData = {
   "envelope": {
     "address": "Vilnius, Žirmūnų g. 12-5",
-    "request_id": "report-20260721173446",
-    "created_at": "2026-07-21T17:34:46.127236+00:00"
+    "request_id": "report-20260722063147",
+    "created_at": "2026-07-22T06:31:47.647854+00:00"
   },
   "blocks": [
     {
@@ -398,7 +402,7 @@ export const MOCK_EXISTING: ReportData = {
         },
         "info_box": [
           "Svarbu: skersvėjai ir patalpų drėgmė šiame įrankyje nėra matuojami tiesiogiai – apie galimas problemas sprendžiame tik netiesiogiai pagal šildymo ir vėdinimo duomenis.",
-          "Ventiliacijos sistema: vėdinimo vėdinimo sistema; tai buvo įvertinta šiluminio komforto skaičiavimuose."
+          "Ventiliacijos sistema: natūrali"
         ],
         "bundle_note_key": "block1.bundle.note.default",
         "snapshot": {
@@ -444,7 +448,7 @@ export const MOCK_EXISTING: ReportData = {
           "epc_sources": [],
           "energy_class_overridden": false,
           "epc_kwhm2_year_overridden": false,
-          "ventilation_type": "Natūrali",
+          "ventilation_type": "natural",
           "project_website_url": null,
           "project_website_url_auto": null,
           "has_project_docs": null,
@@ -874,137 +878,8 @@ export const MOCK_EXISTING: ReportData = {
   "lat": 54.7007624,
   "lng": 25.2993035,
   "bundle_items": [],
-  "generated_at": "2026-07-21T17:34:46.127236+00:00",
+  "generated_at": "2026-07-22T06:31:47.647854+00:00",
   "order_reference": "NTD-DEV-001",
-  "property_profile": {
-    "purpose": "Gyvenamoji",
-    "premises_type": null,
-    "usage_group_label": "Kiti gyvenamieji pastatai (daugiabučiai, bendrabučiai ir kt.)",
-    "year_built": 1975,
-    "floors": 5,
-    "total_area_m2": 58.7,
-    "heated_area_m2": 52.4,
-    "heated_area_m2_source_lt": "Pagal energinio naudingumo sertifikatą",
-    "heated_area_m2_source": "tier_2_pens_israsas",
-    "heated_area_m2_is_genuine": true,
-    "wall_material": null,
-    "heating_type": "Centralizuotas šilumos tiekimas",
-    "ventilation_type": "Natūrali",
-    "energy_class": "D",
-    "energy_class_provenance": "certificate",
-    "energy_class_provenance_lt": null,
-    "epc_kwhm2_year": 145.2,
-    "epc_source": "Registras (PENS)",
-    "epc_confidence": "Aukštas",
-    "glazing_percent": null,
-    "glazing_source": null,
-    "cadastral_ref": "4400-1234-5678",
-    "evaluation_target": "Esamas pastatas"
-  },
-  "block1": {
-    "applicable": true,
-    "neutral_message_lt": null,
-    "winter": {
-      "level": "WEAK",
-      "not_assessed_reason": null,
-      "provenance_label_key": null,
-      "rows": [
-        {
-          "band": "WEAK",
-          "label_lt": "Silpnai",
-          "description_lt": "Žema pastato energinė klasė (D ar žemesnė) rodo didelius šilumos poreikius: norint palaikyti 20–22 °C visame būste reikės intensyvaus šildymo, dalis patalpų gali likti vėsesnės, o šildymo poreikis gerokai viršija net renovuoto pastato lygį — žr. palyginimą žemiau (tikslesnę šildymo kainą rasite 2 bloke).",
-          "highlighted": true
-        }
-      ],
-      "comparison_lines_lt": [
-        "Palyginti su naujos statybos etalonu (A++): apie 11 kartų didesnis šildymo poreikis.",
-        "Palyginti su renovuoto pastato etalonu (C klasė): ~+97% didesnis."
-      ]
-    },
-    "summer": {
-      "risk_level": "MODERATE",
-      "rows": [
-        {
-          "band": "MODERATE",
-          "label_lt": "",
-          "description_lt": "Per karščio bangas kai kuriose patalpose gali tapti per šilta, ypač ten, kur yra dideli langai ar viršutiniai aukštai — reikės dažnai vėdinti ir riboti tiesioginę saulę. Gali prireikti ventiliatorių ar nešiojamo kondicionieriaus per karščiausias dienas, tad dalį metų papildomai didės elektros sąnaudos dėl vėsinimo.",
-          "highlighted": true
-        }
-      ]
-    },
-    "summary_lt": "Šiluminis komfortas 1, vasaros perkaitimo rizika 3.",
-    "drivers": [
-      {
-        "key": "high_energy_class_driver",
-        "label_lt": "Aukšta energinė klasė",
-        "explanation_lt": "Aukštesnės energinės klasės pastatai paprastai sandaresni ir geriau apšiltinti — žiemą tai taupo šilumą, bet vasarą pro langus ir iš vidaus patekusi šiluma patalpose išlieka ilgiau, todėl be tinkamo šešėliavimo ir vėdinimo perkaitimo rizika būna šiek tiek didesnė.",
-        "active": false,
-        "direction": "increase"
-      },
-      {
-        "key": "newer_building_driver",
-        "label_lt": "Naujesnės statybos pastatas",
-        "explanation_lt": "Naujesni pastatai paprastai sandaresni ir geriau apšiltinti, todėl be tinkamo šešėliavimo ir vėdinimo vasarą sukaupta šiluma patalpose išlieka ilgiau ir perkaitimo rizika būna šiek tiek didesnė.",
-        "active": false,
-        "direction": "increase"
-      },
-      {
-        "key": "high_glazing_driver",
-        "label_lt": "Didelė langų dalis",
-        "explanation_lt": "Kai langų plotas didelis, saulėtomis dienomis pro stiklą patenka daug šilumos, todėl patalpos vasarą greičiau ir labiau įšyla.",
-        "active": false,
-        "direction": "increase"
-      }
-    ],
-    "winter_factors": [
-      {
-        "key": "new_or_renovated",
-        "label_lt": "Naujesnės statybos pastatas",
-        "explanation_lt": "Naujesnės statybos pastatai paprastai geriau apšiltinti ir sandaresni, todėl žiemą šiluma išlaikoma efektyviau ir jaučiama mažiau šaltų vietų ties sienomis ar kampuose.",
-        "active": false,
-        "direction": "decrease"
-      },
-      {
-        "key": "risky_glazing",
-        "label_lt": "Didelė langų dalis",
-        "explanation_lt": "Langai šilumą praleidžia lengviau nei sienos, todėl kai jų plotas didelis, žiemą pro juos prarandama daugiau šilumos — ties langais gali būti vėsiau, o šildymo poreikis šiek tiek didesnis.",
-        "active": false,
-        "direction": "increase"
-      },
-      {
-        "key": "heroic_heating",
-        "label_lt": "Efektyvi šildymo sistema",
-        "explanation_lt": "Efektyvi šildymo sistema komfortišką temperatūrą pasiekia greičiau ir mažesnėmis sąnaudomis, todėl žiemą patalpas lengviau tolygiai šildyti.",
-        "active": true,
-        "direction": "decrease"
-      },
-      {
-        "key": "poor_heating",
-        "label_lt": "Neefektyvi šildymo sistema",
-        "explanation_lt": "Mažiau efektyvi šildymo sistema komfortiškai temperatūrai palaikyti reikalauja daugiau energijos ir laiko, todėl žiemą gali būti sunkiau užtikrinti tolygią šilumą visose patalpose.",
-        "active": false,
-        "direction": "increase"
-      }
-    ],
-    "info_box": {
-      "items_lt": [
-        "Svarbu: skersvėjai ir patalpų drėgmė šiame įrankyje nėra matuojami tiesiogiai – apie galimas problemas sprendžiame tik netiesiogiai pagal šildymo ir vėdinimo duomenis.",
-        "Ventiliacijos sistema: vėdinimo vėdinimo sistema; tai buvo įvertinta šiluminio komforto skaičiavimuose."
-      ]
-    },
-    "inputs_snapshot": {
-      "effective_energy_class": "D",
-      "effective_epc_kwhm2_year": 145.2,
-      "effective_year_built": 1975,
-      "glazing_share_percent": null,
-      "ventilation_type": "Natūrali",
-      "epc_source_class": "registry",
-      "epc_confidence_level": "high",
-      "evaluation_target": "existing_object",
-      "epc_plausibility": null,
-      "epc_plausibility_note_lt": null
-    }
-  },
   "block2": {
     "status": "ready",
     "message_lt": null,
@@ -1066,6 +941,7 @@ export const MOCK_EXISTING: ReportData = {
     "confidence": "medium",
     "confidence_text_lt": "šildymo sistema ir energinė klasė žinomos, tačiau galiojančio tarifo įrašo šiuo metu nėra — skaičiuojama pagal paskutinį žinomą tarifą",
     "carrier_warning_lt": null,
+    "carrier_label_lt": "centrinis šildymas",
     "newbuild_note_lt": null,
     "citations_lt": [
       "Energinio naudingumo sertifikatas — Registrų centro energinio naudingumo sertifikatų registras (registrucentras.lt)",
@@ -1975,6 +1851,135 @@ export const MOCK_EXISTING: ReportData = {
           "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 5 asmenų namų ūkiui sudarys apie €150 per mėnesį arba €1799 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, o buitinės elektros dalis išliks dabartinio lygio, mėnesinė kaina gali pasiekti apie €145."
         }
       ]
+    }
+  },
+  "property_profile": {
+    "purpose": "Gyvenamoji",
+    "premises_type": null,
+    "usage_group_label": "Kiti gyvenamieji pastatai (daugiabučiai, bendrabučiai ir kt.)",
+    "year_built": 1975,
+    "floors": 5,
+    "total_area_m2": 58.7,
+    "heated_area_m2": 52.4,
+    "heated_area_m2_source_lt": "Pagal energinio naudingumo sertifikatą",
+    "heated_area_m2_source": "tier_2_pens_israsas",
+    "heated_area_m2_is_genuine": true,
+    "wall_material": null,
+    "heating_type": "centrinis šildymas",
+    "ventilation_type": "Natūrali",
+    "energy_class": "D",
+    "energy_class_provenance": "certificate",
+    "energy_class_provenance_lt": null,
+    "epc_kwhm2_year": 145.2,
+    "epc_source": "Registras (PENS)",
+    "epc_confidence": "Aukštas",
+    "glazing_percent": null,
+    "glazing_source": null,
+    "cadastral_ref": "4400-1234-5678",
+    "evaluation_target": "Esamas pastatas"
+  },
+  "block1": {
+    "applicable": true,
+    "neutral_message_lt": null,
+    "winter": {
+      "level": "WEAK",
+      "not_assessed_reason": null,
+      "provenance_label_key": null,
+      "rows": [
+        {
+          "band": "WEAK",
+          "label_lt": "Silpnai",
+          "description_lt": "Žema pastato energinė klasė (D ar žemesnė) rodo didelius šilumos poreikius: norint palaikyti 20–22 °C visame būste reikės intensyvaus šildymo, dalis patalpų gali likti vėsesnės, o šildymo poreikis gerokai viršija net renovuoto pastato lygį — žr. palyginimą žemiau (tikslesnę šildymo kainą rasite 2 bloke).",
+          "highlighted": true
+        }
+      ],
+      "comparison_lines_lt": [
+        "Palyginti su naujos statybos etalonu (A++): apie 11 kartų didesnis šildymo poreikis.",
+        "Palyginti su renovuoto pastato etalonu (C klasė): ~+97% didesnis."
+      ]
+    },
+    "summer": {
+      "risk_level": "MODERATE",
+      "rows": [
+        {
+          "band": "MODERATE",
+          "label_lt": "",
+          "description_lt": "Per karščio bangas kai kuriose patalpose gali tapti per šilta, ypač ten, kur yra dideli langai ar viršutiniai aukštai — reikės dažnai vėdinti ir riboti tiesioginę saulę. Gali prireikti ventiliatorių ar nešiojamo kondicionieriaus per karščiausias dienas, tad dalį metų papildomai didės elektros sąnaudos dėl vėsinimo.",
+          "highlighted": true
+        }
+      ]
+    },
+    "summary_lt": "Šiluminis komfortas 1, vasaros perkaitimo rizika 3.",
+    "drivers": [
+      {
+        "key": "high_energy_class_driver",
+        "label_lt": "Aukšta energinė klasė",
+        "explanation_lt": "Aukštesnės energinės klasės pastatai paprastai sandaresni ir geriau apšiltinti — žiemą tai taupo šilumą, bet vasarą pro langus ir iš vidaus patekusi šiluma patalpose išlieka ilgiau, todėl be tinkamo šešėliavimo ir vėdinimo perkaitimo rizika būna šiek tiek didesnė.",
+        "active": false,
+        "direction": "increase"
+      },
+      {
+        "key": "newer_building_driver",
+        "label_lt": "Naujesnės statybos pastatas",
+        "explanation_lt": "Naujesni pastatai paprastai sandaresni ir geriau apšiltinti, todėl be tinkamo šešėliavimo ir vėdinimo vasarą sukaupta šiluma patalpose išlieka ilgiau ir perkaitimo rizika būna šiek tiek didesnė.",
+        "active": false,
+        "direction": "increase"
+      },
+      {
+        "key": "high_glazing_driver",
+        "label_lt": "Didelė langų dalis",
+        "explanation_lt": "Kai langų plotas didelis, saulėtomis dienomis pro stiklą patenka daug šilumos, todėl patalpos vasarą greičiau ir labiau įšyla.",
+        "active": false,
+        "direction": "increase"
+      }
+    ],
+    "winter_factors": [
+      {
+        "key": "new_or_renovated",
+        "label_lt": "Naujesnės statybos pastatas",
+        "explanation_lt": "Naujesnės statybos pastatai paprastai geriau apšiltinti ir sandaresni, todėl žiemą šiluma išlaikoma efektyviau ir jaučiama mažiau šaltų vietų ties sienomis ar kampuose.",
+        "active": false,
+        "direction": "decrease"
+      },
+      {
+        "key": "risky_glazing",
+        "label_lt": "Didelė langų dalis",
+        "explanation_lt": "Langai šilumą praleidžia lengviau nei sienos, todėl kai jų plotas didelis, žiemą pro juos prarandama daugiau šilumos — ties langais gali būti vėsiau, o šildymo poreikis šiek tiek didesnis.",
+        "active": false,
+        "direction": "increase"
+      },
+      {
+        "key": "heroic_heating",
+        "label_lt": "Efektyvi šildymo sistema",
+        "explanation_lt": "Efektyvi šildymo sistema komfortišką temperatūrą pasiekia greičiau ir mažesnėmis sąnaudomis, todėl žiemą patalpas lengviau tolygiai šildyti.",
+        "active": true,
+        "direction": "decrease"
+      },
+      {
+        "key": "poor_heating",
+        "label_lt": "Neefektyvi šildymo sistema",
+        "explanation_lt": "Mažiau efektyvi šildymo sistema komfortiškai temperatūrai palaikyti reikalauja daugiau energijos ir laiko, todėl žiemą gali būti sunkiau užtikrinti tolygią šilumą visose patalpose.",
+        "active": false,
+        "direction": "increase"
+      }
+    ],
+    "info_box": {
+      "items_lt": [
+        "Svarbu: skersvėjai ir patalpų drėgmė šiame įrankyje nėra matuojami tiesiogiai – apie galimas problemas sprendžiame tik netiesiogiai pagal šildymo ir vėdinimo duomenis.",
+        "Ventiliacijos sistema: natūrali"
+      ]
+    },
+    "inputs_snapshot": {
+      "effective_energy_class": "D",
+      "effective_epc_kwhm2_year": 145.2,
+      "effective_year_built": 1975,
+      "glazing_share_percent": null,
+      "ventilation_type": "natural",
+      "epc_source_class": "registry",
+      "epc_confidence_level": "high",
+      "evaluation_target": "existing_object",
+      "epc_plausibility": null,
+      "epc_plausibility_note_lt": null
     }
   },
   "block8": {
