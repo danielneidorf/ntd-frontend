@@ -266,7 +266,16 @@ export default function PropertyProfile({
       format: (v: number) => `${v} kWh/m² per metus`,
     },
     { label: 'Duomenų šaltinis', raw: profile.epc_source },
-    { label: 'Duomenų patikimumas', raw: profile.epc_confidence },
+    // „Duomenų patikimumas" REMOVED (2026-07-22). It rendered a bare grade
+    // („Aukštas") whose cause the card already states one row above: the
+    // grade is derived FROM the source class, so it restated „Duomenų
+    // šaltinis" in adjectives. The D17 cause-aware pattern could not rescue
+    // it — Block 2's ConfidenceCause explains CARRIER resolution (bills vs
+    // records vs typology), a different fact; there is no EPC-side cause
+    // field anywhere, and in the one path where the grade varies on its own
+    // merits (new-build plausibility) the reason is already carried by
+    // `epc_plausibility_note_lt`. A grade with no independent content, so
+    // it goes rather than acquiring a decorative excuse.
     {
       label: 'Langų dalis fasade',
       raw: profile.glazing_percent,
