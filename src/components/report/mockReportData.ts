@@ -343,8 +343,8 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 export const MOCK_EXISTING: ReportData = {
   "envelope": {
     "address": "Vilnius, Žirmūnų g. 12-5",
-    "request_id": "report-20260722120700",
-    "created_at": "2026-07-22T12:07:00.702088+00:00"
+    "request_id": "report-20260722131053",
+    "created_at": "2026-07-22T13:10:53.281156+00:00"
   },
   "blocks": [
     {
@@ -390,9 +390,7 @@ export const MOCK_EXISTING: ReportData = {
         "drivers": {
           "good_epc": false,
           "new_or_renovated": false,
-          "risky_glazing": false,
-          "heroic_heating": true,
-          "poor_heating": false
+          "risky_glazing": false
         },
         "technical": {
           "usage_group_id": "residential_multi_other",
@@ -535,20 +533,6 @@ export const MOCK_EXISTING: ReportData = {
             "key": "risky_glazing",
             "label_lt": "Didelė langų dalis",
             "explanation_lt": "Langai šilumą praleidžia lengviau nei sienos, todėl kai jų plotas didelis, žiemą pro juos prarandama daugiau šilumos — ties langais gali būti vėsiau, o šildymo poreikis šiek tiek didesnis.",
-            "active": false,
-            "direction": "increase"
-          },
-          {
-            "key": "heroic_heating",
-            "label_lt": "Efektyvi šildymo sistema",
-            "explanation_lt": "Efektyvi šildymo sistema komfortišką temperatūrą pasiekia greičiau ir mažesnėmis sąnaudomis, todėl žiemą patalpas lengviau tolygiai šildyti.",
-            "active": true,
-            "direction": "decrease"
-          },
-          {
-            "key": "poor_heating",
-            "label_lt": "Neefektyvi šildymo sistema",
-            "explanation_lt": "Mažiau efektyvi šildymo sistema komfortiškai temperatūrai palaikyti reikalauja daugiau energijos ir laiko, todėl žiemą gali būti sunkiau užtikrinti tolygią šilumą visose patalpose.",
             "active": false,
             "direction": "increase"
           }
@@ -885,7 +869,7 @@ export const MOCK_EXISTING: ReportData = {
   "lat": 54.7007624,
   "lng": 25.2993035,
   "bundle_items": [],
-  "generated_at": "2026-07-22T12:07:00.702088+00:00",
+  "generated_at": "2026-07-22T13:10:53.281156+00:00",
   "order_reference": "NTD-DEV-001",
   "block2": {
     "status": "ready",
@@ -1954,20 +1938,6 @@ export const MOCK_EXISTING: ReportData = {
         "key": "risky_glazing",
         "label_lt": "Didelė langų dalis",
         "explanation_lt": "Langai šilumą praleidžia lengviau nei sienos, todėl kai jų plotas didelis, žiemą pro juos prarandama daugiau šilumos — ties langais gali būti vėsiau, o šildymo poreikis šiek tiek didesnis.",
-        "active": false,
-        "direction": "increase"
-      },
-      {
-        "key": "heroic_heating",
-        "label_lt": "Efektyvi šildymo sistema",
-        "explanation_lt": "Efektyvi šildymo sistema komfortišką temperatūrą pasiekia greičiau ir mažesnėmis sąnaudomis, todėl žiemą patalpas lengviau tolygiai šildyti.",
-        "active": true,
-        "direction": "decrease"
-      },
-      {
-        "key": "poor_heating",
-        "label_lt": "Neefektyvi šildymo sistema",
-        "explanation_lt": "Mažiau efektyvi šildymo sistema komfortiškai temperatūrai palaikyti reikalauja daugiau energijos ir laiko, todėl žiemą gali būti sunkiau užtikrinti tolygią šilumą visose patalpose.",
         "active": false,
         "direction": "increase"
       }
