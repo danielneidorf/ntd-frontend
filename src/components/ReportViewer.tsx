@@ -124,9 +124,6 @@ function WinterSummerBars({
   const winterNotAssessed = winterActive === WINTER_NOT_ASSESSED;
   const winterEstimateNote = winterProvenanceMessage(winter.provenance_label_key);
   const summerActive = mapSummerLevel(summer.risk_level);
-  const winterDesc = winter.rows?.find((r) => r.highlighted)?.description_lt ?? '';
-  const summerDesc = summer.rows.find((r) => r.highlighted)?.description_lt ?? '';
-
   return (
     <div className="bg-slate-50 rounded-xl p-5 md:p-6 mb-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -150,19 +147,11 @@ function WinterSummerBars({
               title="Žiemos komfortas"
               activeLevel={winterActive}
               levels={WINTER_LEVELS}
-              description={winterDesc}
             />
-            {/* Winter band wiring: dual kWh comparison lines (A++ always;
-                C-floor for D–G). Single-sourced with the PDF. */}
-            {winter.comparison_lines_lt?.map((line, i) => (
-              <p
-                key={i}
-                data-winter-comparison
-                className="text-sm text-slate-600 leading-relaxed mt-2"
-              >
-                {line}
-              </p>
-            ))}
+            {/* Description + the A++/C-floor comparison lines moved into
+                „Ką tai reiškia praktiškai?" (2026-07-22). The provenance note
+                below STAYS: it qualifies how the verdict was derived, which
+                belongs to the bar, not to practical meaning. */}
             {winterEstimateNote && (
               <p
                 data-winter-estimate
@@ -177,17 +166,33 @@ function WinterSummerBars({
           title="Vasaros perkaitimo rizika"
           activeLevel={summerActive}
           levels={SUMMER_LEVELS}
-          description={summerDesc}
         />
       </div>
     </div>
   );
 }
 
-function SummarySection({ summary }: { summary: string }) {
+export function SummarySection({
+  winter,
+  summer,
+}: {
+  winter: NonNullable<ReportData['block1']['winter']>;
+  summer: NonNullable<ReportData['block1']['summer']>;
+}) {
+  // The per-season descriptions live HERE, not under their bars (ruling
+  // 2026-07-22). The bars keep bar + verdict + chips; the practical meaning
+  // sits in the section whose heading promises it. Detached from their bars,
+  // each paragraph names its own season — the only new copy in the move.
+  // The winter comparison lines travel WITH the winter paragraph: „11 kartų"
+  // and „~+97 %" are its substance, and explain nothing stranded under a bar.
   const [expanded, setExpanded] = useState(true);
+  const winterDesc = winter.rows?.find((r) => r.highlighted)?.description_lt ?? '';
+  const summerDesc = summer.rows?.find((r) => r.highlighted)?.description_lt ?? '';
+  const comparisons = winter.comparison_lines_lt ?? [];
+  if (!winterDesc && !summerDesc) return null;
+
   return (
-    <div className="mb-6">
+    <div className="mb-6" data-practical-meaning>
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
@@ -205,9 +210,31 @@ function SummarySection({ summary }: { summary: string }) {
       </button>
       <div
         className="overflow-hidden transition-all duration-300"
-        style={{ maxHeight: expanded ? '500px' : '0', opacity: expanded ? 1 : 0 }}
+        style={{ maxHeight: expanded ? '2000px' : '0', opacity: expanded ? 1 : 0 }}
       >
-        <p className="text-base text-slate-700 leading-relaxed pl-5">{summary}</p>
+        <div className="pl-5">
+          {winterDesc && (
+            <div className="mb-4" data-season="winter">
+              <h4 className="text-sm font-semibold text-[#1E3A5F] mb-1">Žiema</h4>
+              <p className="text-base text-slate-700 leading-relaxed">{winterDesc}</p>
+              {comparisons.map((line, i) => (
+                <p
+                  key={i}
+                  data-winter-comparison
+                  className="text-sm text-slate-600 leading-relaxed mt-2"
+                >
+                  {line}
+                </p>
+              ))}
+            </div>
+          )}
+          {summerDesc && (
+            <div data-season="summer">
+              <h4 className="text-sm font-semibold text-[#1E3A5F] mb-1">Vasara</h4>
+              <p className="text-base text-slate-700 leading-relaxed">{summerDesc}</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -531,7 +558,9 @@ export default function ReportViewer() {
                   title="Žiemos komforto veiksniai"
                   sectionAttr="winter-factors"
                 />
-                {block1.summary_lt && <SummarySection summary={block1.summary_lt} />}
+                {block1.winter && block1.summer && (
+                  <SummarySection winter={block1.winter} summer={block1.summer} />
+                )}
               </div>
               <div data-guide="drivers">
                 <DriversSection drivers={block1.drivers} />

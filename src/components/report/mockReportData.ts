@@ -343,15 +343,15 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 export const MOCK_EXISTING: ReportData = {
   "envelope": {
     "address": "Vilnius, Žirmūnų g. 12-5",
-    "request_id": "report-20260722131053",
-    "created_at": "2026-07-22T13:10:53.281156+00:00"
+    "request_id": "report-20260722140805",
+    "created_at": "2026-07-22T14:08:05.033391+00:00"
   },
   "blocks": [
     {
       "id": "thermal_comfort_proxy",
       "label_lt": "1) Vidaus patalpų klimato komfortas",
       "status": "ready",
-      "summary_lt": "Šiluminis komfortas 1, vasaros perkaitimo rizika 3.",
+      "summary_lt": null,
       "required_inputs": [],
       "data": {
         "winter": {
@@ -869,7 +869,7 @@ export const MOCK_EXISTING: ReportData = {
   "lat": 54.7007624,
   "lng": 25.2993035,
   "bundle_items": [],
-  "generated_at": "2026-07-22T13:10:53.281156+00:00",
+  "generated_at": "2026-07-22T14:08:05.033391+00:00",
   "order_reference": "NTD-DEV-001",
   "block2": {
     "status": "ready",
@@ -1902,7 +1902,7 @@ export const MOCK_EXISTING: ReportData = {
         }
       ]
     },
-    "summary_lt": "Šiluminis komfortas 1, vasaros perkaitimo rizika 3.",
+    "summary_lt": "",
     "drivers": [
       {
         "key": "high_energy_class_driver",

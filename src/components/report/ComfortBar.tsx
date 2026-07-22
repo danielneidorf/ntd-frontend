@@ -93,12 +93,10 @@ export default function ComfortBar({
   title,
   activeLevel,
   levels,
-  description,
 }: {
   title: string;
   activeLevel: string;
   levels: Level[];
-  description: string;
 }) {
   return (
     <div>
@@ -136,7 +134,6 @@ export default function ComfortBar({
           );
         })}
       </div>
-      <p className="text-sm text-slate-600 leading-relaxed mt-3">{description}</p>
     </div>
   );
 }
