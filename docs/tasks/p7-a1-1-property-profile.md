@@ -37,7 +37,7 @@ Organise into groups. Show a field only if the value is available (non-null). If
 **Group 2: Pastato charakteristikos (Building characteristics)**
 | Field | Label (LT) | Source | Mock value |
 |---|---|---|---|
-| purpose | Paskirtis | NTR / resolver | Gyvenamoji |
+| purpose | Paskirtis | NTR / resolver | Gyvenamoji |ᴾ
 | premises_type | Tipas | NTR / resolver | Daugiabutis namas |ᴱ
 | usage_group_label | Naudojimo grupė (STR 2.01.02) | internal CSV | Gyvenamieji daugiabučiai pastatai |
 | year_built | Statybos metai | NTR / resolver | 1985 |
@@ -47,6 +47,10 @@ Organise into groups. Show a field only if the value is available (non-null). If
 | wall_material | Sienų medžiaga | NTR (future) | Gelžbetonio plokštės |
 | heating_type | Šildymo tipas | NTR / resolver | Centrinis šildymas |
 | ventilation_type | Ventiliacijos tipas | snapshot | Natūrali ventiliacija |
+
+> ᴾ **Erratum (2026-07-22) — the „Paskirtis" row compared a designed RC-fed value against a fixture display-string.** The mockup showed „Gyvenamoji", sourced „NTR / resolver" — but no road ever produced that word. The live adapter writes an internal three-way bucket (`residential` / `premises` / `land_plot`), and the serve layer passed it through raw, so a real report printed **„residential"** as the customer's Paskirtis on both surfaces. The bench never showed it because the fixture spoke Lithuanian where the road speaks English — the same fixture-invention pattern as „flat" and „Natūrali", and the one case parity testing could not catch, since both surfaces were equally wrong.
+>
+> **Now:** the row renders RC's own `PASKIRCIU_TIPAI` value verbatim (91-entry vocabulary captured 2026-07-22, `domain/data/rc_ntr_paskirciu_tipai.csv`) under a level-specific label that carries the noun its genitive needs — „Pastatų paskirtis: Daugiabučių". The machinery ships complete and tested; the values await the RC extract, so the row is **wired and dark**, not absent. The internal bucket never reaches either surface.
 
 > ᴱ **Erratum (2026-07-21) — the „Tipas" row was never comparable.** Every mockup-vs-card review of this row compared a *designed* value („Daugiabutis namas", a building type from NTR) against a *fixture invention* („flat", a code no road, contract or consumer ever produced) — so both sides were fictions and the row's real state was never in view. The truthful current state is **an absent row**: `premises_type` is None on every road that answers today. Rebuild is filed with the RC-activation items in the backend's `docs/deferred_backlog.md`.
 

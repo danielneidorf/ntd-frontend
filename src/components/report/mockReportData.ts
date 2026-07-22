@@ -211,6 +211,11 @@ export interface ReportData {
   };
   property_profile: {
     purpose: string | null;
+    // RC's official paskirtis PAIR (2026-07-22): the register's own value,
+    // verbatim, plus the level-specific row label that its genitive attaches
+    // to. Both null until RC populates the slot — wired and dark.
+    paskirtis_label_lt?: string | null;
+    paskirtis_row_label_lt?: string | null;
     premises_type: string | null;
     usage_group_label: string | null;
     year_built: number | null;
@@ -338,8 +343,8 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 export const MOCK_EXISTING: ReportData = {
   "envelope": {
     "address": "Vilnius, Žirmūnų g. 12-5",
-    "request_id": "report-20260722063147",
-    "created_at": "2026-07-22T06:31:47.647854+00:00"
+    "request_id": "report-20260722084412",
+    "created_at": "2026-07-22T08:44:12.518968+00:00"
   },
   "blocks": [
     {
@@ -415,8 +420,10 @@ export const MOCK_EXISTING: ReportData = {
           "address_text": "Vilnius, Žirmūnų g. 12-5",
           "municipality": "Vilniaus m. sav.",
           "address_source": "user",
-          "purpose": "Gyvenamoji",
+          "purpose": "residential",
           "premises_type": null,
+          "rc_paskirtis_code": null,
+          "rc_paskirtis_level": null,
           "usage_group": "residential_multi_other",
           "heated_flag": true,
           "building_year_built": 1975,
@@ -878,7 +885,7 @@ export const MOCK_EXISTING: ReportData = {
   "lat": 54.7007624,
   "lng": 25.2993035,
   "bundle_items": [],
-  "generated_at": "2026-07-22T06:31:47.647854+00:00",
+  "generated_at": "2026-07-22T08:44:12.518968+00:00",
   "order_reference": "NTD-DEV-001",
   "block2": {
     "status": "ready",
@@ -1854,7 +1861,9 @@ export const MOCK_EXISTING: ReportData = {
     }
   },
   "property_profile": {
-    "purpose": "Gyvenamoji",
+    "purpose": "residential",
+    "paskirtis_label_lt": null,
+    "paskirtis_row_label_lt": null,
     "premises_type": null,
     "usage_group_label": "Kiti gyvenamieji pastatai (daugiabučiai, bendrabučiai ir kt.)",
     "year_built": 1975,

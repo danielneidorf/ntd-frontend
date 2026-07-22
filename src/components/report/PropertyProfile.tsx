@@ -223,8 +223,20 @@ export default function PropertyProfile({
         },
       ];
 
+  // Paskirtis: the register's OWN classifier value, verbatim, under a label
+  // that carries the noun its genitive needs — „Pastatų paskirtis:
+  // Daugiabučių". Both parts are served; the label follows the object level,
+  // because RC's vocabulary is level-specific. `profile.purpose` (our
+  // internal residential/premises/land_plot bucket) is deliberately NOT
+  // rendered here or anywhere: it gates logic, it is not a designation the
+  // register issued. Dark until RC populates the slot.
+  const paskirtisLabel = profile.paskirtis_row_label_lt;
+  const paskirtisValue = profile.paskirtis_label_lt;
+
   const buildingFields = buildGroup([
-    { label: 'Paskirtis', raw: profile.purpose },
+    ...(paskirtisLabel && paskirtisValue
+      ? [{ label: paskirtisLabel, raw: paskirtisValue }]
+      : []),
     { label: 'Tipas', raw: profile.premises_type },
     { label: 'Naudojimo grupė', raw: profile.usage_group_label },
     { label: 'Statybos metai', raw: profile.year_built },

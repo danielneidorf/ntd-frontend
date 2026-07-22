@@ -15,7 +15,7 @@ import type { ReportData } from '../mockReportData';
 
 const PROFILE: ReportData['property_profile'] = {
   evaluation_target: 'Esamas pastatas',
-  purpose: 'Gyvenamoji',
+  purpose: 'residential',   // internal bucket — never rendered
   premises_type: 'Butas',
   // The annex name the backend now serves (block1_usage_group_labels;
   // annex lines 116-148). The previous value here was mock-authored and
@@ -39,7 +39,6 @@ const PROFILE: ReportData['property_profile'] = {
 // blessed order has two forms. Proxy/untagged → ONE „Bendras plotas" row;
 // a genuine heated source → the pair, „Šildomas plotas" included.
 const ORDER_PROXY = [
-  'Paskirtis',
   'Tipas',
   'Naudojimo grupė',
   'Statybos metai',
@@ -51,7 +50,6 @@ const ORDER_PROXY = [
 ];
 
 const ORDER_GENUINE = [
-  'Paskirtis',
   'Tipas',
   'Naudojimo grupė',
   'Statybos metai',
@@ -186,6 +184,44 @@ describe('area label ruling — truth by suppression (2026-07-20)', () => {
     expect(screen.getByText('68.5 m²')).toBeTruthy();  // total
     expect(screen.getByText('52.4 m²')).toBeTruthy();  // heated
     expect(screen.getByText('Pagal energinio naudingumo sertifikatą')).toBeTruthy();
+  });
+});
+
+
+describe('„Paskirtis" row — the register\'s own word (2026-07-22)', () => {
+  it('renders RC\'s value verbatim under the level-specific label', () => {
+    renderCard({
+      paskirtis_label_lt: 'Daugiabučių',
+      paskirtis_row_label_lt: 'Pastatų paskirtis',
+    });
+    expect(screen.getByText('Pastatų paskirtis')).toBeTruthy();
+    expect(screen.getByText('Daugiabučių')).toBeTruthy();
+  });
+
+  it('the label follows the object level (RC\'s vocabulary is level-specific)', () => {
+    renderCard({
+      paskirtis_label_lt: 'Gyvenamųjų (butų)',
+      paskirtis_row_label_lt: 'Patalpų paskirtis',
+    });
+    expect(screen.getByText('Patalpų paskirtis')).toBeTruthy();
+    expect(screen.queryByText('Pastatų paskirtis')).toBeNull();
+  });
+
+  it('wired and dark: no RC value → no row', () => {
+    const { container } = renderCard({
+      paskirtis_label_lt: null,
+      paskirtis_row_label_lt: null,
+    });
+    expect(container.textContent).not.toContain('paskirtis');
+  });
+
+  it('never renders the internal purpose bucket', () => {
+    // The defect: a real report printed „residential" as the customer's
+    // Paskirtis. The bucket gates logic; it is not a designation.
+    const { container } = renderCard({ purpose: 'residential' });
+    expect(container.textContent).not.toContain('residential');
+    expect(container.textContent).not.toContain('premises');
+    expect(container.textContent).not.toContain('land_plot');
   });
 });
 
