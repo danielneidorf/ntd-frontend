@@ -86,8 +86,11 @@ function renderCard(extra: Record<string, unknown> = {}) {
 function labelsInCard(): string[] {
   const heading = screen.getByText('Pastato charakteristikos');
   const card = heading.parentElement!;
-  return Array.from(card.querySelectorAll('p.text-sm.text-slate-500'))
-    .map((p) => p.textContent ?? '')
+  // Pinned on the cell's own marker, not its typography: the spacing pass
+  // (2026-07-22) restyled labels, and a selector keyed to font classes made
+  // every order test a hostage to design tweaks.
+  return Array.from(card.querySelectorAll('[data-cell]'))
+    .map((el) => el.getAttribute('data-cell') ?? '')
     .filter((t) => ORDER_GENUINE.includes(t));
 }
 
@@ -268,8 +271,8 @@ describe('each area renders when it has a value (2026-07-21)', () => {
     const { container } = renderCard({ ...GENUINE_AREA, premises_type: null });
     const pair = container.querySelector('[data-pair="area"]');
     expect(pair).toBeTruthy();
-    const labels = Array.from(pair!.querySelectorAll('p.text-sm.text-slate-500'))
-      .map((p) => p.textContent);
+    const labels = Array.from(pair!.querySelectorAll('[data-cell]'))
+      .map((el) => el.getAttribute('data-cell'));
     expect(labels).toEqual(['Bendras plotas', 'Šildomas plotas']);
   });
 

@@ -41,9 +41,12 @@ type Field = {
   helper?: string | null;
   // Cells sharing a pairGroup are rendered side by side in one grid row.
   pairGroup?: string;
+  // Starts a new visual group: adds the same mt-3 the area block uses, so
+  // the groups read as ruled without any borders or backgrounds.
+  groupStart?: boolean;
 };
 
-function buildGroup(fields: { label: string; raw: unknown; format?: (v: any) => string; badge?: React.ReactNode; helperAfter?: string; helper?: string | null; pairGroup?: string }[]): Field[] {
+function buildGroup(fields: { label: string; raw: unknown; format?: (v: any) => string; badge?: React.ReactNode; helperAfter?: string; helper?: string | null; pairGroup?: string; groupStart?: boolean }[]): Field[] {
   return fields
     .filter((f) => f.raw != null)
     .map((f) => ({
@@ -53,14 +56,32 @@ function buildGroup(fields: { label: string; raw: unknown; format?: (v: any) => 
       helperAfter: f.helperAfter,
       helper: f.helper,
       pairGroup: f.pairGroup,
+      groupStart: f.groupStart,
     }));
 }
 
-function HelperAfter({ text }: { text: string }) {
+// The area unit's annotation zone: the served provenance line and the
+// pair caption, sharing one left edge and one width constraint so they read
+// as a single annotation under the areas. Before this pass the caption ran
+// the full 988px card width (a de-facto divider) while the provenance sat in
+// the second column at x=656 — two stray lines at two different left edges.
+// 65ch keeps a measured line length; the caption belongs to the pair above,
+// so it sits tight to it and puts the air underneath.
+function AreaAnnotation({
+  provenance,
+  caption,
+}: {
+  provenance?: string | null;
+  caption?: string;
+}) {
+  if (!provenance && !caption) return null;
   return (
-    <p className="col-span-full text-sm text-slate-500 leading-relaxed -mt-0.5 mb-1">
-      {text}
-    </p>
+    <div className="max-w-[65ch] mt-1 mb-3">
+      {provenance && <p className="text-xs text-slate-400">{provenance}</p>}
+      {caption && (
+        <p className="text-sm text-slate-500 leading-relaxed">{caption}</p>
+      )}
+    </div>
   );
 }
 
@@ -78,42 +99,63 @@ function renderFields(fields: Field[]): React.ReactNode[] {
     const f = fields[i];
     const next = fields[i + 1];
     if (f.pairGroup && next?.pairGroup === f.pairGroup) {
+      // ONE visual block: the pair and its annotation live in the same
+      // container, so the caption reads as the pair's, not the card's.
       out.push(
-        <div
-          key={f.label}
-          className="col-span-full grid grid-cols-1 md:grid-cols-2 gap-x-8"
-          data-pair={f.pairGroup}
-        >
-          <FieldCell field={f} />
-          <FieldCell field={next} />
+        <div key={f.label} className="col-span-full mt-3">
+          <div
+            className="grid grid-cols-1 md:grid-cols-2 gap-x-8"
+            data-pair={f.pairGroup}
+          >
+            <FieldCell field={f} suppressHelper />
+            <FieldCell field={next} suppressHelper />
+          </div>
+          <AreaAnnotation
+            provenance={f.helper || next.helper}
+            caption={next.helperAfter || f.helperAfter}
+          />
         </div>,
       );
-      if (next.helperAfter) {
-        out.push(<HelperAfter key={`${next.label}-after`} text={next.helperAfter} />);
-      }
       i += 1;
       continue;
     }
     out.push(
       <Fragment key={f.label}>
         <FieldCell field={f} />
-        {f.helperAfter && <HelperAfter text={f.helperAfter} />}
+        {f.helperAfter && (
+          <p className="col-span-full max-w-[65ch] text-sm text-slate-500 leading-relaxed mt-1 mb-3">
+            {f.helperAfter}
+          </p>
+        )}
       </Fragment>,
     );
   }
   return out;
 }
 
-function FieldCell({ field }: { field: Field }) {
+// Label and value used to compete at 14/16px. The label is a signpost, the
+// value is the answer — so the label steps back and the value stays the only
+// thing you read when scanning. Rhythm comes from the cell's own padding
+// (py-2.5) rather than a grid row-gap, so every row breathes identically
+// whether or not it carries a provenance sub-line.
+function FieldCell({
+  field,
+  suppressHelper = false,
+}: {
+  field: Field;
+  // The area pair hoists its provenance into the shared annotation zone
+  // below the pair, so the cell must not also render it.
+  suppressHelper?: boolean;
+}) {
   return (
-    <div className="py-1.5">
-      <p className="text-sm text-slate-500 mb-0.5">{field.label}</p>
-      <p className="text-base text-slate-900 font-medium">
+    <div className={`py-2.5${field.groupStart ? ' mt-3' : ''}`} data-cell={field.label}>
+      <p className="text-[13px] text-slate-400 mb-0.5">{field.label}</p>
+      <p className="text-[15px] text-slate-900 font-medium">
         {field.value}
         {field.badge}
       </p>
-      {field.helper && (
-        <p className="text-xs text-slate-400 mt-0.5">{field.helper}</p>
+      {!suppressHelper && field.helper && (
+        <p className="text-xs text-slate-400 mt-0.5 max-w-[65ch]">{field.helper}</p>
       )}
     </div>
   );
@@ -136,7 +178,7 @@ function ProfileCard({
       {header}
       <div {...(dataGuide ? { 'data-guide': dataGuide } : {})}>
         <h2 className="text-2xl font-semibold text-[#1E3A5F] mb-4">{title}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-0">
           {renderFields(fields)}
         </div>
       </div>
@@ -243,7 +285,7 @@ export default function PropertyProfile({
     ...areaFields,
     { label: 'Aukštų skaičius', raw: profile.floors },
     { label: 'Sienų medžiaga', raw: profile.wall_material },
-    { label: 'Šildymo tipas', raw: profile.heating_type },
+    { label: 'Šildymo tipas', raw: profile.heating_type, groupStart: true },
     // „Ventiliacija" (F3): the value is now a complete nominative phrase
     // („Natūrali"), so „…tipas" would read as a fragment's leftover label.
     // Matches the PDF, which already used this label.
