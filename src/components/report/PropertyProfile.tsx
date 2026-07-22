@@ -41,15 +41,9 @@ type Field = {
   helper?: string | null;
   // Cells sharing a pairGroup are rendered side by side in one grid row.
   pairGroup?: string;
-  // Starts a new visual group. Emits a full-width spacer BEFORE the cell —
-  // never a margin on the cell itself: a one-cell margin shifts one column
-  // and leaves its row-mate behind, which is exactly how „Aukštų" and
-  // „Šildymo" ended up at different heights. Spanning the row also starts
-  // the group at column 1, so groups read as ruled without any borders.
-  groupStart?: boolean;
 };
 
-function buildGroup(fields: { label: string; raw: unknown; format?: (v: any) => string; badge?: React.ReactNode; helperAfter?: string; helper?: string | null; pairGroup?: string; groupStart?: boolean }[]): Field[] {
+function buildGroup(fields: { label: string; raw: unknown; format?: (v: any) => string; badge?: React.ReactNode; helperAfter?: string; helper?: string | null; pairGroup?: string }[]): Field[] {
   return fields
     .filter((f) => f.raw != null)
     .map((f) => ({
@@ -59,7 +53,6 @@ function buildGroup(fields: { label: string; raw: unknown; format?: (v: any) => 
       helperAfter: f.helperAfter,
       helper: f.helper,
       pairGroup: f.pairGroup,
-      groupStart: f.groupStart,
     }));
 }
 
@@ -72,44 +65,26 @@ function buildGroup(fields: { label: string; raw: unknown; format?: (v: any) => 
 // Pairing is by group, never by position: when only one of a pair survives
 // the null filter it renders as an ordinary cell.
 function renderFields(fields: Field[]): React.ReactNode[] {
-  const out: React.ReactNode[] = [];
-  // Explicit ROWS. The grid used to auto-flow, which made "which cells share
-  // a row" an accident of how many fields happened to survive the null
-  // filter — so a group break landed mid-row and shifted ONE column, leaving
-  // „Aukštų" and „Šildymo" side by side at different heights. Rows are now
-  // containers: a group break is a margin on the row, so both columns move
-  // together and row-mates always share a baseline by construction.
-  let row: Field[] = [];
-  let rowStartsGroup = false;
-
-  const flushRow = () => {
-    if (!row.length) return;
-    const key = row.map((f) => f.label).join('|');
-    out.push(
-      <div
-        key={key}
-        className={`col-span-full grid grid-cols-1 md:grid-cols-2 gap-x-8${rowStartsGroup ? ' mt-2' : ''}`}
-        data-row=""
-      >
-        {row.map((f) => (
-          <FieldCell key={f.label} field={f} />
-        ))}
-      </div>,
-    );
-    row = [];
-    rowStartsGroup = false;
-  };
-
-  for (let i = 0; i < fields.length; i += 1) {
-    const f = fields[i];
+  // FLUID auto-placement. Cells are direct grid children in DOM order, so an
+  // absent record simply does not exist and everything after it slides into
+  // the freed slot — no mid-card holes, ever; only the last row can be
+  // half-full, which is what a list of unequal length looks like.
+  //
+  // Explicit row containers were tried first (to stop a group margin from
+  // shifting one column and leaving its row-mate behind) and are gone: they
+  // froze pairings that should re-flow, so a null field left a half-empty row
+  // stranded mid-card. Per-group margins go with them — in a fluid grid a
+  // margin cannot address "the row" at all, because rows are not elements.
+  // Grouping is expressed by ORDER alone, and the rhythm stays uniform.
+  return fields.map((f, i) => {
     const next = fields[i + 1];
+    const prev = fields[i - 1];
 
+    // The pair is ONE full-width item — its own inner two columns — so it
+    // flows as a unit and can never split across a row boundary.
     if (f.pairGroup && next?.pairGroup === f.pairGroup) {
-      flushRow();
-      // ONE visual block: the pair and its annotation live in the same
-      // container, so the caption reads as the pair's, not the card's.
-      out.push(
-        <div key={f.label} className="col-span-full mt-2">
+      return (
+        <div key={f.label} className="col-span-full">
           <div
             className="grid grid-cols-1 md:grid-cols-2 gap-x-8"
             data-pair={f.pairGroup}
@@ -117,35 +92,14 @@ function renderFields(fields: Field[]): React.ReactNode[] {
             <FieldCell field={f} />
             <FieldCell field={next} />
           </div>
-        </div>,
-      );
-      i += 1;
-      continue;
-    }
-
-    // A group break starts a fresh row so the whole row carries the spacing.
-    if (f.groupStart) {
-      flushRow();
-      rowStartsGroup = true;
-    }
-
-    row.push(f);
-    if (row.length === 2) flushRow();
-
-    if (f.helperAfter) {
-      flushRow();
-      out.push(
-        <p
-          key={`${f.label}-after`}
-          className="col-span-full max-w-[65ch] text-[13px] text-slate-400 leading-relaxed mt-1 mb-2"
-        >
-          {f.helperAfter}
-        </p>,
+        </div>
       );
     }
-  }
-  flushRow();
-  return out;
+    // The pair's second cell was already rendered inside the block above.
+    if (f.pairGroup && prev?.pairGroup === f.pairGroup) return null;
+
+    return <FieldCell key={f.label} field={f} />;
+  });
 }
 
 // Label and value used to compete at 14/16px. The label is a signpost, the
@@ -185,7 +139,7 @@ function ProfileCard({
       {header}
       <div {...(dataGuide ? { 'data-guide': dataGuide } : {})}>
         <h2 className="text-2xl font-semibold text-[#1E3A5F] mb-4">{title}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
           {renderFields(fields)}
         </div>
       </div>
@@ -292,7 +246,7 @@ export default function PropertyProfile({
     ...areaFields,
     { label: 'Aukštų skaičius', raw: profile.floors },
     { label: 'Sienų medžiaga', raw: profile.wall_material },
-    { label: 'Šildymo tipas', raw: profile.heating_type, groupStart: true },
+    { label: 'Šildymo tipas', raw: profile.heating_type },
     // „Ventiliacija" (F3): the value is now a complete nominative phrase
     // („Natūrali"), so „…tipas" would read as a fragment's leftover label.
     // Matches the PDF, which already used this label.

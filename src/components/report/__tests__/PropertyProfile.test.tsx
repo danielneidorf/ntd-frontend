@@ -128,6 +128,44 @@ describe('Pastato charakteristikos card (report-walk C1)', () => {
 });
 
 
+describe('fluid grid — absent records leave no hole (2026-07-22)', () => {
+  it('renders no empty cell between occupied ones, however sparse the record', () => {
+    // The grid auto-places, so a null field must not leave a placeholder
+    // behind: every rendered cell carries a label AND a value, and the ones
+    // that do not exist simply are not there. Explicit row containers used
+    // to freeze pairings and strand a half-empty row mid-card; this is the
+    // pin that fails if they come back.
+    const { container } = renderCard({
+      premises_type: null,
+      usage_group_label: null,
+      wall_material: null,
+      floors: null,
+    });
+    const cells = Array.from(container.querySelectorAll('[data-cell]'));
+    expect(cells.length).toBeGreaterThan(0);
+    for (const cell of cells) {
+      expect(cell.getAttribute('data-cell')).toBeTruthy();
+      expect((cell.textContent ?? '').trim()).not.toBe('');
+    }
+    // …and no row wrapper survives to freeze the flow.
+    expect(container.querySelectorAll('[data-row]').length).toBe(0);
+  });
+
+  it('the area pair stays one unit and cannot split across a row boundary', () => {
+    const { container } = renderCard({ ...GENUINE_AREA, premises_type: null });
+    const pair = container.querySelector('[data-pair="area"]');
+    expect(pair).toBeTruthy();
+    // Both area cells live inside the pair block, not loose in the grid.
+    expect(pair!.querySelectorAll('[data-cell]').length).toBe(2);
+    const loose = Array.from(container.querySelectorAll('[data-cell]'))
+      .filter((c) => !pair!.contains(c))
+      .map((c) => c.getAttribute('data-cell'));
+    expect(loose).not.toContain('Bendras plotas');
+    expect(loose).not.toContain('Šildomas plotas');
+  });
+});
+
+
 describe('provenance sub-lines (report-walk C2, R6/R7)', () => {
   it('renders the served area + class provenance lines when present', () => {
     render(
