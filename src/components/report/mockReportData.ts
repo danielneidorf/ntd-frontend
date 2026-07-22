@@ -343,8 +343,8 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 export const MOCK_EXISTING: ReportData = {
   "envelope": {
     "address": "Vilnius, Žirmūnų g. 12-5",
-    "request_id": "report-20260722140805",
-    "created_at": "2026-07-22T14:08:05.033391+00:00"
+    "request_id": "report-20260722151105",
+    "created_at": "2026-07-22T15:11:05.083747+00:00"
   },
   "blocks": [
     {
@@ -404,7 +404,8 @@ export const MOCK_EXISTING: ReportData = {
           "diff_vs_renovated_kwhm2_year": 71.37
         },
         "info_box": [
-          "Svarbu: skersvėjai ir patalpų drėgmė šiame įrankyje nėra matuojami tiesiogiai – apie galimas problemas sprendžiame tik netiesiogiai pagal šildymo ir vėdinimo duomenis.",
+          "Vertinimas remiasi Pastatų energinio naudingumo sertifikatų duomenimis ir standartinėmis prielaidomis panašiems būstams.",
+          "Šiame bloke atskirai nemodeliuojame realių vidaus drėgmės ir skersvėjų, nes jie stipriai priklauso nuo gyventojų įpročių ir konkrečios buto būklės (langų, durų, sandūrų ir pan.).",
           "Ventiliacijos sistema: natūrali"
         ],
         "bundle_note_key": "block1.bundle.note.default",
@@ -869,7 +870,7 @@ export const MOCK_EXISTING: ReportData = {
   "lat": 54.7007624,
   "lng": 25.2993035,
   "bundle_items": [],
-  "generated_at": "2026-07-22T14:08:05.033391+00:00",
+  "generated_at": "2026-07-22T15:11:05.083747+00:00",
   "order_reference": "NTD-DEV-001",
   "block2": {
     "status": "ready",
@@ -1944,7 +1945,8 @@ export const MOCK_EXISTING: ReportData = {
     ],
     "info_box": {
       "items_lt": [
-        "Svarbu: skersvėjai ir patalpų drėgmė šiame įrankyje nėra matuojami tiesiogiai – apie galimas problemas sprendžiame tik netiesiogiai pagal šildymo ir vėdinimo duomenis.",
+        "Vertinimas remiasi Pastatų energinio naudingumo sertifikatų duomenimis ir standartinėmis prielaidomis panašiems būstams.",
+        "Šiame bloke atskirai nemodeliuojame realių vidaus drėgmės ir skersvėjų, nes jie stipriai priklauso nuo gyventojų įpročių ir konkrečios buto būklės (langų, durų, sandūrų ir pan.).",
         "Ventiliacijos sistema: natūrali"
       ]
     },
