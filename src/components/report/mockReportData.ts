@@ -343,8 +343,8 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 export const MOCK_EXISTING: ReportData = {
   "envelope": {
     "address": "Vilnius, Žirmūnų g. 12-5",
-    "request_id": "report-20260722084412",
-    "created_at": "2026-07-22T08:44:12.518968+00:00"
+    "request_id": "report-20260722120700",
+    "created_at": "2026-07-22T12:07:00.702088+00:00"
   },
   "blocks": [
     {
@@ -885,7 +885,7 @@ export const MOCK_EXISTING: ReportData = {
   "lat": 54.7007624,
   "lng": 25.2993035,
   "bundle_items": [],
-  "generated_at": "2026-07-22T08:44:12.518968+00:00",
+  "generated_at": "2026-07-22T12:07:00.702088+00:00",
   "order_reference": "NTD-DEV-001",
   "block2": {
     "status": "ready",
@@ -1880,7 +1880,7 @@ export const MOCK_EXISTING: ReportData = {
     "energy_class_provenance": "certificate",
     "energy_class_provenance_lt": null,
     "epc_kwhm2_year": 145.2,
-    "epc_source": "Registras (PENS)",
+    "epc_source": "Pastatų energinio naudingumo sertifikatai",
     "epc_confidence": "Aukštas",
     "glazing_percent": null,
     "glazing_source": null,
