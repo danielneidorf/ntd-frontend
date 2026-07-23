@@ -343,8 +343,8 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 export const MOCK_EXISTING: ReportData = {
   "envelope": {
     "address": "Vilnius, Žirmūnų g. 12-5",
-    "request_id": "report-20260723103845",
-    "created_at": "2026-07-23T10:38:45.065832+00:00"
+    "request_id": "report-20260723161446",
+    "created_at": "2026-07-23T16:14:46.812464+00:00"
   },
   "blocks": [
     {
@@ -604,7 +604,7 @@ export const MOCK_EXISTING: ReportData = {
         "monthly_variation": [
           {
             "month": 1,
-            "heating_eur": 122.06,
+            "heating_eur": 141.6,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
             "fixed_eur": 0,
@@ -612,7 +612,7 @@ export const MOCK_EXISTING: ReportData = {
           },
           {
             "month": 2,
-            "heating_eur": 102.17,
+            "heating_eur": 118.52,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
             "fixed_eur": 0,
@@ -620,7 +620,7 @@ export const MOCK_EXISTING: ReportData = {
           },
           {
             "month": 3,
-            "heating_eur": 92.54,
+            "heating_eur": 107.35,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
             "fixed_eur": 0,
@@ -628,7 +628,7 @@ export const MOCK_EXISTING: ReportData = {
           },
           {
             "month": 4,
-            "heating_eur": 55.74,
+            "heating_eur": 64.65,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
             "fixed_eur": 0,
@@ -636,7 +636,7 @@ export const MOCK_EXISTING: ReportData = {
           },
           {
             "month": 5,
-            "heating_eur": 35.9,
+            "heating_eur": 0,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
             "fixed_eur": 0,
@@ -644,7 +644,7 @@ export const MOCK_EXISTING: ReportData = {
           },
           {
             "month": 6,
-            "heating_eur": 13.06,
+            "heating_eur": 0,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
             "fixed_eur": 0,
@@ -652,7 +652,7 @@ export const MOCK_EXISTING: ReportData = {
           },
           {
             "month": 7,
-            "heating_eur": 8.32,
+            "heating_eur": 0,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
             "fixed_eur": 0,
@@ -660,7 +660,7 @@ export const MOCK_EXISTING: ReportData = {
           },
           {
             "month": 8,
-            "heating_eur": 11.94,
+            "heating_eur": 0,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
             "fixed_eur": 0,
@@ -668,7 +668,7 @@ export const MOCK_EXISTING: ReportData = {
           },
           {
             "month": 9,
-            "heating_eur": 31.33,
+            "heating_eur": 0,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
             "fixed_eur": 0,
@@ -676,7 +676,7 @@ export const MOCK_EXISTING: ReportData = {
           },
           {
             "month": 10,
-            "heating_eur": 61.8,
+            "heating_eur": 71.69,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
             "fixed_eur": 0,
@@ -684,7 +684,7 @@ export const MOCK_EXISTING: ReportData = {
           },
           {
             "month": 11,
-            "heating_eur": 85.8,
+            "heating_eur": 99.53,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
             "fixed_eur": 0,
@@ -692,7 +692,7 @@ export const MOCK_EXISTING: ReportData = {
           },
           {
             "month": 12,
-            "heating_eur": 108.24,
+            "heating_eur": 125.56,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
             "fixed_eur": 0,
@@ -862,7 +862,7 @@ export const MOCK_EXISTING: ReportData = {
   "lat": 54.7007624,
   "lng": 25.2993035,
   "bundle_items": [],
-  "generated_at": "2026-07-23T10:38:45.065832+00:00",
+  "generated_at": "2026-07-23T16:14:46.812464+00:00",
   "order_reference": "NTD-DEV-001",
   "block2": {
     "status": "ready",
@@ -932,7 +932,7 @@ export const MOCK_EXISTING: ReportData = {
     "monthly_variation": [
       {
         "month": 1,
-        "heating_eur": 122.06,
+        "heating_eur": 141.6,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
         "fixed_eur": 0,
@@ -940,7 +940,7 @@ export const MOCK_EXISTING: ReportData = {
       },
       {
         "month": 2,
-        "heating_eur": 102.17,
+        "heating_eur": 118.52,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
         "fixed_eur": 0,
@@ -948,7 +948,7 @@ export const MOCK_EXISTING: ReportData = {
       },
       {
         "month": 3,
-        "heating_eur": 92.54,
+        "heating_eur": 107.35,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
         "fixed_eur": 0,
@@ -956,7 +956,7 @@ export const MOCK_EXISTING: ReportData = {
       },
       {
         "month": 4,
-        "heating_eur": 55.74,
+        "heating_eur": 64.65,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
         "fixed_eur": 0,
@@ -964,7 +964,7 @@ export const MOCK_EXISTING: ReportData = {
       },
       {
         "month": 5,
-        "heating_eur": 35.9,
+        "heating_eur": 0,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
         "fixed_eur": 0,
@@ -972,7 +972,7 @@ export const MOCK_EXISTING: ReportData = {
       },
       {
         "month": 6,
-        "heating_eur": 13.06,
+        "heating_eur": 0,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
         "fixed_eur": 0,
@@ -980,7 +980,7 @@ export const MOCK_EXISTING: ReportData = {
       },
       {
         "month": 7,
-        "heating_eur": 8.32,
+        "heating_eur": 0,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
         "fixed_eur": 0,
@@ -988,7 +988,7 @@ export const MOCK_EXISTING: ReportData = {
       },
       {
         "month": 8,
-        "heating_eur": 11.94,
+        "heating_eur": 0,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
         "fixed_eur": 0,
@@ -996,7 +996,7 @@ export const MOCK_EXISTING: ReportData = {
       },
       {
         "month": 9,
-        "heating_eur": 31.33,
+        "heating_eur": 0,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
         "fixed_eur": 0,
@@ -1004,7 +1004,7 @@ export const MOCK_EXISTING: ReportData = {
       },
       {
         "month": 10,
-        "heating_eur": 61.8,
+        "heating_eur": 71.69,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
         "fixed_eur": 0,
@@ -1012,7 +1012,7 @@ export const MOCK_EXISTING: ReportData = {
       },
       {
         "month": 11,
-        "heating_eur": 85.8,
+        "heating_eur": 99.53,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
         "fixed_eur": 0,
@@ -1020,7 +1020,7 @@ export const MOCK_EXISTING: ReportData = {
       },
       {
         "month": 12,
-        "heating_eur": 108.24,
+        "heating_eur": 125.56,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
         "fixed_eur": 0,
@@ -1155,7 +1155,7 @@ export const MOCK_EXISTING: ReportData = {
           "monthly_variation": [
             {
               "month": 1,
-              "heating_eur": 122.06,
+              "heating_eur": 141.6,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1163,7 +1163,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 2,
-              "heating_eur": 102.17,
+              "heating_eur": 118.52,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1171,7 +1171,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 3,
-              "heating_eur": 92.54,
+              "heating_eur": 107.35,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1179,7 +1179,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 4,
-              "heating_eur": 55.74,
+              "heating_eur": 64.65,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1187,7 +1187,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 5,
-              "heating_eur": 35.9,
+              "heating_eur": 0,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1195,7 +1195,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 6,
-              "heating_eur": 13.06,
+              "heating_eur": 0,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1203,7 +1203,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 7,
-              "heating_eur": 8.32,
+              "heating_eur": 0,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1211,7 +1211,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 8,
-              "heating_eur": 11.94,
+              "heating_eur": 0,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1219,7 +1219,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 9,
-              "heating_eur": 31.33,
+              "heating_eur": 0,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1227,7 +1227,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 10,
-              "heating_eur": 61.8,
+              "heating_eur": 71.69,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1235,7 +1235,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 11,
-              "heating_eur": 85.8,
+              "heating_eur": 99.53,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1243,7 +1243,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 12,
-              "heating_eur": 108.24,
+              "heating_eur": 125.56,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1291,7 +1291,7 @@ export const MOCK_EXISTING: ReportData = {
           "monthly_variation": [
             {
               "month": 1,
-              "heating_eur": 122.06,
+              "heating_eur": 141.6,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1299,7 +1299,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 2,
-              "heating_eur": 102.17,
+              "heating_eur": 118.52,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1307,7 +1307,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 3,
-              "heating_eur": 92.54,
+              "heating_eur": 107.35,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1315,7 +1315,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 4,
-              "heating_eur": 55.74,
+              "heating_eur": 64.65,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1323,7 +1323,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 5,
-              "heating_eur": 35.9,
+              "heating_eur": 0,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1331,7 +1331,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 6,
-              "heating_eur": 13.06,
+              "heating_eur": 0,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1339,7 +1339,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 7,
-              "heating_eur": 8.32,
+              "heating_eur": 0,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1347,7 +1347,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 8,
-              "heating_eur": 11.94,
+              "heating_eur": 0,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1355,7 +1355,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 9,
-              "heating_eur": 31.33,
+              "heating_eur": 0,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1363,7 +1363,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 10,
-              "heating_eur": 61.8,
+              "heating_eur": 71.69,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1371,7 +1371,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 11,
-              "heating_eur": 85.8,
+              "heating_eur": 99.53,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1379,7 +1379,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 12,
-              "heating_eur": 108.24,
+              "heating_eur": 125.56,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1427,7 +1427,7 @@ export const MOCK_EXISTING: ReportData = {
           "monthly_variation": [
             {
               "month": 1,
-              "heating_eur": 122.06,
+              "heating_eur": 141.6,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1435,7 +1435,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 2,
-              "heating_eur": 102.17,
+              "heating_eur": 118.52,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1443,7 +1443,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 3,
-              "heating_eur": 92.54,
+              "heating_eur": 107.35,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1451,7 +1451,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 4,
-              "heating_eur": 55.74,
+              "heating_eur": 64.65,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1459,7 +1459,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 5,
-              "heating_eur": 35.9,
+              "heating_eur": 0,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1467,7 +1467,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 6,
-              "heating_eur": 13.06,
+              "heating_eur": 0,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1475,7 +1475,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 7,
-              "heating_eur": 8.32,
+              "heating_eur": 0,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1483,7 +1483,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 8,
-              "heating_eur": 11.94,
+              "heating_eur": 0,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1491,7 +1491,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 9,
-              "heating_eur": 31.33,
+              "heating_eur": 0,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1499,7 +1499,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 10,
-              "heating_eur": 61.8,
+              "heating_eur": 71.69,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1507,7 +1507,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 11,
-              "heating_eur": 85.8,
+              "heating_eur": 99.53,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1515,7 +1515,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 12,
-              "heating_eur": 108.24,
+              "heating_eur": 125.56,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1563,7 +1563,7 @@ export const MOCK_EXISTING: ReportData = {
           "monthly_variation": [
             {
               "month": 1,
-              "heating_eur": 122.06,
+              "heating_eur": 141.6,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1571,7 +1571,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 2,
-              "heating_eur": 102.17,
+              "heating_eur": 118.52,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1579,7 +1579,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 3,
-              "heating_eur": 92.54,
+              "heating_eur": 107.35,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1587,7 +1587,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 4,
-              "heating_eur": 55.74,
+              "heating_eur": 64.65,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1595,7 +1595,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 5,
-              "heating_eur": 35.9,
+              "heating_eur": 0,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1603,7 +1603,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 6,
-              "heating_eur": 13.06,
+              "heating_eur": 0,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1611,7 +1611,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 7,
-              "heating_eur": 8.32,
+              "heating_eur": 0,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1619,7 +1619,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 8,
-              "heating_eur": 11.94,
+              "heating_eur": 0,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1627,7 +1627,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 9,
-              "heating_eur": 31.33,
+              "heating_eur": 0,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1635,7 +1635,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 10,
-              "heating_eur": 61.8,
+              "heating_eur": 71.69,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1643,7 +1643,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 11,
-              "heating_eur": 85.8,
+              "heating_eur": 99.53,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1651,7 +1651,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 12,
-              "heating_eur": 108.24,
+              "heating_eur": 125.56,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1699,7 +1699,7 @@ export const MOCK_EXISTING: ReportData = {
           "monthly_variation": [
             {
               "month": 1,
-              "heating_eur": 122.06,
+              "heating_eur": 141.6,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1707,7 +1707,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 2,
-              "heating_eur": 102.17,
+              "heating_eur": 118.52,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1715,7 +1715,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 3,
-              "heating_eur": 92.54,
+              "heating_eur": 107.35,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1723,7 +1723,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 4,
-              "heating_eur": 55.74,
+              "heating_eur": 64.65,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1731,7 +1731,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 5,
-              "heating_eur": 35.9,
+              "heating_eur": 0,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1739,7 +1739,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 6,
-              "heating_eur": 13.06,
+              "heating_eur": 0,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1747,7 +1747,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 7,
-              "heating_eur": 8.32,
+              "heating_eur": 0,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1755,7 +1755,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 8,
-              "heating_eur": 11.94,
+              "heating_eur": 0,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1763,7 +1763,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 9,
-              "heating_eur": 31.33,
+              "heating_eur": 0,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1771,7 +1771,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 10,
-              "heating_eur": 61.8,
+              "heating_eur": 71.69,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1779,7 +1779,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 11,
-              "heating_eur": 85.8,
+              "heating_eur": 99.53,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
               "fixed_eur": 0,
@@ -1787,7 +1787,7 @@ export const MOCK_EXISTING: ReportData = {
             },
             {
               "month": 12,
-              "heating_eur": 108.24,
+              "heating_eur": 125.56,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
               "fixed_eur": 0,
