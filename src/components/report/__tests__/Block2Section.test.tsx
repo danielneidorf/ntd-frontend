@@ -241,7 +241,7 @@ describe('Block2Section', () => {
 
   it('renders the standard-household total when preselected to the standard size', () => {
     // Ruling 2026-07-23: ReportViewer preselects the served standard occupancy,
-    // so the report opens on the standard-household total (not the €81 base).
+    // so the report opens on the standard-household total (not the €78 base).
     const std = MOCK_EXISTING.block2!.standard_occupancy!;
     const { container } = render(
       <Block2Section block2={MOCK_EXISTING.block2} householdSize={std} />,

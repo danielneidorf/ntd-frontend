@@ -343,8 +343,8 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 export const MOCK_EXISTING: ReportData = {
   "envelope": {
     "address": "Vilnius, Žirmūnų g. 12-5",
-    "request_id": "report-20260723091250",
-    "created_at": "2026-07-23T09:12:50.536123+00:00"
+    "request_id": "report-20260723103845",
+    "created_at": "2026-07-23T10:38:45.065832+00:00"
   },
   "blocks": [
     {
@@ -572,8 +572,8 @@ export const MOCK_EXISTING: ReportData = {
       "data": {
         "status": "ready",
         "message_lt": null,
-        "energy_month_eur": 81.34,
-        "energy_year_eur": 976.03,
+        "energy_month_eur": 78.34,
+        "energy_year_eur": 940.03,
         "breakdown": [
           {
             "carrier": "cst",
@@ -599,14 +599,6 @@ export const MOCK_EXISTING: ReportData = {
             "eur_year": 211.14,
             "eur_month": 17.59,
             "source_lt": "📊 pagal pastato duomenis"
-          },
-          {
-            "component_kind": "eso_standing",
-            "label_lt": "Elektros pastovusis mokestis",
-            "carrier": null,
-            "eur_year": 36,
-            "eur_month": 3,
-            "source_lt": "📊 pagal pastato duomenis"
           }
         ],
         "monthly_variation": [
@@ -615,7 +607,7 @@ export const MOCK_EXISTING: ReportData = {
             "heating_eur": 122.06,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
-            "fixed_eur": 3,
+            "fixed_eur": 0,
             "household_electricity_eur": 0
           },
           {
@@ -623,7 +615,7 @@ export const MOCK_EXISTING: ReportData = {
             "heating_eur": 102.17,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
-            "fixed_eur": 3,
+            "fixed_eur": 0,
             "household_electricity_eur": 0
           },
           {
@@ -631,7 +623,7 @@ export const MOCK_EXISTING: ReportData = {
             "heating_eur": 92.54,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
-            "fixed_eur": 3,
+            "fixed_eur": 0,
             "household_electricity_eur": 0
           },
           {
@@ -639,7 +631,7 @@ export const MOCK_EXISTING: ReportData = {
             "heating_eur": 55.74,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
-            "fixed_eur": 3,
+            "fixed_eur": 0,
             "household_electricity_eur": 0
           },
           {
@@ -647,7 +639,7 @@ export const MOCK_EXISTING: ReportData = {
             "heating_eur": 35.9,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
-            "fixed_eur": 3,
+            "fixed_eur": 0,
             "household_electricity_eur": 0
           },
           {
@@ -655,7 +647,7 @@ export const MOCK_EXISTING: ReportData = {
             "heating_eur": 13.06,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
-            "fixed_eur": 3,
+            "fixed_eur": 0,
             "household_electricity_eur": 0
           },
           {
@@ -663,7 +655,7 @@ export const MOCK_EXISTING: ReportData = {
             "heating_eur": 8.32,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
-            "fixed_eur": 3,
+            "fixed_eur": 0,
             "household_electricity_eur": 0
           },
           {
@@ -671,7 +663,7 @@ export const MOCK_EXISTING: ReportData = {
             "heating_eur": 11.94,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
-            "fixed_eur": 3,
+            "fixed_eur": 0,
             "household_electricity_eur": 0
           },
           {
@@ -679,7 +671,7 @@ export const MOCK_EXISTING: ReportData = {
             "heating_eur": 31.33,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
-            "fixed_eur": 3,
+            "fixed_eur": 0,
             "household_electricity_eur": 0
           },
           {
@@ -687,7 +679,7 @@ export const MOCK_EXISTING: ReportData = {
             "heating_eur": 61.8,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
-            "fixed_eur": 3,
+            "fixed_eur": 0,
             "household_electricity_eur": 0
           },
           {
@@ -695,7 +687,7 @@ export const MOCK_EXISTING: ReportData = {
             "heating_eur": 85.8,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
-            "fixed_eur": 3,
+            "fixed_eur": 0,
             "household_electricity_eur": 0
           },
           {
@@ -703,50 +695,50 @@ export const MOCK_EXISTING: ReportData = {
             "heating_eur": 108.24,
             "dhw_eur": 17.59,
             "cooling_eur": 0,
-            "fixed_eur": 3,
+            "fixed_eur": 0,
             "household_electricity_eur": 0
           }
         ],
         "forecast_5yr": [
           {
             "year": 2026,
-            "total_eur_month": 81.34,
+            "total_eur_month": 78.34,
             "per_carrier": {
               "cst": 940.03
             },
-            "fixed_eur_year": 36
+            "fixed_eur_year": 0
           },
           {
             "year": 2027,
-            "total_eur_month": 86.26,
+            "total_eur_month": 83.11,
             "per_carrier": {
               "cst": 997.28
             },
-            "fixed_eur_year": 37.83
+            "fixed_eur_year": 0
           },
           {
             "year": 2028,
-            "total_eur_month": 91.48,
+            "total_eur_month": 88.17,
             "per_carrier": {
               "cst": 1058.01
             },
-            "fixed_eur_year": 39.75
+            "fixed_eur_year": 0
           },
           {
             "year": 2029,
-            "total_eur_month": 97.02,
+            "total_eur_month": 93.54,
             "per_carrier": {
               "cst": 1122.45
             },
-            "fixed_eur_year": 41.77
+            "fixed_eur_year": 0
           },
           {
             "year": 2030,
-            "total_eur_month": 102.89,
+            "total_eur_month": 99.23,
             "per_carrier": {
               "cst": 1190.8
             },
-            "fixed_eur_year": 43.89
+            "fixed_eur_year": 0
           }
         ],
         "confidence": "medium",
@@ -822,7 +814,7 @@ export const MOCK_EXISTING: ReportData = {
         "data": {
           "pattern": "D",
           "scope_prefix": "Šilumos komforto požiūriu",
-          "intro_lt": "Šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais — žiemą šildymo sąnaudos gali būti didelės, o vasarą patalpos linkusios perkaisti. Tai stipriausias signalas būti atidiems. Šio pastato šildymo poreikis yra apie 35 % mažesnis nei vidutinio tos pačios energinės klasės pastato Lietuvoje. Pastato energijos kaina (be buitinės elektros) — apie €81 per mėnesį.",
+          "intro_lt": "Šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais — žiemą šildymo sąnaudos gali būti didelės, o vasarą patalpos linkusios perkaisti. Tai stipriausias signalas būti atidiems. Šio pastato šildymo poreikis yra apie 35 % mažesnis nei vidutinio tos pačios energinės klasės pastato Lietuvoje. Pastato energijos kaina (be buitinės elektros) — apie €78 per mėnesį.",
           "viewing_questions_lt": [
             "Paprašykite faktinių šildymo sąskaitų už paskutinius 2–3 žiemos sezonus.",
             "Apžiūrėkite izoliaciją: stogo / pastogės apšiltinimą, sienų būklę, langų sandarumą.",
@@ -832,7 +824,7 @@ export const MOCK_EXISTING: ReportData = {
           ],
           "negotiation_angles_lt": [
             "Šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais. Tai turėtų atsispindėti kainoje — arba tiesiogiai (mažesnė pardavimo kaina), arba per pardavėjo įsipareigojimą finansuoti dalį renovacijos.",
-            "Pastato energijos kaina (be buitinės elektros) — apie €81 per mėnesį; iš jos šildymui tenka apie €61 per mėnesį. Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyviame analogiškame pastate — tai apie €620 per metus. Per 5 metus, įvertinus prognozuojamą energijos kainų augimą (pagal 10 metų kainų tendencijas), skirtumas sudarytų apie €3480. Nerenovavus pastato, vien šildymas kainuotų apie €360 per metus daugiau nei renovuotame (C klasės) pastate.",
+            "Pastato energijos kaina (be buitinės elektros) — apie €78 per mėnesį; iš jos šildymui tenka apie €61 per mėnesį. Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyviame analogiškame pastate — tai apie €620 per metus. Per 5 metus, įvertinus prognozuojamą energijos kainų augimą (pagal 10 metų kainų tendencijas), skirtumas sudarytų apie €3480. Nerenovavus pastato, vien šildymas kainuotų apie €360 per metus daugiau nei renovuotame (C klasės) pastate.",
             "Pastatas statytas iki 1993 m. — šio laikotarpio pastatai dažnai turi silpnesnę izoliaciją ir pasenusias inžinerines sistemas. Tai sustiprina argumentą dėl kainos korekcijos."
           ],
           "forward_note_lt": "Tikslias šildymo sąnaudas eurais rasite 2 bloke (Energijos sąnaudos). Šilumos komforto požiūriu, ši informacija yra ypač svarbi priimant sprendimą.",
@@ -870,14 +862,14 @@ export const MOCK_EXISTING: ReportData = {
   "lat": 54.7007624,
   "lng": 25.2993035,
   "bundle_items": [],
-  "generated_at": "2026-07-23T09:12:50.536123+00:00",
+  "generated_at": "2026-07-23T10:38:45.065832+00:00",
   "order_reference": "NTD-DEV-001",
   "block2": {
     "status": "ready",
     "message_lt": null,
     "metric": {
-      "eur_month": 81,
-      "eur_month_raw": 81.34,
+      "eur_month": 78,
+      "eur_month_raw": 78.34,
       "subtext_lt": "Vidutinė mėnesinė energijos kaina pagal dabartinius tarifus (su PVM)"
     },
     "intro_lt": "Šiame bloke pateikiame, kiek šiame būste tikėtina mokėti už energiją kiekvieną mėnesį — šildymą, karštą vandenį, vėsinimą ir ventiliaciją, bei pastovius mokesčius — pagal dabartinius tarifus ir pastato energinius parametrus. Taip pat galite sužinoti preliminarų elektros suvartojimą buities reikmėms, pasirinkę savo namų ūkio dydį.",
@@ -900,24 +892,18 @@ export const MOCK_EXISTING: ReportData = {
           "eur_year": 211,
           "eur_month": 17,
           "source_indicator": "📊 pagal pastato duomenis"
-        },
-        {
-          "label_lt": "Elektros pastovusis mokestis",
-          "eur_year": 36,
-          "eur_month": 3,
-          "source_indicator": "📊 pagal pastato duomenis"
         }
       ],
       "total": {
         "label_lt": "Viso",
-        "eur_year": 976,
-        "eur_month": 81
+        "eur_year": 940,
+        "eur_month": 78
       },
       "dhw_footnote_lt": "Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių."
     },
     "explanation": {
       "heading_lt": "Ką tai reiškia praktiškai?",
-      "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos sudarys apie €81 per mėnesį arba €976 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €103.",
+      "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos sudarys apie €78 per mėnesį arba €940 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €99.",
       "family_note_lt": "Svarbu atsiminti, kad ši suma neapima buitinės elektros (apšvietimas, prietaisai, viryklė). Pasirinkite namų ūkio dydį žemiau, kad pamatytumėte bendrą mėnesinę energijos kainą."
     },
     "info_box": {
@@ -949,7 +935,7 @@ export const MOCK_EXISTING: ReportData = {
         "heating_eur": 122.06,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
-        "fixed_eur": 3,
+        "fixed_eur": 0,
         "household_electricity_eur": 0
       },
       {
@@ -957,7 +943,7 @@ export const MOCK_EXISTING: ReportData = {
         "heating_eur": 102.17,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
-        "fixed_eur": 3,
+        "fixed_eur": 0,
         "household_electricity_eur": 0
       },
       {
@@ -965,7 +951,7 @@ export const MOCK_EXISTING: ReportData = {
         "heating_eur": 92.54,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
-        "fixed_eur": 3,
+        "fixed_eur": 0,
         "household_electricity_eur": 0
       },
       {
@@ -973,7 +959,7 @@ export const MOCK_EXISTING: ReportData = {
         "heating_eur": 55.74,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
-        "fixed_eur": 3,
+        "fixed_eur": 0,
         "household_electricity_eur": 0
       },
       {
@@ -981,7 +967,7 @@ export const MOCK_EXISTING: ReportData = {
         "heating_eur": 35.9,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
-        "fixed_eur": 3,
+        "fixed_eur": 0,
         "household_electricity_eur": 0
       },
       {
@@ -989,7 +975,7 @@ export const MOCK_EXISTING: ReportData = {
         "heating_eur": 13.06,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
-        "fixed_eur": 3,
+        "fixed_eur": 0,
         "household_electricity_eur": 0
       },
       {
@@ -997,7 +983,7 @@ export const MOCK_EXISTING: ReportData = {
         "heating_eur": 8.32,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
-        "fixed_eur": 3,
+        "fixed_eur": 0,
         "household_electricity_eur": 0
       },
       {
@@ -1005,7 +991,7 @@ export const MOCK_EXISTING: ReportData = {
         "heating_eur": 11.94,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
-        "fixed_eur": 3,
+        "fixed_eur": 0,
         "household_electricity_eur": 0
       },
       {
@@ -1013,7 +999,7 @@ export const MOCK_EXISTING: ReportData = {
         "heating_eur": 31.33,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
-        "fixed_eur": 3,
+        "fixed_eur": 0,
         "household_electricity_eur": 0
       },
       {
@@ -1021,7 +1007,7 @@ export const MOCK_EXISTING: ReportData = {
         "heating_eur": 61.8,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
-        "fixed_eur": 3,
+        "fixed_eur": 0,
         "household_electricity_eur": 0
       },
       {
@@ -1029,7 +1015,7 @@ export const MOCK_EXISTING: ReportData = {
         "heating_eur": 85.8,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
-        "fixed_eur": 3,
+        "fixed_eur": 0,
         "household_electricity_eur": 0
       },
       {
@@ -1037,50 +1023,50 @@ export const MOCK_EXISTING: ReportData = {
         "heating_eur": 108.24,
         "dhw_eur": 17.59,
         "cooling_eur": 0,
-        "fixed_eur": 3,
+        "fixed_eur": 0,
         "household_electricity_eur": 0
       }
     ],
     "forecast_5yr": [
       {
         "year": 2026,
-        "total_eur_month": 81.34,
+        "total_eur_month": 78.34,
         "per_carrier": {
           "cst": 940.03
         },
-        "fixed_eur_year": 36
+        "fixed_eur_year": 0
       },
       {
         "year": 2027,
-        "total_eur_month": 86.26,
+        "total_eur_month": 83.11,
         "per_carrier": {
           "cst": 997.28
         },
-        "fixed_eur_year": 37.83
+        "fixed_eur_year": 0
       },
       {
         "year": 2028,
-        "total_eur_month": 91.48,
+        "total_eur_month": 88.17,
         "per_carrier": {
           "cst": 1058.01
         },
-        "fixed_eur_year": 39.75
+        "fixed_eur_year": 0
       },
       {
         "year": 2029,
-        "total_eur_month": 97.02,
+        "total_eur_month": 93.54,
         "per_carrier": {
           "cst": 1122.45
         },
-        "fixed_eur_year": 41.77
+        "fixed_eur_year": 0
       },
       {
         "year": 2030,
-        "total_eur_month": 102.89,
+        "total_eur_month": 99.23,
         "per_carrier": {
           "cst": 1190.8
         },
-        "fixed_eur_year": 43.89
+        "fixed_eur_year": 0
       }
     ],
     "household_reference": [
@@ -1136,7 +1122,7 @@ export const MOCK_EXISTING: ReportData = {
           "household_size": 1,
           "size_label_lt": "1 asmuo",
           "metric": {
-            "eur_month": 87,
+            "eur_month": 84,
             "subtext_lt": "Pastato energija + buitinė elektra (1 asmens namų ūkis)"
           },
           "breakdown": {
@@ -1154,12 +1140,6 @@ export const MOCK_EXISTING: ReportData = {
                 "source_indicator": "📊 pagal pastato duomenis + 👥 pritaikyta pagal namų ūkio dydį"
               },
               {
-                "label_lt": "Elektros pastovusis mokestis",
-                "eur_year": 36,
-                "eur_month": 3,
-                "source_indicator": "📊 pagal pastato duomenis"
-              },
-              {
                 "label_lt": "Buitinė elektra (1 asm.)",
                 "eur_year": 166,
                 "eur_month": 14,
@@ -1168,8 +1148,8 @@ export const MOCK_EXISTING: ReportData = {
             ],
             "total": {
               "label_lt": "Viso",
-              "eur_year": 1036,
-              "eur_month": 87
+              "eur_year": 1000,
+              "eur_month": 84
             }
           },
           "monthly_variation": [
@@ -1178,7 +1158,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 122.06,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 14
             },
             {
@@ -1186,7 +1166,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 102.17,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 14
             },
             {
@@ -1194,7 +1174,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 92.54,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 14
             },
             {
@@ -1202,7 +1182,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 55.74,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 14
             },
             {
@@ -1210,7 +1190,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 35.9,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 14
             },
             {
@@ -1218,7 +1198,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 13.06,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 14
             },
             {
@@ -1226,7 +1206,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 8.32,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 14
             },
             {
@@ -1234,7 +1214,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 11.94,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 14
             },
             {
@@ -1242,7 +1222,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 31.33,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 14
             },
             {
@@ -1250,7 +1230,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 61.8,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 14
             },
             {
@@ -1258,7 +1238,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 85.8,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 14
             },
             {
@@ -1266,19 +1246,19 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 108.24,
               "dhw_eur": 8.8,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 14
             }
           ],
           "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 1 asmens namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
           "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 1 asmens namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
-          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 1 asmens namų ūkiui sudarys apie €87 per mėnesį arba €1036 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, o buitinės elektros dalis išliks dabartinio lygio, mėnesinė kaina gali pasiekti apie €117."
+          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 1 asmens namų ūkiui sudarys apie €84 per mėnesį arba €1000 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, o buitinės elektros dalis išliks dabartinio lygio, mėnesinė kaina gali pasiekti apie €113."
         },
         {
           "household_size": 2,
           "size_label_lt": "2 asmenys",
           "metric": {
-            "eur_month": 104,
+            "eur_month": 101,
             "subtext_lt": "Pastato energija + buitinė elektra (2 asmenų namų ūkis)"
           },
           "breakdown": {
@@ -1296,12 +1276,6 @@ export const MOCK_EXISTING: ReportData = {
                 "source_indicator": "📊 pagal pastato duomenis + 👥 pritaikyta pagal namų ūkio dydį"
               },
               {
-                "label_lt": "Elektros pastovusis mokestis",
-                "eur_year": 36,
-                "eur_month": 3,
-                "source_indicator": "📊 pagal pastato duomenis"
-              },
-              {
                 "label_lt": "Buitinė elektra (2 asm.)",
                 "eur_year": 274,
                 "eur_month": 23,
@@ -1310,8 +1284,8 @@ export const MOCK_EXISTING: ReportData = {
             ],
             "total": {
               "label_lt": "Viso",
-              "eur_year": 1250,
-              "eur_month": 104
+              "eur_year": 1214,
+              "eur_month": 101
             }
           },
           "monthly_variation": [
@@ -1320,7 +1294,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 122.06,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 23
             },
             {
@@ -1328,7 +1302,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 102.17,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 23
             },
             {
@@ -1336,7 +1310,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 92.54,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 23
             },
             {
@@ -1344,7 +1318,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 55.74,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 23
             },
             {
@@ -1352,7 +1326,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 35.9,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 23
             },
             {
@@ -1360,7 +1334,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 13.06,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 23
             },
             {
@@ -1368,7 +1342,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 8.32,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 23
             },
             {
@@ -1376,7 +1350,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 11.94,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 23
             },
             {
@@ -1384,7 +1358,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 31.33,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 23
             },
             {
@@ -1392,7 +1366,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 61.8,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 23
             },
             {
@@ -1400,7 +1374,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 85.8,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 23
             },
             {
@@ -1408,19 +1382,19 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 108.24,
               "dhw_eur": 17.59,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 23
             }
           ],
           "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 2 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
           "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 2 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
-          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 2 asmenų namų ūkiui sudarys apie €104 per mėnesį arba €1250 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, o buitinės elektros dalis išliks dabartinio lygio, mėnesinė kaina gali pasiekti apie €126."
+          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 2 asmenų namų ūkiui sudarys apie €101 per mėnesį arba €1214 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, o buitinės elektros dalis išliks dabartinio lygio, mėnesinė kaina gali pasiekti apie €122."
         },
         {
           "household_size": 3,
           "size_label_lt": "3 asmenys",
           "metric": {
-            "eur_month": 120,
+            "eur_month": 117,
             "subtext_lt": "Pastato energija + buitinė elektra (3 asmenų namų ūkis)"
           },
           "breakdown": {
@@ -1438,12 +1412,6 @@ export const MOCK_EXISTING: ReportData = {
                 "source_indicator": "📊 pagal pastato duomenis + 👥 pritaikyta pagal namų ūkio dydį"
               },
               {
-                "label_lt": "Elektros pastovusis mokestis",
-                "eur_year": 36,
-                "eur_month": 3,
-                "source_indicator": "📊 pagal pastato duomenis"
-              },
-              {
                 "label_lt": "Buitinė elektra (3 asm.)",
                 "eur_year": 365,
                 "eur_month": 30,
@@ -1452,8 +1420,8 @@ export const MOCK_EXISTING: ReportData = {
             ],
             "total": {
               "label_lt": "Viso",
-              "eur_year": 1447,
-              "eur_month": 120
+              "eur_year": 1411,
+              "eur_month": 117
             }
           },
           "monthly_variation": [
@@ -1462,7 +1430,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 122.06,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 30
             },
             {
@@ -1470,7 +1438,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 102.17,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 30
             },
             {
@@ -1478,7 +1446,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 92.54,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 30
             },
             {
@@ -1486,7 +1454,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 55.74,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 30
             },
             {
@@ -1494,7 +1462,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 35.9,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 30
             },
             {
@@ -1502,7 +1470,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 13.06,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 30
             },
             {
@@ -1510,7 +1478,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 8.32,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 30
             },
             {
@@ -1518,7 +1486,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 11.94,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 30
             },
             {
@@ -1526,7 +1494,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 31.33,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 30
             },
             {
@@ -1534,7 +1502,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 61.8,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 30
             },
             {
@@ -1542,7 +1510,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 85.8,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 30
             },
             {
@@ -1550,19 +1518,19 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 108.24,
               "dhw_eur": 26.39,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 30
             }
           ],
           "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 3 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
           "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 3 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
-          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 3 asmenų namų ūkiui sudarys apie €120 per mėnesį arba €1447 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, o buitinės elektros dalis išliks dabartinio lygio, mėnesinė kaina gali pasiekti apie €133."
+          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 3 asmenų namų ūkiui sudarys apie €117 per mėnesį arba €1411 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, o buitinės elektros dalis išliks dabartinio lygio, mėnesinė kaina gali pasiekti apie €129."
         },
         {
           "household_size": 4,
           "size_label_lt": "4 asmenys",
           "metric": {
-            "eur_month": 135,
+            "eur_month": 132,
             "subtext_lt": "Pastato energija + buitinė elektra (4 asmenų namų ūkis)"
           },
           "breakdown": {
@@ -1580,12 +1548,6 @@ export const MOCK_EXISTING: ReportData = {
                 "source_indicator": "📊 pagal pastato duomenis + 👥 pritaikyta pagal namų ūkio dydį"
               },
               {
-                "label_lt": "Elektros pastovusis mokestis",
-                "eur_year": 36,
-                "eur_month": 3,
-                "source_indicator": "📊 pagal pastato duomenis"
-              },
-              {
                 "label_lt": "Buitinė elektra (4 asm.)",
                 "eur_year": 434,
                 "eur_month": 36,
@@ -1594,8 +1556,8 @@ export const MOCK_EXISTING: ReportData = {
             ],
             "total": {
               "label_lt": "Viso",
-              "eur_year": 1621,
-              "eur_month": 135
+              "eur_year": 1585,
+              "eur_month": 132
             }
           },
           "monthly_variation": [
@@ -1604,7 +1566,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 122.06,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 36
             },
             {
@@ -1612,7 +1574,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 102.17,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 36
             },
             {
@@ -1620,7 +1582,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 92.54,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 36
             },
             {
@@ -1628,7 +1590,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 55.74,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 36
             },
             {
@@ -1636,7 +1598,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 35.9,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 36
             },
             {
@@ -1644,7 +1606,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 13.06,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 36
             },
             {
@@ -1652,7 +1614,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 8.32,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 36
             },
             {
@@ -1660,7 +1622,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 11.94,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 36
             },
             {
@@ -1668,7 +1630,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 31.33,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 36
             },
             {
@@ -1676,7 +1638,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 61.8,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 36
             },
             {
@@ -1684,7 +1646,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 85.8,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 36
             },
             {
@@ -1692,19 +1654,19 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 108.24,
               "dhw_eur": 35.19,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 36
             }
           ],
           "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 4 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
           "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 4 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
-          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 4 asmenų namų ūkiui sudarys apie €135 per mėnesį arba €1621 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, o buitinės elektros dalis išliks dabartinio lygio, mėnesinė kaina gali pasiekti apie €139."
+          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 4 asmenų namų ūkiui sudarys apie €132 per mėnesį arba €1585 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, o buitinės elektros dalis išliks dabartinio lygio, mėnesinė kaina gali pasiekti apie €135."
         },
         {
           "household_size": 5,
           "size_label_lt": "5+ asmenys",
           "metric": {
-            "eur_month": 150,
+            "eur_month": 147,
             "subtext_lt": "Pastato energija + buitinė elektra (5 asmenų namų ūkis)"
           },
           "breakdown": {
@@ -1722,12 +1684,6 @@ export const MOCK_EXISTING: ReportData = {
                 "source_indicator": "📊 pagal pastato duomenis + 👥 pritaikyta pagal namų ūkio dydį"
               },
               {
-                "label_lt": "Elektros pastovusis mokestis",
-                "eur_year": 36,
-                "eur_month": 3,
-                "source_indicator": "📊 pagal pastato duomenis"
-              },
-              {
                 "label_lt": "Buitinė elektra (5 asm.)",
                 "eur_year": 506,
                 "eur_month": 42,
@@ -1736,8 +1692,8 @@ export const MOCK_EXISTING: ReportData = {
             ],
             "total": {
               "label_lt": "Viso",
-              "eur_year": 1799,
-              "eur_month": 150
+              "eur_year": 1763,
+              "eur_month": 147
             }
           },
           "monthly_variation": [
@@ -1746,7 +1702,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 122.06,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 42
             },
             {
@@ -1754,7 +1710,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 102.17,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 42
             },
             {
@@ -1762,7 +1718,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 92.54,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 42
             },
             {
@@ -1770,7 +1726,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 55.74,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 42
             },
             {
@@ -1778,7 +1734,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 35.9,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 42
             },
             {
@@ -1786,7 +1742,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 13.06,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 42
             },
             {
@@ -1794,7 +1750,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 8.32,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 42
             },
             {
@@ -1802,7 +1758,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 11.94,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 42
             },
             {
@@ -1810,7 +1766,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 31.33,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 42
             },
             {
@@ -1818,7 +1774,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 61.8,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 42
             },
             {
@@ -1826,7 +1782,7 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 85.8,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 42
             },
             {
@@ -1834,13 +1790,13 @@ export const MOCK_EXISTING: ReportData = {
               "heating_eur": 108.24,
               "dhw_eur": 43.99,
               "cooling_eur": 0,
-              "fixed_eur": 3,
+              "fixed_eur": 0,
               "household_electricity_eur": 42
             }
           ],
           "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 5 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
           "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 5 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
-          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 5 asmenų namų ūkiui sudarys apie €150 per mėnesį arba €1799 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, o buitinės elektros dalis išliks dabartinio lygio, mėnesinė kaina gali pasiekti apie €145."
+          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 5 asmenų namų ūkiui sudarys apie €147 per mėnesį arba €1763 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, o buitinės elektros dalis išliks dabartinio lygio, mėnesinė kaina gali pasiekti apie €141."
         }
       ]
     }
@@ -1970,7 +1926,7 @@ export const MOCK_EXISTING: ReportData = {
     "data": {
       "pattern": "D",
       "scope_prefix": "Šilumos komforto požiūriu",
-      "intro_lt": "Šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais — žiemą šildymo sąnaudos gali būti didelės, o vasarą patalpos linkusios perkaisti. Tai stipriausias signalas būti atidiems. Šio pastato šildymo poreikis yra apie 35 % mažesnis nei vidutinio tos pačios energinės klasės pastato Lietuvoje. Pastato energijos kaina (be buitinės elektros) — apie €81 per mėnesį.",
+      "intro_lt": "Šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais — žiemą šildymo sąnaudos gali būti didelės, o vasarą patalpos linkusios perkaisti. Tai stipriausias signalas būti atidiems. Šio pastato šildymo poreikis yra apie 35 % mažesnis nei vidutinio tos pačios energinės klasės pastato Lietuvoje. Pastato energijos kaina (be buitinės elektros) — apie €78 per mėnesį.",
       "viewing_questions_lt": [
         "Paprašykite faktinių šildymo sąskaitų už paskutinius 2–3 žiemos sezonus.",
         "Apžiūrėkite izoliaciją: stogo / pastogės apšiltinimą, sienų būklę, langų sandarumą.",
@@ -1980,7 +1936,7 @@ export const MOCK_EXISTING: ReportData = {
       ],
       "negotiation_angles_lt": [
         "Šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais. Tai turėtų atsispindėti kainoje — arba tiesiogiai (mažesnė pardavimo kaina), arba per pardavėjo įsipareigojimą finansuoti dalį renovacijos.",
-        "Pastato energijos kaina (be buitinės elektros) — apie €81 per mėnesį; iš jos šildymui tenka apie €61 per mėnesį. Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyviame analogiškame pastate — tai apie €620 per metus. Per 5 metus, įvertinus prognozuojamą energijos kainų augimą (pagal 10 metų kainų tendencijas), skirtumas sudarytų apie €3480. Nerenovavus pastato, vien šildymas kainuotų apie €360 per metus daugiau nei renovuotame (C klasės) pastate.",
+        "Pastato energijos kaina (be buitinės elektros) — apie €78 per mėnesį; iš jos šildymui tenka apie €61 per mėnesį. Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyviame analogiškame pastate — tai apie €620 per metus. Per 5 metus, įvertinus prognozuojamą energijos kainų augimą (pagal 10 metų kainų tendencijas), skirtumas sudarytų apie €3480. Nerenovavus pastato, vien šildymas kainuotų apie €360 per metus daugiau nei renovuotame (C klasės) pastate.",
         "Pastatas statytas iki 1993 m. — šio laikotarpio pastatai dažnai turi silpnesnę izoliaciją ir pasenusias inžinerines sistemas. Tai sustiprina argumentą dėl kainos korekcijos."
       ],
       "forward_note_lt": "Tikslias šildymo sąnaudas eurais rasite 2 bloke (Energijos sąnaudos). Šilumos komforto požiūriu, ši informacija yra ypač svarbi priimant sprendimą.",
