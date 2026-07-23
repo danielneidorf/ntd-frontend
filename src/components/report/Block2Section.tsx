@@ -271,18 +271,20 @@ export function Block2Section({
               </tr>
             </thead>
             <tbody>
+              {/* Value cells follow the served header order
+                  (column_headers_lt): monthly first, yearly second. */}
               {shownRows.map((r, i) => (
                 <tr key={i} className="border-b border-slate-100">
                   <td className="py-2 pr-3 text-slate-700">{r.label_lt}</td>
-                  <td className="py-2 pr-3 text-right text-slate-700">€{r.eur_year}</td>
                   <td className="py-2 pr-3 text-right text-slate-700">€{r.eur_month}</td>
+                  <td className="py-2 pr-3 text-right text-slate-700">€{r.eur_year}</td>
                   <td className="py-2 text-right text-slate-500">{r.source_indicator}</td>
                 </tr>
               ))}
               <tr className="font-semibold text-[#1E3A5F]">
                 <td className="py-2 pr-3">{shownTotal.label_lt}</td>
-                <td className="py-2 pr-3 text-right">€{shownTotal.eur_year}</td>
                 <td className="py-2 pr-3 text-right">€{shownTotal.eur_month}</td>
+                <td className="py-2 pr-3 text-right">€{shownTotal.eur_year}</td>
                 <td />
               </tr>
             </tbody>

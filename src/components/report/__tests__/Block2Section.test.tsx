@@ -67,6 +67,43 @@ describe('Block2Section', () => {
     expect(table!.textContent).toContain('👥');
   });
 
+  // ─── breakdown € column order: monthly leads, yearly second ──────────────
+
+  it('orders the breakdown € columns monthly-then-yearly, header and cells aligned', () => {
+    const { container } = render(<Block2Section block2={MOCK_EXISTING.block2} />);
+    const table = container.querySelector('[data-block2="breakdown"]')!;
+    const headers = Array.from(table.querySelectorAll('thead th')).map((th) => th.textContent);
+    // Header order — the monthly column (the report's headline unit) leads.
+    expect(headers[1]).toContain('mėnesį');
+    expect(headers[2]).toContain('metus');
+    // Cell alignment on a row where month != year in distinct magnitudes, so a
+    // transposition can't slip past by symmetric values (heating: €61 vs €729).
+    const heating = MOCK_EXISTING.block2!.breakdown!.rows[0];
+    expect(heating.eur_month).not.toBe(heating.eur_year);
+    const cells = Array.from(
+      table.querySelector('tbody tr')!.querySelectorAll('td'),
+    ).map((td) => td.textContent);
+    expect(cells[1]).toBe(`€${heating.eur_month}`); // column 1 = monthly
+    expect(cells[2]).toBe(`€${heating.eur_year}`); // column 2 = yearly
+  });
+
+  it('keeps monthly-then-yearly in the family-selected table', () => {
+    const { container } = render(<Harness />);
+    fireEvent.click(screen.getByRole('button', { name: '3' }));
+    const table = container.querySelector('[data-block2="breakdown"]')!;
+    const headers = Array.from(table.querySelectorAll('thead th')).map((th) => th.textContent);
+    expect(headers[1]).toContain('mėnesį');
+    expect(headers[2]).toContain('metus');
+    // The personalised rows follow the same order — same distinct-magnitude row.
+    const row = OPTION(3).breakdown.rows[0];
+    expect(row.eur_month).not.toBe(row.eur_year);
+    const cells = Array.from(
+      table.querySelector('tbody tr')!.querySelectorAll('td'),
+    ).map((td) => td.textContent);
+    expect(cells[1]).toBe(`€${row.eur_month}`);
+    expect(cells[2]).toBe(`€${row.eur_year}`);
+  });
+
   it('hides the carrier warning for an EPC-sourced report', () => {
     const { container } = render(<Block2Section block2={MOCK_EXISTING.block2} />);
     expect(container.querySelector('[data-block2="carrier-warning"]')).toBeNull();
