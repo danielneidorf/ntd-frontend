@@ -201,6 +201,22 @@ describe('Block2Section', () => {
     expect(metric!.children.length).toBe(1);
   });
 
+  it('applies the filled house-teal tokens to the selected button on press', () => {
+    render(<Harness />);
+    const btn3 = screen.getByRole('button', { name: '3' });
+    fireEvent.click(btn3);
+
+    expect(btn3.getAttribute('aria-pressed')).toBe('true');
+    // The filled state's tokens are on the className. (jsdom can't resolve
+    // Tailwind to a computed colour — the rgb(13,115,119) fill is verified on
+    // the bench; this guards that the conditional keeps emitting them.)
+    expect(btn3.className).toContain('bg-[#0D7377]');
+    expect(btn3.className).toContain('text-white');
+    // …and no color transition, so the fill is instant and can never be sampled
+    // mid-fade as an unfilled (white) button — the defect this fix closes.
+    expect(btn3.className).not.toContain('transition-colors');
+  });
+
   it('updates the headline on selection and restores it on deselect (toggle)', () => {
     render(<Harness />);
     const btn2 = screen.getByRole('button', { name: '2' });

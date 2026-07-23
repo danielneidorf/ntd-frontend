@@ -242,7 +242,16 @@ export function Block2Section({
                       onClick={() =>
                         onHouseholdSizeChange?.(isActive ? null : o.household_size)
                       }
-                      className={`text-sm font-medium min-h-[44px] min-w-[44px] px-4 py-2 rounded-lg border transition-colors cursor-pointer ${
+                      // No `transition-colors`: the selected fill must apply
+                      // INSTANTLY. With the transition, background-color animated
+                      // white→teal over 150ms, and any sampling before it settled
+                      // (a throttled browser that pauses the animation clock, or
+                      // simply mid-fade) showed the button still white despite
+                      // aria-pressed — the selected state looked unapplied. The
+                      // classes were always correct (computed target = teal/white);
+                      // only the animation made it appear otherwise. Instant is also
+                      // better UX for a selection toggle.
+                      className={`text-sm font-medium min-h-[44px] min-w-[44px] px-4 py-2 rounded-lg border cursor-pointer ${
                         isActive
                           ? 'bg-[#0D7377] border-[#0D7377] text-white'
                           : 'bg-white border-slate-300 text-slate-700 hover:border-[#0D7377] hover:text-[#0D7377]'
