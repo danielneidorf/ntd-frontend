@@ -16,6 +16,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { useState } from 'react';
 import type { Block2Data } from './mockReportData';
 
 interface Block2SectionProps {
@@ -127,6 +128,11 @@ export function Block2Section({
   householdSize = null,
   onHouseholdSizeChange,
 }: Block2SectionProps) {
+  // Ruling 2026-07-23: the data-sources disclosure box is collapsible, default
+  // collapsed — it became permanent once the standard size is preselected, and
+  // it carries the legend, not primary content. (Before any early return, per
+  // the rules of hooks.)
+  const [disclosureOpen, setDisclosureOpen] = useState(false);
   if (!block2) return null;
 
   // Not-applicable (e.g. land-only): render the backend message only.
@@ -306,16 +312,44 @@ export function Block2Section({
         </div>
       )}
 
-      {/* 2b — B2-14 data-source disclosure box (§7.7): only while a household
-          size is selected. Backend-served multiline text. */}
-      {selected && hm && (
-        <div
-          data-block2="disclosure-box"
-          className="bg-slate-50 border border-slate-200 rounded-lg p-5 mb-6 text-sm text-slate-600 leading-relaxed whitespace-pre-line"
-        >
-          {hm.disclosure_box_lt}
-        </div>
-      )}
+      {/* 2b — B2-14 data-source disclosure box (§7.7): backend-served multiline
+          text, COLLAPSIBLE (ruling 2026-07-23, default collapsed). The served
+          string is „<heading>\n\n<body>"; the first segment is the toggle
+          label, the rest the collapsible body. Web-only — the PDF prints the
+          whole box (report_pdf.html), so content parity holds. */}
+      {selected && hm && (() => {
+        const [dsHeading, ...dsRest] = hm.disclosure_box_lt.split('\n\n');
+        const dsBody = dsRest.join('\n\n');
+        return (
+          <div
+            data-block2="disclosure-box"
+            className="bg-slate-50 border border-slate-200 rounded-lg p-5 mb-6"
+          >
+            <button
+              type="button"
+              aria-expanded={disclosureOpen}
+              onClick={() => setDisclosureOpen((v) => !v)}
+              className="flex items-center gap-2 w-full text-left cursor-pointer bg-transparent border-none p-0 min-h-[44px] text-sm font-medium text-slate-700"
+            >
+              <span
+                className="text-[12px] text-[#0D7377] transition-transform duration-200"
+                style={{ display: 'inline-block', transform: disclosureOpen ? 'rotate(90deg)' : 'rotate(0)' }}
+              >
+                &#9654;
+              </span>
+              {dsHeading}
+            </button>
+            <div
+              className="overflow-hidden transition-all duration-300"
+              style={{ maxHeight: disclosureOpen ? '2000px' : '0', opacity: disclosureOpen ? 1 : 0 }}
+            >
+              <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line mt-3">
+                {dsBody}
+              </p>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* 3 — Carrier-inference warning (only when the carrier was inferred). */}
       {block2.carrier_warning_lt && (

@@ -306,6 +306,22 @@ describe('Block2Section', () => {
     expect(box()).not.toBeNull();
   });
 
+  it('the disclosure box is collapsible, collapsed by default', () => {
+    const { container } = render(<Harness />);
+    fireEvent.click(screen.getByRole('button', { name: '4' }));
+    const box = container.querySelector('[data-block2="disclosure-box"]')!;
+    const toggle = box.querySelector('button')!;
+    // The heading is the toggle label; default collapsed. (jsdom can't measure
+    // the max-height animation — the pin is on aria-expanded, the state it
+    // follows.)
+    expect(toggle.textContent).toContain('Duomenų šaltiniai');
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+  });
+
   it('renders the served clamped values for the 5+ band, numeral in prose', () => {
     const { container } = render(<Harness />);
     fireEvent.click(screen.getByRole('button', { name: '5+' }));
