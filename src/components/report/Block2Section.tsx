@@ -215,12 +215,23 @@ export function Block2Section({
               („Pasirinkite namų ūkio dydį, kad pamatytumėte…") reads on its
               own. */}
           {hm && hm.options.length > 0 && (
-            <div data-block2="household-selector" className="md:text-right md:max-w-sm">
-              <div
-                className="flex flex-wrap gap-2 md:justify-end"
-                role="group"
-                aria-label="Namų ūkio dydis"
-              >
+            <div
+              data-block2="household-selector"
+              className="bg-white border border-slate-200 rounded-lg shadow-sm p-3 md:max-w-sm"
+            >
+              {/* Inset white control panel on the slate band — reuses the
+                  report's inset-panel tokens (Block8Section: border-slate-200
+                  rounded-lg shadow-sm), with bg-white explicit because this one
+                  sits on bg-slate-50. The caption is the panel's LABEL: above
+                  the buttons, left-aligned. Same served string; it used to
+                  trail below, right-aligned, reading as a stray footnote — as
+                  the heading it invites the click. (Its former „↑ " glyph was
+                  dropped in the relayout: it pointed up at the price, and
+                  beside the price it pointed at nothing.) */}
+              <p className="text-xs text-slate-500 mb-2 leading-relaxed">
+                {hm.selector_caption_lt}
+              </p>
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Namų ūkio dydis">
                 {hm.options.map((o) => {
                   const isActive = householdSize === o.household_size;
                   return (
@@ -242,9 +253,6 @@ export function Block2Section({
                   );
                 })}
               </div>
-              <p className="text-xs text-slate-500 mt-2 leading-relaxed">
-                {hm.selector_caption_lt}
-              </p>
             </div>
           )}
         </div>

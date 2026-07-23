@@ -114,6 +114,32 @@ describe('Block2Section', () => {
     expect(metric!.querySelector('[data-block2="household-selector"]')).not.toBeNull();
   });
 
+  it('renders the selector as a distinct white panel (inset card tokens)', () => {
+    const { container } = render(<Harness />);
+    const selector = container.querySelector('[data-block2="household-selector"]')!;
+    // A distinct control panel, not a bare region on the slate band: it carries
+    // the report's inset-panel tokens (white ground + border + rounded), which
+    // the bg-slate-50 band it sits inside does not.
+    const cls = selector.className;
+    expect(cls).toContain('bg-white');
+    expect(cls).toContain('border');
+    expect(cls).toContain('rounded');
+  });
+
+  it('places the caption above the buttons as the panel label', () => {
+    const { container } = render(<Harness />);
+    const selector = container.querySelector('[data-block2="household-selector"]')!;
+    const caption = Array.from(selector.querySelectorAll('p')).find((p) =>
+      p.textContent?.includes(HM.selector_caption_lt),
+    )!;
+    const firstButton = selector.querySelector('button')!;
+    // Caption precedes the buttons in DOM order — label-then-controls.
+    expect(
+      caption.compareDocumentPosition(firstButton) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   it('drops the ↑ glyph while keeping the served caption verbatim', () => {
     const { container } = render(<Harness />);
     const selector = container.querySelector('[data-block2="household-selector"]')!;
