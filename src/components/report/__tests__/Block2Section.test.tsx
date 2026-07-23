@@ -217,7 +217,9 @@ describe('Block2Section', () => {
     expect(btn3.className).not.toContain('transition-colors');
   });
 
-  it('updates the headline on selection and restores it on deselect (toggle)', () => {
+  it('changes the headline on selection; the active size cannot be unselected', () => {
+    // Ruling 2026-07-23: no bare building-only state — the customer can change
+    // the size but not toggle a selection off.
     render(<Harness />);
     const btn2 = screen.getByRole('button', { name: '2' });
 
@@ -225,13 +227,45 @@ describe('Block2Section', () => {
     expect(screen.getByText(`~€${OPTION(2).metric.eur_month}`)).toBeInTheDocument();
     expect(screen.getByText(OPTION(2).metric.subtext_lt)).toBeInTheDocument();
 
-    fireEvent.click(btn2); // toggle off → building-only default
+    fireEvent.click(btn2); // clicking the active size is a no-op — no toggle-off
+    expect(screen.getByText(`~€${OPTION(2).metric.eur_month}`)).toBeInTheDocument();
+    // the building-only base headline is NOT reachable by clicking
     expect(
-      screen.getByText(`~€${MOCK_EXISTING.block2!.metric!.eur_month}`),
-    ).toBeInTheDocument();
+      screen.queryByText(MOCK_EXISTING.block2!.metric!.subtext_lt),
+    ).not.toBeInTheDocument();
+
+    // …but changing to a different size still works
+    fireEvent.click(screen.getByRole('button', { name: '1' }));
+    expect(screen.getByText(`~€${OPTION(1).metric.eur_month}`)).toBeInTheDocument();
+  });
+
+  it('renders the standard-household total when preselected to the standard size', () => {
+    // Ruling 2026-07-23: ReportViewer preselects the served standard occupancy,
+    // so the report opens on the standard-household total (not the €81 base).
+    const std = MOCK_EXISTING.block2!.standard_occupancy!;
+    const { container } = render(
+      <Block2Section block2={MOCK_EXISTING.block2} householdSize={std} />,
+    );
+    expect(screen.getByText(`~€${OPTION(std).metric.eur_month}`)).toBeInTheDocument();
+    expect(container.textContent).toContain(`${std} asmenų namų ūkis`);
+    // the appliance row is present by default (household view, not building-only)
     expect(
-      screen.getByText(MOCK_EXISTING.block2!.metric!.subtext_lt),
-    ).toBeInTheDocument();
+      container.querySelector('[data-block2="breakdown"]')!.textContent,
+    ).toContain('Buitinė elektra');
+  });
+
+  it('the size-1 total falls below the standard-household default (intuition pin)', () => {
+    // The whole point of the ruling: picking the smallest household is now below
+    // the default, not above it (the default already includes appliances).
+    const std = MOCK_EXISTING.block2!.standard_occupancy!;
+    expect(OPTION(1).metric.eur_month).toBeLessThan(OPTION(std).metric.eur_month);
+  });
+
+  it('the selector caption invites personalisation, not "see the total"', () => {
+    const { container } = render(<Harness />);
+    const selector = container.querySelector('[data-block2="household-selector"]')!;
+    expect(selector.textContent).toContain('Pritaikykite pagal savo namų ūkio dydį');
+    expect(selector.textContent).not.toContain('kad pamatytumėte');
   });
 
   it('adjusts the DHW row proportionally with the served option values', () => {
@@ -258,18 +292,18 @@ describe('Block2Section', () => {
     expect(table.textContent).toContain('Buitinė elektra (3 asm.)');
   });
 
-  it('shows the disclosure box only while a size is selected', () => {
+  it('shows the disclosure box once a size is selected, and keeps it', () => {
     const { container } = render(<Harness />);
     const box = () => container.querySelector('[data-block2="disclosure-box"]');
-    expect(box()).toBeNull();
+    expect(box()).toBeNull(); // Harness starts unpicked (ReportViewer preselects)
 
     const btn4 = screen.getByRole('button', { name: '4' });
     fireEvent.click(btn4);
     expect(box()).not.toBeNull();
     expect(box()!.textContent).toContain('Duomenų šaltiniai');
 
-    fireEvent.click(btn4);
-    expect(box()).toBeNull();
+    fireEvent.click(btn4); // active size is a no-op — the box stays (no toggle-off)
+    expect(box()).not.toBeNull();
   });
 
   it('renders the served clamped values for the 5+ band, numeral in prose', () => {
@@ -355,7 +389,7 @@ describe('bill_note_lt (B2-16 R9)', () => {
 
 
 describe('family-on explanation body (report-walk R5, FE half)', () => {
-  it('swaps the body to the selected option\'s personalised sentence and restores on deselect', () => {
+  it('swaps the body to the selected option\'s personalised sentence (and between sizes)', () => {
     const b2 = MOCK_EXISTING.block2!;
     const withBodies = {
       ...b2,
@@ -368,16 +402,14 @@ describe('family-on explanation body (report-walk R5, FE half)', () => {
       },
     };
     render(<Harness block2={withBodies} />);
-    const btn2 = screen.getByRole('button', { name: '2' });
 
-    fireEvent.click(btn2);
+    fireEvent.click(screen.getByRole('button', { name: '2' }));
     expect(screen.getByText(/PERS-BODY-2/)).toBeInTheDocument();
 
-    fireEvent.click(btn2); // deselect → building-only body returns
+    // Ruling 2026-07-23: no deselect — changing size swaps to that body; the
+    // building-only base body is no longer reachable by clicking.
+    fireEvent.click(screen.getByRole('button', { name: '3' }));
+    expect(screen.getByText(/PERS-BODY-3/)).toBeInTheDocument();
     expect(screen.queryByText(/PERS-BODY-2/)).toBeNull();
-    const baseBody = withBodies.explanation!.body_lt;
-    expect(
-      screen.getByText((t) => t.includes(baseBody.slice(0, 40))),
-    ).toBeInTheDocument();
   });
 });

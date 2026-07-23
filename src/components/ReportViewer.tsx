@@ -356,9 +356,11 @@ export default function ReportViewer() {
   const [permits, setPermits] = useState<Permit[]>([]);
   const [permitsLoading, setPermitsLoading] = useState(false);
   const [token, setToken] = useState<string | null>(null);
-  // B2-14: household-size selection (null = building-only default). Lives
-  // here because both Block2Section (selector + swap) and the header's PDF
-  // link (?household_size=N) read it.
+  // B2-14: household-size selection. `null` means "not yet picked" — the view
+  // then falls to the served standard occupancy (ruling 2026-07-23; see
+  // `selectedSize` below), so the customer never sees a bare building-only
+  // headline. Lives here because both Block2Section (selector + swap) and the
+  // header's PDF link (?household_size=N) read the effective size.
   const [householdSize, setHouseholdSize] = useState<number | null>(null);
 
   useEffect(() => {
@@ -484,9 +486,18 @@ export default function ReportViewer() {
 
   const { block1 } = data;
 
+  // Ruling 2026-07-23: the DEFAULT view is the standard-occupancy household.
+  // Until the customer picks a size, fall to the served standard occupancy —
+  // so the headline is the standard-household total (€104), not the bare
+  // building-only base. Non-residential (no standard_occupancy) → null → the
+  // building-only view with no selector, unchanged. `setHouseholdSize` stays
+  // the setter; there is no bare-building state to return to (Block2Section
+  // no longer toggles a selection off).
+  const selectedSize = householdSize ?? data.block2?.standard_occupancy ?? null;
+
   return (
     <div className="min-h-screen bg-[#FAFBFC]">
-      <ReportHeader data={data} token={token} householdSize={householdSize} />
+      <ReportHeader data={data} token={token} householdSize={selectedSize} />
       <main className="max-w-[1100px] mx-auto px-6 py-8 space-y-6">
         <div data-guide="street-view">
           <PropertyPhoto
@@ -572,7 +583,7 @@ export default function ReportViewer() {
 
         <Block2Section
           block2={data.block2}
-          householdSize={householdSize}
+          householdSize={selectedSize}
           onHouseholdSizeChange={setHouseholdSize}
         />
 
@@ -585,7 +596,7 @@ export default function ReportViewer() {
           glazingSource={data.property_profile.glazing_source}
           block2CitationsLt={[
             ...(data.block2?.citations_lt ?? []),
-            ...(householdSize != null && data.block2?.household_modelling
+            ...(selectedSize != null && data.block2?.household_modelling
               ? data.block2.household_modelling.citation_lt.lines_lt
               : []),
           ]}

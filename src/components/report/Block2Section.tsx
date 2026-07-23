@@ -239,9 +239,11 @@ export function Block2Section({
                       key={o.household_size}
                       type="button"
                       aria-pressed={isActive}
-                      onClick={() =>
-                        onHouseholdSizeChange?.(isActive ? null : o.household_size)
-                      }
+                      // Ruling 2026-07-23: the customer can change the size but
+                      // not unselect — there is no bare building-only view to
+                      // return to. Clicking the active size is a no-op (no
+                      // toggle-off to null).
+                      onClick={() => onHouseholdSizeChange?.(o.household_size)}
                       // No `transition-colors`: the selected fill must apply
                       // INSTANTLY. With the transition, background-color animated
                       // white→teal over 150ms, and any sampling before it settled

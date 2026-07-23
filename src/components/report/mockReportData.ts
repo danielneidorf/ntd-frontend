@@ -343,8 +343,8 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 export const MOCK_EXISTING: ReportData = {
   "envelope": {
     "address": "Vilnius, Žirmūnų g. 12-5",
-    "request_id": "report-20260723071843",
-    "created_at": "2026-07-23T07:18:43.054918+00:00"
+    "request_id": "report-20260723091250",
+    "created_at": "2026-07-23T09:12:50.536123+00:00"
   },
   "blocks": [
     {
@@ -822,7 +822,7 @@ export const MOCK_EXISTING: ReportData = {
         "data": {
           "pattern": "D",
           "scope_prefix": "Šilumos komforto požiūriu",
-          "intro_lt": "Šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais — žiemą šildymo sąnaudos gali būti didelės, o vasarą patalpos linkusios perkaisti. Tai stipriausias signalas būti atidiems. Šio pastato šildymo poreikis yra apie 35 % mažesnis nei vidutinio tos pačios energinės klasės pastato Lietuvoje. Bendra energijos kaina šiam pastatui — apie €81 per mėnesį.",
+          "intro_lt": "Šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais — žiemą šildymo sąnaudos gali būti didelės, o vasarą patalpos linkusios perkaisti. Tai stipriausias signalas būti atidiems. Šio pastato šildymo poreikis yra apie 35 % mažesnis nei vidutinio tos pačios energinės klasės pastato Lietuvoje. Pastato energijos kaina (be buitinės elektros) — apie €81 per mėnesį.",
           "viewing_questions_lt": [
             "Paprašykite faktinių šildymo sąskaitų už paskutinius 2–3 žiemos sezonus.",
             "Apžiūrėkite izoliaciją: stogo / pastogės apšiltinimą, sienų būklę, langų sandarumą.",
@@ -832,7 +832,7 @@ export const MOCK_EXISTING: ReportData = {
           ],
           "negotiation_angles_lt": [
             "Šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais. Tai turėtų atsispindėti kainoje — arba tiesiogiai (mažesnė pardavimo kaina), arba per pardavėjo įsipareigojimą finansuoti dalį renovacijos.",
-            "Bendra energijos kaina šiam pastatui — apie €81 per mėnesį; iš šios sumos šildymui tenka apie €61 per mėnesį. Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyviame analogiškame pastate — tai apie €620 per metus. Per 5 metus, įvertinus prognozuojamą energijos kainų augimą (pagal 10 metų kainų tendencijas), skirtumas sudarytų apie €3480. Nerenovavus pastato, vien šildymas kainuotų apie €360 per metus daugiau nei renovuotame (C klasės) pastate.",
+            "Pastato energijos kaina (be buitinės elektros) — apie €81 per mėnesį; iš jos šildymui tenka apie €61 per mėnesį. Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyviame analogiškame pastate — tai apie €620 per metus. Per 5 metus, įvertinus prognozuojamą energijos kainų augimą (pagal 10 metų kainų tendencijas), skirtumas sudarytų apie €3480. Nerenovavus pastato, vien šildymas kainuotų apie €360 per metus daugiau nei renovuotame (C klasės) pastate.",
             "Pastatas statytas iki 1993 m. — šio laikotarpio pastatai dažnai turi silpnesnę izoliaciją ir pasenusias inžinerines sistemas. Tai sustiprina argumentą dėl kainos korekcijos."
           ],
           "forward_note_lt": "Tikslias šildymo sąnaudas eurais rasite 2 bloke (Energijos sąnaudos). Šilumos komforto požiūriu, ši informacija yra ypač svarbi priimant sprendimą.",
@@ -870,7 +870,7 @@ export const MOCK_EXISTING: ReportData = {
   "lat": 54.7007624,
   "lng": 25.2993035,
   "bundle_items": [],
-  "generated_at": "2026-07-23T07:18:43.054918+00:00",
+  "generated_at": "2026-07-23T09:12:50.536123+00:00",
   "order_reference": "NTD-DEV-001",
   "block2": {
     "status": "ready",
@@ -1122,7 +1122,7 @@ export const MOCK_EXISTING: ReportData = {
     ],
     "standard_occupancy": 2,
     "household_modelling": {
-      "selector_caption_lt": "Pasirinkite namų ūkio dydį, kad pamatytumėte bendrą mėnesinę energijos kainą",
+      "selector_caption_lt": "Pritaikykite pagal savo namų ūkio dydį",
       "disclosure_box_lt": "ℹ️ Duomenų šaltiniai\n\nŠis vertinimas sujungia du duomenų tipus:\n\n📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui.\n\n👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų pasirinktą namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių.",
       "citation_lt": {
         "category_lt": "👥 Namų ūkio modeliavimas",
@@ -1970,7 +1970,7 @@ export const MOCK_EXISTING: ReportData = {
     "data": {
       "pattern": "D",
       "scope_prefix": "Šilumos komforto požiūriu",
-      "intro_lt": "Šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais — žiemą šildymo sąnaudos gali būti didelės, o vasarą patalpos linkusios perkaisti. Tai stipriausias signalas būti atidiems. Šio pastato šildymo poreikis yra apie 35 % mažesnis nei vidutinio tos pačios energinės klasės pastato Lietuvoje. Bendra energijos kaina šiam pastatui — apie €81 per mėnesį.",
+      "intro_lt": "Šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais — žiemą šildymo sąnaudos gali būti didelės, o vasarą patalpos linkusios perkaisti. Tai stipriausias signalas būti atidiems. Šio pastato šildymo poreikis yra apie 35 % mažesnis nei vidutinio tos pačios energinės klasės pastato Lietuvoje. Pastato energijos kaina (be buitinės elektros) — apie €81 per mėnesį.",
       "viewing_questions_lt": [
         "Paprašykite faktinių šildymo sąskaitų už paskutinius 2–3 žiemos sezonus.",
         "Apžiūrėkite izoliaciją: stogo / pastogės apšiltinimą, sienų būklę, langų sandarumą.",
@@ -1980,7 +1980,7 @@ export const MOCK_EXISTING: ReportData = {
       ],
       "negotiation_angles_lt": [
         "Šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais. Tai turėtų atsispindėti kainoje — arba tiesiogiai (mažesnė pardavimo kaina), arba per pardavėjo įsipareigojimą finansuoti dalį renovacijos.",
-        "Bendra energijos kaina šiam pastatui — apie €81 per mėnesį; iš šios sumos šildymui tenka apie €61 per mėnesį. Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyviame analogiškame pastate — tai apie €620 per metus. Per 5 metus, įvertinus prognozuojamą energijos kainų augimą (pagal 10 metų kainų tendencijas), skirtumas sudarytų apie €3480. Nerenovavus pastato, vien šildymas kainuotų apie €360 per metus daugiau nei renovuotame (C klasės) pastate.",
+        "Pastato energijos kaina (be buitinės elektros) — apie €81 per mėnesį; iš jos šildymui tenka apie €61 per mėnesį. Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyviame analogiškame pastate — tai apie €620 per metus. Per 5 metus, įvertinus prognozuojamą energijos kainų augimą (pagal 10 metų kainų tendencijas), skirtumas sudarytų apie €3480. Nerenovavus pastato, vien šildymas kainuotų apie €360 per metus daugiau nei renovuotame (C klasės) pastate.",
         "Pastatas statytas iki 1993 m. — šio laikotarpio pastatai dažnai turi silpnesnę izoliaciją ir pasenusias inžinerines sistemas. Tai sustiprina argumentą dėl kainos korekcijos."
       ],
       "forward_note_lt": "Tikslias šildymo sąnaudas eurais rasite 2 bloke (Energijos sąnaudos). Šilumos komforto požiūriu, ši informacija yra ypač svarbi priimant sprendimą.",
