@@ -185,48 +185,68 @@ export function Block2Section({
         </p>
       )}
 
-      {/* 1 — Metric bar (sibling of ComfortBar): headline €/month + subtext.
-          Swaps to the selected household option's headline (B2-14). */}
+      {/* 1 — Metric bar: headline €/month + subtext on the LEFT, and the
+          B2-14 household-size selector on the RIGHT, inside the same band —
+          the band's empty right half is what the selector now fills. Swaps to
+          the selected household option's headline (B2-14). */}
       {shownMetric && (
-        <div data-block2="metric" className="bg-slate-50 rounded-xl p-5 md:p-6 mb-6">
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-semibold text-[#0D7377]">~€{shownMetric.eur_month}</span>
-            <span className="text-lg text-slate-500">/ mėn.</span>
+        <div
+          data-block2="metric"
+          className="bg-slate-50 rounded-xl p-5 md:p-6 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6"
+        >
+          <div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-semibold text-[#0D7377]">~€{shownMetric.eur_month}</span>
+              <span className="text-lg text-slate-500">/ mėn.</span>
+            </div>
+            <p className="text-sm text-slate-600 leading-relaxed mt-1">{shownMetric.subtext_lt}</p>
           </div>
-          <p className="text-sm text-slate-600 leading-relaxed mt-1">{shownMetric.subtext_lt}</p>
-        </div>
-      )}
 
-      {/* 1b — B2-14 household-size selector (§7.7): [1][2][3][4][5+], toggle
-          to deselect. Rendered only when the backend served the options —
-          the residential/degradation gate stays backend-only. */}
-      {hm && hm.options.length > 0 && (
-        <div data-block2="household-selector" className="mb-6">
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Namų ūkio dydis">
-            {hm.options.map((o) => {
-              const isActive = householdSize === o.household_size;
-              return (
-                <button
-                  key={o.household_size}
-                  type="button"
-                  aria-pressed={isActive}
-                  onClick={() =>
-                    onHouseholdSizeChange?.(isActive ? null : o.household_size)
-                  }
-                  className={`text-sm font-medium min-h-[44px] min-w-[44px] px-4 py-2 rounded-lg border transition-colors cursor-pointer ${
-                    isActive
-                      ? 'bg-[#0D7377] border-[#0D7377] text-white'
-                      : 'bg-white border-slate-300 text-slate-700 hover:border-[#0D7377] hover:text-[#0D7377]'
-                  }`}
-                >
-                  {o.household_size === 5 ? '5+' : o.household_size}
-                </button>
-              );
-            })}
-          </div>
-          <p className="text-xs text-slate-500 mt-2 leading-relaxed">
-            ↑ {hm.selector_caption_lt}
-          </p>
+          {/* 1b — B2-14 household-size selector (§7.7): [1][2][3][4][5+],
+              toggle to deselect. Rendered only when the backend served the
+              options — the residential/degradation gate stays backend-only.
+              Nested in the band's right column; when it is absent (e.g.
+              non-residential) the band has a single flex child and the price
+              keeps the full width — no empty right column. On mobile the
+              columns stack (price first), and the selector stays in this same
+              flex parent so it never drifts below the table below. The caption
+              dropped its former „↑ " glyph: it used to point up at the price;
+              beside the price it points at nothing, and the served sentence
+              („Pasirinkite namų ūkio dydį, kad pamatytumėte…") reads on its
+              own. */}
+          {hm && hm.options.length > 0 && (
+            <div data-block2="household-selector" className="md:text-right md:max-w-sm">
+              <div
+                className="flex flex-wrap gap-2 md:justify-end"
+                role="group"
+                aria-label="Namų ūkio dydis"
+              >
+                {hm.options.map((o) => {
+                  const isActive = householdSize === o.household_size;
+                  return (
+                    <button
+                      key={o.household_size}
+                      type="button"
+                      aria-pressed={isActive}
+                      onClick={() =>
+                        onHouseholdSizeChange?.(isActive ? null : o.household_size)
+                      }
+                      className={`text-sm font-medium min-h-[44px] min-w-[44px] px-4 py-2 rounded-lg border transition-colors cursor-pointer ${
+                        isActive
+                          ? 'bg-[#0D7377] border-[#0D7377] text-white'
+                          : 'bg-white border-slate-300 text-slate-700 hover:border-[#0D7377] hover:text-[#0D7377]'
+                      }`}
+                    >
+                      {o.household_size === 5 ? '5+' : o.household_size}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                {hm.selector_caption_lt}
+              </p>
+            </div>
+          )}
         </div>
       )}
 

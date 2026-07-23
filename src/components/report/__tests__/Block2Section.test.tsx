@@ -104,6 +104,40 @@ describe('Block2Section', () => {
     expect(selector!.textContent).toContain(HM.selector_caption_lt);
   });
 
+  // ─── B2-14 relayout: the selector lives inside the hero band's right side ─
+
+  it('nests the selector inside the hero metric band (not a sibling below it)', () => {
+    const { container } = render(<Harness />);
+    const metric = container.querySelector('[data-block2="metric"]');
+    expect(metric).not.toBeNull();
+    // The relayout moved the selector into the price band's right column.
+    expect(metric!.querySelector('[data-block2="household-selector"]')).not.toBeNull();
+  });
+
+  it('drops the ↑ glyph while keeping the served caption verbatim', () => {
+    const { container } = render(<Harness />);
+    const selector = container.querySelector('[data-block2="household-selector"]')!;
+    // The arrow used to point up at the price; beside it, it points at nothing.
+    // It was a frontend glyph, never part of the served string — so the copy is
+    // unchanged and the arrow is simply gone.
+    expect(selector.textContent).toContain(HM.selector_caption_lt);
+    expect(selector.textContent).not.toContain('↑');
+  });
+
+  it('keeps the hero full-width — no empty right column — when no selector is served', () => {
+    // Non-residential ready: priced, but the backend serves no household model.
+    const block2 = { ...MOCK_EXISTING.block2, household_modelling: undefined };
+    const { container } = render(<Block2Section block2={block2} />);
+    const metric = container.querySelector('[data-block2="metric"]');
+    expect(metric).not.toBeNull();
+    // Price still renders…
+    expect(metric!.textContent).toContain(`~€${MOCK_EXISTING.block2!.metric!.eur_month}`);
+    // …and the band has a SINGLE flex child (the price column) — not an empty
+    // right column where the selector would have been.
+    expect(metric!.querySelector('[data-block2="household-selector"]')).toBeNull();
+    expect(metric!.children.length).toBe(1);
+  });
+
   it('updates the headline on selection and restores it on deselect (toggle)', () => {
     render(<Harness />);
     const btn2 = screen.getByRole('button', { name: '2' });
