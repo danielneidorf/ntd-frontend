@@ -49,28 +49,52 @@ const COMPONENT_BANDS: {
 
 const eur = (v: number | null | undefined) => (v == null ? '—' : `€${Math.round(v)}`);
 
-// Glance anchors (ruling 2026-07-24) — ONE origin for both charts, so they read
-// as siblings: same typography, same whole-euro rounding, same placement.
-// Each chart carries exactly ONE in-chart numeral — the value its own shapes do
-// NOT show: the monthly chart's average (the bars already show peak and
-// trough), and the forecast's year-5 end height. Both charts also carry a
-// mirrored right-edge ruler — ticks and scale only, no labels — so a height can
-// be read against the edge nearest it. The ruler is a ruler, not a second value
-// mechanism, which is why it coexists with the numeral.
+// Glance anchors (ruling 2026-07-24, adjusted same day) — ONE origin, so both
+// charts read as siblings: same typography, same whole-euro rounding.
+//
+// Both charts carry a mirrored right-edge ruler WITH labels, so a height reads
+// against the edge nearest it. Only the MONTHLY chart carries an in-chart
+// numeral — the average, the one level its bars do not show (peak and trough
+// are self-evident from the bars themselves). The forecast carries none: once
+// the right axis was readable, a floating year-5 figure only duplicated it.
 const AVG_LINE_COLOR = '#2C3E50';
+// Placed ABOVE the line, never crossed by it (adjustment 2026-07-24).
 const anchorLabel = (v: number) => ({
   value: eur(v),
-  position: 'center' as const,
+  position: 'top' as const,
   fontSize: 12,
   fontWeight: 500,
   fill: '#1E3A5F',
 });
-// Mirrored ruler: same domain as the left axis, tick marks only.
+// One domain + tick set, shared by the left axis and the right ruler.
+//
+// Two reasons this is computed rather than left to Recharts. (1) A right axis
+// with no series bound to it gets no domain, so it renders as a bare line with
+// no labels — which is exactly the "I still can't see the axis" defect.
+// (2) Letting each axis derive its own ticks lets them DRIFT apart; the PDF's
+// twin axis did precisely that, showing 0/20/…/180 against the left's
+// 0/25/…/175. Shared inputs make a mirror a mirror.
+const niceStep = (raw: number) => {
+  const mag = 10 ** Math.floor(Math.log10(raw || 1));
+  const n = (raw || 1) / mag;
+  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * mag;
+};
+function axisScale(maxValue: number) {
+  const step = niceStep(Math.max(maxValue, 1) / 4);
+  const top = Math.ceil(Math.max(maxValue, 1) / step) * step;
+  const ticks: number[] = [];
+  for (let v = 0; v <= top + 1e-9; v += step) ticks.push(Math.round(v * 100) / 100);
+  return { domain: [0, top] as [number, number], ticks };
+}
+// The mirrored right-edge ruler. Amended 2026-07-24 — it first shipped
+// label-less ("ticks and scale only"), which rendered as a bare border line
+// with nothing readable. A ruler you cannot read values off is not a ruler.
 const RULER = {
   yAxisId: 'right' as const,
   orientation: 'right' as const,
-  tickFormatter: () => '',
-  width: 16,
+  tickFormatter: (v: number) => eur(v),
+  width: 44,
+  tick: { fontSize: 11, fill: '#64748b' },
   axisLine: { stroke: '#cbd5e1' },
   tickLine: { stroke: '#cbd5e1' },
 };
@@ -82,7 +106,9 @@ function MonthlyChart({ data }: { data: NonNullable<Block2Data['monthly_variatio
     data.some((m) => ((m as Record<string, number>)[b.monthlyKey] ?? 0) > 0),
   );
   const rows = data.map((m) => ({ name: MONTHS_LT[m.month - 1] ?? String(m.month), ...m }));
-  const avg = rows.reduce((s, r) => s + bands.reduce((t, b) => t + ((r as Record<string, number>)[b.monthlyKey] ?? 0), 0), 0) / (rows.length || 1);
+  const monthTotals = rows.map((r) => bands.reduce((t, b) => t + ((r as Record<string, number>)[b.monthlyKey] ?? 0), 0));
+  const avg = monthTotals.reduce((s, v) => s + v, 0) / (rows.length || 1);
+  const scale = axisScale(Math.max(...monthTotals, 0));
 
   return (
     <div data-block2="monthly-chart" className="h-[280px] w-full">
@@ -90,8 +116,8 @@ function MonthlyChart({ data }: { data: NonNullable<Block2Data['monthly_variatio
         <BarChart data={rows} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#eef2f7" vertical={false} />
           <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748b' }} />
-          <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => `€${v}`} width={44} />
-          <YAxis {...RULER} tick={{ fontSize: 0 }} />
+          <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => `€${v}`} width={44} domain={scale.domain} ticks={scale.ticks} />
+          <YAxis {...RULER} domain={scale.domain} ticks={scale.ticks} />
           <Tooltip formatter={(v: number, n) => [eur(v), n]} />
           {/* The dashed average is NAMED here; its value is the in-chart
               numeral below — name and number, once each. */}
@@ -105,6 +131,11 @@ function MonthlyChart({ data }: { data: NonNullable<Block2Data['monthly_variatio
           {bands.map((b) => (
             <Bar key={b.band} yAxisId="left" dataKey={b.monthlyKey} stackId="m" fill={b.color} name={b.label} />
           ))}
+          {/* Invisible series bound to the ruler: Recharts gives an axis no
+              domain — and renders no ticks — unless some series references its
+              id. Zero-opacity, no legend, no tooltip; the explicit domain above
+              governs what the ruler shows. */}
+          <Bar yAxisId="right" dataKey={bands[0]?.monthlyKey} fillOpacity={0} strokeOpacity={0} legendType="none" isAnimationActive={false} />
           <ReferenceLine
             yAxisId="left"
             y={avg}
@@ -132,8 +163,9 @@ function ForecastChart({ data }: { data: NonNullable<Block2Data['forecast_5yr']>
     for (const b of bands) row[b.band] = (p.per_component?.[b.band] ?? 0) / 12;
     return row;
   });
-  // Read the served endpoint — never recomputed from the bands.
-  const year5 = data.length ? data[data.length - 1].total_eur_month : null;
+  const scale = axisScale(
+    Math.max(...data.map((p) => p.total_eur_month), 0),
+  );
 
   return (
     <div data-block2="forecast-chart" className="h-[280px] w-full">
@@ -141,19 +173,18 @@ function ForecastChart({ data }: { data: NonNullable<Block2Data['forecast_5yr']>
         <AreaChart data={rows} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#eef2f7" vertical={false} />
           <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748b' }} label={{ value: 'Metai', position: 'insideBottom', offset: -2, fontSize: 11, fill: '#64748b' }} />
-          <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => `€${v}`} width={44} />
-          <YAxis {...RULER} tick={{ fontSize: 0 }} />
+          <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => `€${v}`} width={44} domain={scale.domain} ticks={scale.ticks} />
+          <YAxis {...RULER} domain={scale.domain} ticks={scale.ticks} />
           <Tooltip formatter={(v: number, n) => [eur(v), n]} />
           <Legend wrapperStyle={{ fontSize: 12 }} />
           {bands.map((b) => (
             <Area key={b.band} yAxisId="left" type="monotone" dataKey={b.band} stackId="f" stroke={b.color} fill={b.color} name={b.label} />
           ))}
-          {/* The chart's ONE numeral: the year-5 total — the glance question
-              this chart exists to answer. No rule drawn; the ruler carries the
-              eye. */}
-          {year5 != null && (
-            <ReferenceLine yAxisId="left" y={year5} stroke="none" label={anchorLabel(year5)} />
-          )}
+          {/* Invisible series bound to the ruler — see the monthly chart. */}
+          <Area yAxisId="right" dataKey={bands[0]?.band} fillOpacity={0} strokeOpacity={0} legendType="none" isAnimationActive={false} />
+          {/* No in-chart numeral here (adjustment 2026-07-24): with the right
+              axis labelled, a floating year-5 figure duplicated the ruler
+              beside it. The end height reads off the right edge. */}
         </AreaChart>
       </ResponsiveContainer>
     </div>
