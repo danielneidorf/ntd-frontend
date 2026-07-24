@@ -148,7 +148,8 @@ const anchorLabel = (v: number) => ({
 // navy. Earlier they were navy semi-bold and sat only 8px above the stack, which
 // read as glued to it; NUMERAL_GAP is the extra clearance.
 const YEAR_NUMERAL = { fontSize: 11, fill: '#64748b' } as const;
-const NUMERAL_GAP = 6;
+const NUMERAL_GAP = 6;   // vertical clearance above the stack top
+const NUMERAL_INSET = 5; // horizontal clearance from the two axis lines
 // One domain + tick set, shared by the left axis and the right ruler.
 //
 // Two reasons this is computed rather than left to Recharts. (1) A right axis
@@ -273,9 +274,15 @@ const yearNumeral = (count: number) =>
     const { x, y, value, index } = props as {
       x: number; y: number; value: number; index: number;
     };
-    const anchor = index === 0 ? 'start' : index === count - 1 ? 'end' : 'middle';
+    const first = index === 0;
+    const last = index === count - 1;
+    const anchor = first ? 'start' : last ? 'end' : 'middle';
+    // Anchoring alone puts the end numerals FLUSH against the axis lines —
+    // touching them. NUMERAL_INSET nudges them back into the plot so each keeps
+    // a little air, the same way the middle ones stand clear of everything.
+    const dx = first ? NUMERAL_INSET : last ? -NUMERAL_INSET : 0;
     return (
-      <text x={x} y={y} dy={-NUMERAL_GAP} textAnchor={anchor} {...YEAR_NUMERAL}>
+      <text x={x} y={y} dx={dx} dy={-NUMERAL_GAP} textAnchor={anchor} {...YEAR_NUMERAL}>
         {eur(value)}
       </text>
     );
