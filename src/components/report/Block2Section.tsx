@@ -140,10 +140,15 @@ const anchorLabel = (v: number) => ({
   fontWeight: 500,
   fill: '#1E3A5F',
 });
-// The forecast's per-year totals — deliberately the SAME typography as the
-// monthly average numeral above, so the two charts read as siblings. Matches
-// the PDF's shared `draw_anchor_at` origin.
-const YEAR_NUMERAL = { fontSize: 12, fontWeight: 500, fill: '#1E3A5F' } as const;
+// The forecast's per-year totals mirror the YEAR LABELS on the x-axis below —
+// same size, same weight, same grey (compare the XAxis `tick` prop). They are a
+// reading aid for the stack top, the counterpart to the year names beneath it,
+// so they take the axis's quiet styling rather than the emphasis of the monthly
+// chart's average numeral, which is a callout on a reference line and stays
+// navy. Earlier they were navy semi-bold and sat only 8px above the stack, which
+// read as glued to it; NUMERAL_GAP is the extra clearance.
+const YEAR_NUMERAL = { fontSize: 11, fill: '#64748b' } as const;
+const NUMERAL_GAP = 6;
 // One domain + tick set, shared by the left axis and the right ruler.
 //
 // Two reasons this is computed rather than left to Recharts. (1) A right axis
@@ -270,7 +275,7 @@ const yearNumeral = (count: number) =>
     };
     const anchor = index === 0 ? 'start' : index === count - 1 ? 'end' : 'middle';
     return (
-      <text x={x} y={y} textAnchor={anchor} {...YEAR_NUMERAL}>
+      <text x={x} y={y} dy={-NUMERAL_GAP} textAnchor={anchor} {...YEAR_NUMERAL}>
         {eur(value)}
       </text>
     );
