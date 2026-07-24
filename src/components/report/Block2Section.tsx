@@ -234,7 +234,7 @@ export function RulerBinding({ dataKey }: { dataKey: string | undefined }) {
  *  That is precisely how the „dhw"/„dhw_eur" phantom appeared — so every
  *  invisible series added to either chart must carry this prop, and the test
  *  suite pins both of them. */
-export function ForecastNumerals() {
+export function ForecastNumerals({ count }: { count: number }) {
   return (
     <Area
       yAxisId="left"
@@ -248,10 +248,33 @@ export function ForecastNumerals() {
       legendType="none"
       isAnimationActive={false}
     >
-      <LabelList dataKey="total" position="top" offset={8} formatter={(v: number) => eur(v)} {...YEAR_NUMERAL} />
+      <LabelList dataKey="total" position="top" offset={8} content={yearNumeral(count)} />
     </Area>
   );
 }
+
+/** Renders one year numeral, anchored INWARD at the series ends.
+ *
+ *  Centred — which is what a plain <LabelList> does — the first and last
+ *  numerals hang half outside the plot and sit on the axis lines: at year 2026
+ *  the numeral overlapped the left axis and its „€100" tick, at 2030 the right
+ *  ruler. Anchoring the ends inward keeps them inside without x-margins, which
+ *  would leave white gutters either side of a full-bleed stacked area.
+ *
+ *  The PDF's `draw_anchor_at` takes the same `ha` treatment for the same reason
+ *  — the two surfaces stay siblings in placement as well as typography. */
+const yearNumeral = (count: number) =>
+  function YearNumeral(props: unknown) {
+    const { x, y, value, index } = props as {
+      x: number; y: number; value: number; index: number;
+    };
+    const anchor = index === 0 ? 'start' : index === count - 1 ? 'end' : 'middle';
+    return (
+      <text x={x} y={y} textAnchor={anchor} {...YEAR_NUMERAL}>
+        {eur(value)}
+      </text>
+    );
+  };
 
 function MonthlyChart({
   data,
@@ -380,7 +403,7 @@ function ForecastChart({ data }: { data: NonNullable<Block2Data['forecast_5yr']>
             <Area key={b.band} yAxisId="left" type="monotone" dataKey={b.band} stackId="f" stroke={b.color} fill={b.color} name={b.label} />
           ))}
           {/* Per-year totals — see ForecastNumerals. */}
-          <ForecastNumerals />
+          <ForecastNumerals count={rows.length} />
           <RulerBinding dataKey={bands[0]?.band} />
           {/* No in-chart numeral here (adjustment 2026-07-24): with the right
               axis labelled, a floating year-5 figure duplicated the ruler

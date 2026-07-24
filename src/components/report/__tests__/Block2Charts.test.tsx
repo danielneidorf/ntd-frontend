@@ -152,10 +152,10 @@ describe('Block2Section charts render', () => {
     // does not lay out in jsdom, so the rendered tooltip cannot be exercised
     // here; the rendered-DOM check is the browser acceptance pass.
     expect(RulerBinding({ dataKey: 'dhw_eur' }).props.tooltipType).toBe('none');
-    expect(ForecastNumerals().props.tooltipType).toBe('none');
+    expect(ForecastNumerals({ count: 5 }).props.tooltipType).toBe('none');
     // Invisible to the legend as well — it names bands, and these are not bands.
     expect(RulerBinding({ dataKey: 'dhw_eur' }).props.legendType).toBe('none');
-    expect(ForecastNumerals().props.legendType).toBe('none');
+    expect(ForecastNumerals({ count: 5 }).props.legendType).toBe('none');
   });
 
   it('tooltips print the served display integers, never a local rounding', () => {
