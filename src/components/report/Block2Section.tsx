@@ -60,6 +60,14 @@ const AVG_LINE_COLOR = '#2C3E50';
 // The PDF's exact wording, reused — no new copy. The PDF legend already names
 // this line; the web did not, which made it a web/PDF content-parity gap.
 const AVERAGE_LABEL_LT = 'Vidutinė mėnesinė kaina';
+// The forecast chart's heading. Corrected 2026-07-24 from „Prognozinė mėnesinė
+// energijos kaina per 5 metus" — the chart plots how the monthly cost *changes*
+// across five years, not one forecast price. Exported because the PDF holds the
+// same string in its own literal (forecast.py FORECAST_CHART_TITLE_LT) and a
+// backend test asserts the two are character-identical; without that pin a
+// correction to one surface leaves the other silently stale.
+export const FORECAST_CHART_TITLE_LT =
+  'Prognozuojamas mėnesio energijos kainos kitimas (per 5 metus)';
 
 export type LegendEntry = { key: string; label: string; color: string; dashed?: boolean };
 
@@ -494,7 +502,7 @@ export function Block2Section({
       {/* 5 — 5-year forecast chart. */}
       {shownForecast && shownForecast.length > 0 && (
         <div className="mb-8">
-          <h3 className="text-base font-semibold text-slate-800 mb-3">Prognozinė mėnesinė energijos kaina per 5 metus</h3>
+          <h3 className="text-base font-semibold text-slate-800 mb-3">{FORECAST_CHART_TITLE_LT}</h3>
           <ForecastChart data={shownForecast} />
         </div>
       )}
