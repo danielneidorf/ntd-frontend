@@ -2,7 +2,10 @@
 // jsdom a ResizeObserver + element dimensions so ResponsiveContainer lays out.
 import { render } from '@testing-library/react';
 import { afterAll, beforeAll } from 'vitest';
-import { Block2Section, legendEntries, tooltipDisplay, DISPLAY_KEY } from '../Block2Section';
+import {
+  Block2Section, legendEntries, tooltipDisplay, DISPLAY_KEY,
+  RulerBinding, ForecastNumerals,
+} from '../Block2Section';
 import { MOCK_EXISTING } from '../mockReportData';
 
 const W = 600;
@@ -123,13 +126,36 @@ describe('Block2Section charts render', () => {
     // ...and exactly one invisible area: the ruler's binding.
     expect(monthly.querySelectorAll('g.recharts-area')).toHaveLength(1);
 
-    // The forecast stacks areas, so its binding is one area beyond its bands.
+    // The forecast stacks areas, plus TWO invisible ones: the ruler binding and
+    // the per-year numerals layer (bound to `total`, un-stacked, so its labels
+    // land on the stack top). Both are tooltipType="none" — invisible series
+    // must never reach the tooltip, which is the phantom defect exactly.
     const fBands = forecast.querySelectorAll('ul li').length;
-    expect(forecast.querySelectorAll('g.recharts-area')).toHaveLength(fBands + 1);
+    expect(forecast.querySelectorAll('g.recharts-area')).toHaveLength(fBands + 2);
 
     // Both charts carry the mirrored pair — left scale + right ruler.
     expect(monthly.querySelectorAll('.recharts-yAxis')).toHaveLength(2);
     expect(forecast.querySelectorAll('.recharts-yAxis')).toHaveLength(2);
+  });
+
+  it('every invisible series is excluded from the tooltip', () => {
+    // THE phantom pin (reported 2026-07-24). Both charts listed a fourth
+    // tooltip entry that was not a band — a raw dataKey („dhw" on the forecast,
+    // „dhw_eur" on the monthly) repeating hot water under a machine name. The
+    // cause: an invisible series with a dataKey and no `name`, which Recharts
+    // then lists under the key. It reached screen readers too, the default
+    // tooltip carrying role="status" aria-live.
+    //
+    // Both charts now carry TWO invisible series — the ruler binding and the
+    // forecast's numerals layer — and either would resurrect the phantom
+    // without this prop. Asserted on the elements themselves because Recharts
+    // does not lay out in jsdom, so the rendered tooltip cannot be exercised
+    // here; the rendered-DOM check is the browser acceptance pass.
+    expect(RulerBinding({ dataKey: 'dhw_eur' }).props.tooltipType).toBe('none');
+    expect(ForecastNumerals().props.tooltipType).toBe('none');
+    // Invisible to the legend as well — it names bands, and these are not bands.
+    expect(RulerBinding({ dataKey: 'dhw_eur' }).props.legendType).toBe('none');
+    expect(ForecastNumerals().props.legendType).toBe('none');
   });
 
   it('tooltips print the served display integers, never a local rounding', () => {

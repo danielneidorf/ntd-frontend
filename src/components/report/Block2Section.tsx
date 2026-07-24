@@ -206,7 +206,7 @@ const RULER = {
  *
  *  Must stay an <Area>: bar series each claim a share of the category slot, so
  *  a bar-shaped binding halves every visible bar. Areas claim none. */
-function RulerBinding({ dataKey }: { dataKey: string | undefined }) {
+export function RulerBinding({ dataKey }: { dataKey: string | undefined }) {
   return (
     <Area
       yAxisId="right"
@@ -217,6 +217,39 @@ function RulerBinding({ dataKey }: { dataKey: string | undefined }) {
       strokeOpacity={0}
       isAnimationActive={false}
     />
+  );
+}
+
+/** The forecast's per-year totals — one numeral above each year's stack top.
+ *
+ *  Its own invisible series bound to `total` rather than a <LabelList> nested
+ *  in the top band: nested inside a stacked <Area> the list rendered nothing at
+ *  all (no `.recharts-label-list` reached the DOM). Un-stacked and bound to the
+ *  total, this series sits exactly on the stack top, so the labels land where
+ *  the nested ones were meant to — and the intent is legible rather than
+ *  implied by stack order.
+ *
+ *  `tooltipType="none"` for the same reason as RulerBinding: an invisible,
+ *  unnamed series otherwise lists ITSELF in the tooltip under its raw dataKey.
+ *  That is precisely how the „dhw"/„dhw_eur" phantom appeared — so every
+ *  invisible series added to either chart must carry this prop, and the test
+ *  suite pins both of them. */
+export function ForecastNumerals() {
+  return (
+    <Area
+      yAxisId="left"
+      type="monotone"
+      dataKey="total"
+      stroke="none"
+      fill="none"
+      fillOpacity={0}
+      strokeOpacity={0}
+      tooltipType="none"
+      legendType="none"
+      isAnimationActive={false}
+    >
+      <LabelList dataKey="total" position="top" offset={8} formatter={(v: number) => eur(v)} {...YEAR_NUMERAL} />
+    </Area>
   );
 }
 
@@ -343,24 +376,11 @@ function ForecastChart({ data }: { data: NonNullable<Block2Data['forecast_5yr']>
               n,
             ]}
           />
-          {bands.map((b, i) => (
-            <Area key={b.band} yAxisId="left" type="monotone" dataKey={b.band} stackId="f" stroke={b.color} fill={b.color} name={b.label}>
-              {/* The trajectory in numbers — one total per year, above that
-                  year's stack top. Attached to the TOP band because a stacked
-                  series' own points ARE the cumulative top, so `position="top"`
-                  lands on the stack rather than inside it.
-
-                  Restores Scope §2.3:85 ("A buyer seeing '€97/month now,
-                  €118/month in 5 years' understands the cost trajectory of
-                  their decision"), superseding the 2026-07-24 no-numeral
-                  ruling — that ruling rejected a single year-5 anchor as
-                  redundant beside the ruler, which five per-year totals are
-                  not. The ruler stays for the heights between the years. */}
-              {i === bands.length - 1 && (
-                <LabelList dataKey="total" position="top" formatter={(v: number) => eur(v)} {...YEAR_NUMERAL} />
-              )}
-            </Area>
+          {bands.map((b) => (
+            <Area key={b.band} yAxisId="left" type="monotone" dataKey={b.band} stackId="f" stroke={b.color} fill={b.color} name={b.label} />
           ))}
+          {/* Per-year totals — see ForecastNumerals. */}
+          <ForecastNumerals />
           <RulerBinding dataKey={bands[0]?.band} />
           {/* No in-chart numeral here (adjustment 2026-07-24): with the right
               axis labelled, a floating year-5 figure duplicated the ruler
