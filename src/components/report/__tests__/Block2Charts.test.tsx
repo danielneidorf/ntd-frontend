@@ -2,7 +2,7 @@
 // jsdom a ResizeObserver + element dimensions so ResponsiveContainer lays out.
 import { render } from '@testing-library/react';
 import { afterAll, beforeAll } from 'vitest';
-import { Block2Section } from '../Block2Section';
+import { Block2Section, legendEntries } from '../Block2Section';
 import { MOCK_EXISTING } from '../mockReportData';
 
 const W = 600;
@@ -79,6 +79,57 @@ describe('Block2Section charts render', () => {
       // The €0 standing-fee band takes no slot at all.
       expect(Object.keys(fc[0].per_component)).not.toContain('fixed');
     }
+  });
+
+  it('the legend explains the dashed average line', () => {
+    // The PDF legend has always named this line; the web did not, which made it
+    // a web/PDF content-parity gap — the customer saw a dashed line and a
+    // number with nothing saying what the line was. Recharts' own `payload`
+    // prop was silently ignored in this version, so the legend is now rendered
+    // by us; these entries are the pure input to that renderer.
+    const bands = [
+      { band: 'dhw', label: 'Karštas vanduo', color: '#2980B9' },
+      { band: 'heating', label: 'Šildymas', color: '#E67E22' },
+    ];
+    const monthly = legendEntries(bands, 'Vidutinė mėnesinė kaina');
+    expect(monthly).toHaveLength(3);
+    expect(monthly[2]).toMatchObject({ label: 'Vidutinė mėnesinė kaina', dashed: true });
+    // Band entries keep their own colours and are never marked dashed.
+    expect(monthly.slice(0, 2).every((e) => !e.dashed)).toBe(true);
+    // The forecast has no dashed line, so it gets no such entry.
+    expect(legendEntries(bands)).toHaveLength(2);
+  });
+
+  it('the right-edge ruler is bound by an AREA, so the bars keep full width', () => {
+    // The regression this closes (reported 2026-07-24: "the bars became twice
+    // as slim"). Recharts drops any axis no series references, so the mirrored
+    // right-hand ruler needs a series bound to it. The first binding was an
+    // invisible <Bar> — and bar series each claim an equal share of the
+    // category slot, so that invisible bar silently halved every visible bar.
+    // An <Area> claims no slot.
+    //
+    // Pixel widths can't be asserted here: ResponsiveContainer measures -1 in
+    // jsdom, so no geometry is emitted. Group COUNT is emitted, needs no
+    // measurement, and is the defect exactly — one bar group per visible band
+    // and not one more. A re-introduced bar binding fails this line.
+    const { container } = render(<Block2Section block2={MOCK_EXISTING.block2} />);
+    const monthly = container.querySelector('[data-block2="monthly-chart"]')!;
+    const forecast = container.querySelector('[data-block2="forecast-chart"]')!;
+
+    // Legend = one entry per band + the dashed average, which is not a series.
+    const bandCount = monthly.querySelectorAll('ul li').length - 1;
+    expect(bandCount).toBeGreaterThan(0);
+    expect(monthly.querySelectorAll('g.recharts-bar')).toHaveLength(bandCount);
+    // ...and exactly one invisible area: the ruler's binding.
+    expect(monthly.querySelectorAll('g.recharts-area')).toHaveLength(1);
+
+    // The forecast stacks areas, so its binding is one area beyond its bands.
+    const fBands = forecast.querySelectorAll('ul li').length;
+    expect(forecast.querySelectorAll('g.recharts-area')).toHaveLength(fBands + 1);
+
+    // Both charts carry the mirrored pair — left scale + right ruler.
+    expect(monthly.querySelectorAll('.recharts-yAxis')).toHaveLength(2);
+    expect(forecast.querySelectorAll('.recharts-yAxis')).toHaveLength(2);
   });
 
   it('the glance anchors read the served arrays and follow the selector', () => {

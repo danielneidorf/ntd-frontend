@@ -7,9 +7,8 @@ import {
   Area,
   AreaChart,
   Bar,
-  BarChart,
   CartesianGrid,
-  Legend,
+  ComposedChart,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -58,6 +57,45 @@ const eur = (v: number | null | undefined) => (v == null ? '—' : `€${Math.ro
 // are self-evident from the bars themselves). The forecast carries none: once
 // the right axis was readable, a floating year-5 figure only duplicated it.
 const AVG_LINE_COLOR = '#2C3E50';
+// The PDF's exact wording, reused — no new copy. The PDF legend already names
+// this line; the web did not, which made it a web/PDF content-parity gap.
+const AVERAGE_LABEL_LT = 'Vidutinė mėnesinė kaina';
+
+export type LegendEntry = { key: string; label: string; color: string; dashed?: boolean };
+
+/** Legend entries for a chart — pure, so the dashed entry is testable without
+ *  Recharts (which does not render in jsdom). */
+export function legendEntries(
+  bands: { band: string; label: string; color: string }[],
+  dashedLabel?: string,
+): LegendEntry[] {
+  const entries: LegendEntry[] = bands.map((b) => ({ key: b.band, label: b.label, color: b.color }));
+  if (dashedLabel) entries.push({ key: 'average', label: dashedLabel, color: AVG_LINE_COLOR, dashed: true });
+  return entries;
+}
+
+/** Rendered legend — ONE renderer for both charts, so they stay siblings.
+ *  Recharts' own `payload` prop was silently ignored in this version (the
+ *  dashed entry never appeared and the order was Recharts' own), so the legend
+ *  is rendered by us rather than configured. */
+function ChartLegend({ entries }: { entries: LegendEntry[] }) {
+  return (
+    <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 m-0 p-0 list-none text-xs text-slate-600">
+      {entries.map((e) => (
+        <li key={e.key} className="flex items-center gap-1.5">
+          {e.dashed ? (
+            <svg width="18" height="8" aria-hidden="true">
+              <line x1="0" y1="4" x2="18" y2="4" stroke={e.color} strokeWidth="1.5" strokeDasharray="5 4" />
+            </svg>
+          ) : (
+            <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: e.color }} />
+          )}
+          {e.label}
+        </li>
+      ))}
+    </ul>
+  );
+}
 // Placed ABOVE the line, never crossed by it (adjustment 2026-07-24).
 const anchorLabel = (v: number) => ({
   value: eur(v),
@@ -89,6 +127,17 @@ function axisScale(maxValue: number) {
 // The mirrored right-edge ruler. Amended 2026-07-24 — it first shipped
 // label-less ("ticks and scale only"), which rendered as a bare border line
 // with nothing readable. A ruler you cannot read values off is not a ruler.
+//
+// RULER_BINDING_NOTE — why each chart carries an invisible <Area>:
+// Recharts drops any axis no series references, so a mirrored second axis needs
+// a series bound to it or it renders nothing. The binding must be an AREA even
+// on the bar chart: bar series each claim an equal share of the category slot,
+// so an invisible *bar* binding silently halved every visible bar (reported
+// 2026-07-24 as "the bars became twice as slim"). Areas claim no slot. That is
+// also why the monthly chart is a ComposedChart rather than a BarChart.
+// Keep both axes on the same `domain`/`ticks` — a second axis left to its own
+// locator drifts, which is exactly how the PDF's twin axis ended up reading
+// 0/20/…/180 against the left's 0/25/…/175.
 const RULER = {
   yAxisId: 'right' as const,
   orientation: 'right' as const,
@@ -111,9 +160,15 @@ function MonthlyChart({ data }: { data: NonNullable<Block2Data['monthly_variatio
   const scale = axisScale(Math.max(...monthTotals, 0));
 
   return (
-    <div data-block2="monthly-chart" className="h-[280px] w-full">
+    <div data-block2="monthly-chart">
+      {/* Legend rendered OUTSIDE Recharts. Routing it through <Legend> — by
+          `payload` or by `content` — either got silently ignored or left every
+          series marked `recharts-inactive-bar`, i.e. the bars stopped drawing.
+          Outside, we own it completely and it cannot touch series state. */}
+      <ChartLegend entries={legendEntries(bands, AVERAGE_LABEL_LT)} />
+      <div className="h-[280px] w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={rows} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
+        <ComposedChart data={rows} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#eef2f7" vertical={false} />
           <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748b' }} />
           <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => `€${v}`} width={44} domain={scale.domain} ticks={scale.ticks} />
@@ -121,21 +176,13 @@ function MonthlyChart({ data }: { data: NonNullable<Block2Data['monthly_variatio
           <Tooltip formatter={(v: number, n) => [eur(v), n]} />
           {/* The dashed average is NAMED here; its value is the in-chart
               numeral below — name and number, once each. */}
-          <Legend
-            wrapperStyle={{ fontSize: 12 }}
-            payload={[
-              ...bands.map((b) => ({ value: b.label, type: 'square' as const, color: b.color, id: b.band })),
-              { value: 'Vidutinė mėnesinė kaina', type: 'plainline' as const, color: AVG_LINE_COLOR, payload: { strokeDasharray: '5 4' } },
-            ]}
-          />
           {bands.map((b) => (
             <Bar key={b.band} yAxisId="left" dataKey={b.monthlyKey} stackId="m" fill={b.color} name={b.label} />
           ))}
-          {/* Invisible series bound to the ruler: Recharts gives an axis no
-              domain — and renders no ticks — unless some series references its
-              id. Zero-opacity, no legend, no tooltip; the explicit domain above
-              governs what the ruler shows. */}
-          <Bar yAxisId="right" dataKey={bands[0]?.monthlyKey} fillOpacity={0} strokeOpacity={0} legendType="none" isAnimationActive={false} />
+          {/* Invisible right-axis binding — see RULER_BINDING_NOTE. It is an
+              AREA, not a bar, precisely because bars split the category slot
+              and this one halved every bar in the chart. */}
+          <Area yAxisId="right" dataKey={bands[0]?.monthlyKey} fillOpacity={0} strokeOpacity={0} legendType="none" isAnimationActive={false} />
           <ReferenceLine
             yAxisId="left"
             y={avg}
@@ -143,8 +190,9 @@ function MonthlyChart({ data }: { data: NonNullable<Block2Data['monthly_variatio
             strokeDasharray="5 4"
             label={anchorLabel(avg)}
           />
-        </BarChart>
+        </ComposedChart>
       </ResponsiveContainer>
+      </div>
     </div>
   );
 }
@@ -168,7 +216,9 @@ function ForecastChart({ data }: { data: NonNullable<Block2Data['forecast_5yr']>
   );
 
   return (
-    <div data-block2="forecast-chart" className="h-[280px] w-full">
+    <div data-block2="forecast-chart">
+      <ChartLegend entries={legendEntries(bands)} />
+      <div className="h-[280px] w-full">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={rows} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#eef2f7" vertical={false} />
@@ -176,17 +226,16 @@ function ForecastChart({ data }: { data: NonNullable<Block2Data['forecast_5yr']>
           <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => `€${v}`} width={44} domain={scale.domain} ticks={scale.ticks} />
           <YAxis {...RULER} domain={scale.domain} ticks={scale.ticks} />
           <Tooltip formatter={(v: number, n) => [eur(v), n]} />
-          <Legend wrapperStyle={{ fontSize: 12 }} />
           {bands.map((b) => (
             <Area key={b.band} yAxisId="left" type="monotone" dataKey={b.band} stackId="f" stroke={b.color} fill={b.color} name={b.label} />
           ))}
-          {/* Invisible series bound to the ruler — see the monthly chart. */}
           <Area yAxisId="right" dataKey={bands[0]?.band} fillOpacity={0} strokeOpacity={0} legendType="none" isAnimationActive={false} />
           {/* No in-chart numeral here (adjustment 2026-07-24): with the right
               axis labelled, a floating year-5 figure duplicated the ruler
               beside it. The end height reads off the right edge. */}
         </AreaChart>
       </ResponsiveContainer>
+      </div>
     </div>
   );
 }
