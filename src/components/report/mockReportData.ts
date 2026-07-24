@@ -26,6 +26,11 @@ export interface Block8Data {
 
 export interface Block2BreakdownRow {
   label_lt: string;
+  // The chart band this row belongs to (shared band vocabulary), so a chart
+  // tooltip can find its table row on a stable key instead of matching the
+  // display label. Optional only because a kind that appears on no chart
+  // serves null.
+  band?: string | null;
   eur_year: number;
   eur_month: number;
   source_indicator: string;
@@ -48,6 +53,11 @@ export interface Block2ForecastPoint {
   year: number;
   total_eur_month: number;
   per_component: Record<string, number>;
+  // Whole-€ MONTHLY display values, apportioned by the same largest-remainder
+  // rule the breakdown table uses, so each year's bands sum exactly to the
+  // numeral drawn above that year's stack — and year 1 equals the table.
+  // Tooltips print these; they never round `per_component` themselves.
+  per_component_display?: Record<string, number>;
 }
 
 // B2-14: one precomputed personalised view per household size (1..5; 5 = the
@@ -353,8 +363,8 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 export const MOCK_EXISTING: ReportData = {
   "envelope": {
     "address": "Vilnius, Žirmūnų g. 12-5",
-    "request_id": "report-20260724080207",
-    "created_at": "2026-07-24T08:02:07.578588+00:00"
+    "request_id": "report-20260724111534",
+    "created_at": "2026-07-24T11:15:34.092918+00:00"
   },
   "blocks": [
     {
@@ -716,7 +726,8 @@ export const MOCK_EXISTING: ReportData = {
             "per_component": {
               "heating": 728.89,
               "dhw": 211.14
-            }
+            },
+            "per_component_display": {}
           },
           {
             "year": 2027,
@@ -724,7 +735,8 @@ export const MOCK_EXISTING: ReportData = {
             "per_component": {
               "heating": 773.28,
               "dhw": 224
-            }
+            },
+            "per_component_display": {}
           },
           {
             "year": 2028,
@@ -732,7 +744,8 @@ export const MOCK_EXISTING: ReportData = {
             "per_component": {
               "heating": 820.37,
               "dhw": 237.64
-            }
+            },
+            "per_component_display": {}
           },
           {
             "year": 2029,
@@ -740,7 +753,8 @@ export const MOCK_EXISTING: ReportData = {
             "per_component": {
               "heating": 870.34,
               "dhw": 252.11
-            }
+            },
+            "per_component_display": {}
           },
           {
             "year": 2030,
@@ -748,7 +762,8 @@ export const MOCK_EXISTING: ReportData = {
             "per_component": {
               "heating": 923.34,
               "dhw": 267.46
-            }
+            },
+            "per_component_display": {}
           }
         ],
         "confidence": "medium",
@@ -872,7 +887,7 @@ export const MOCK_EXISTING: ReportData = {
   "lat": 54.7007624,
   "lng": 25.2993035,
   "bundle_items": [],
-  "generated_at": "2026-07-24T08:02:07.578588+00:00",
+  "generated_at": "2026-07-24T11:15:34.092918+00:00",
   "order_reference": "NTD-DEV-001",
   "block2": {
     "status": "ready",
@@ -893,12 +908,14 @@ export const MOCK_EXISTING: ReportData = {
       "rows": [
         {
           "label_lt": "Šildymas (centrinis šildymas)",
+          "band": "heating",
           "eur_year": 729,
           "eur_month": 61,
           "source_indicator": "📊 pagal pastato duomenis"
         },
         {
           "label_lt": "Karštas vanduo",
+          "band": "dhw",
           "eur_year": 211,
           "eur_month": 17,
           "source_indicator": "📊 pagal pastato duomenis"
@@ -1044,6 +1061,10 @@ export const MOCK_EXISTING: ReportData = {
         "per_component": {
           "heating": 728.89,
           "dhw": 211.14
+        },
+        "per_component_display": {
+          "heating": 61,
+          "dhw": 17
         }
       },
       {
@@ -1052,6 +1073,10 @@ export const MOCK_EXISTING: ReportData = {
         "per_component": {
           "heating": 773.28,
           "dhw": 224
+        },
+        "per_component_display": {
+          "heating": 64,
+          "dhw": 19
         }
       },
       {
@@ -1060,6 +1085,10 @@ export const MOCK_EXISTING: ReportData = {
         "per_component": {
           "heating": 820.37,
           "dhw": 237.64
+        },
+        "per_component_display": {
+          "heating": 68,
+          "dhw": 20
         }
       },
       {
@@ -1068,6 +1097,10 @@ export const MOCK_EXISTING: ReportData = {
         "per_component": {
           "heating": 870.34,
           "dhw": 252.11
+        },
+        "per_component_display": {
+          "heating": 73,
+          "dhw": 21
         }
       },
       {
@@ -1076,6 +1109,10 @@ export const MOCK_EXISTING: ReportData = {
         "per_component": {
           "heating": 923.34,
           "dhw": 267.46
+        },
+        "per_component_display": {
+          "heating": 77,
+          "dhw": 22
         }
       }
     ],
@@ -1139,18 +1176,21 @@ export const MOCK_EXISTING: ReportData = {
             "rows": [
               {
                 "label_lt": "Šildymas (centrinis šildymas)",
+                "band": "heating",
                 "eur_year": 729,
                 "eur_month": 61,
                 "source_indicator": "📊 pagal pastato duomenis"
               },
               {
                 "label_lt": "Karštas vanduo (pritaikyta 1 asmeniui)",
+                "band": "dhw",
                 "eur_year": 106,
                 "eur_month": 9,
                 "source_indicator": "📊 pagal pastato duomenis + 👥 pritaikyta pagal namų ūkio dydį"
               },
               {
                 "label_lt": "Buitinė elektra (1 asm.)",
+                "band": "household_electricity",
                 "eur_year": 166,
                 "eur_month": 14,
                 "source_indicator": "👥 statistinis vidurkis"
@@ -1268,6 +1308,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 728.89,
                 "dhw": 105.57,
                 "household_electricity": 168
+              },
+              "per_component_display": {
+                "heating": 61,
+                "dhw": 9,
+                "household_electricity": 14
               }
             },
             {
@@ -1277,6 +1322,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 773.28,
                 "dhw": 112,
                 "household_electricity": 176
+              },
+              "per_component_display": {
+                "heating": 64,
+                "dhw": 9,
+                "household_electricity": 15
               }
             },
             {
@@ -1286,6 +1336,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 820.37,
                 "dhw": 118.82,
                 "household_electricity": 184.37
+              },
+              "per_component_display": {
+                "heating": 69,
+                "dhw": 10,
+                "household_electricity": 15
               }
             },
             {
@@ -1295,6 +1350,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 870.34,
                 "dhw": 126.05,
                 "household_electricity": 193.15
+              },
+              "per_component_display": {
+                "heating": 73,
+                "dhw": 10,
+                "household_electricity": 16
               }
             },
             {
@@ -1304,6 +1364,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 923.34,
                 "dhw": 133.73,
                 "household_electricity": 202.34
+              },
+              "per_component_display": {
+                "heating": 77,
+                "dhw": 11,
+                "household_electricity": 17
               }
             }
           ],
@@ -1322,18 +1387,21 @@ export const MOCK_EXISTING: ReportData = {
             "rows": [
               {
                 "label_lt": "Šildymas (centrinis šildymas)",
+                "band": "heating",
                 "eur_year": 729,
                 "eur_month": 61,
                 "source_indicator": "📊 pagal pastato duomenis"
               },
               {
                 "label_lt": "Karštas vanduo (pritaikyta 2 asmenims)",
+                "band": "dhw",
                 "eur_year": 211,
                 "eur_month": 17,
                 "source_indicator": "📊 pagal pastato duomenis + 👥 pritaikyta pagal namų ūkio dydį"
               },
               {
                 "label_lt": "Buitinė elektra (2 asm.)",
+                "band": "household_electricity",
                 "eur_year": 274,
                 "eur_month": 23,
                 "source_indicator": "👥 statistinis vidurkis"
@@ -1451,6 +1519,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 728.89,
                 "dhw": 211.14,
                 "household_electricity": 276
+              },
+              "per_component_display": {
+                "heating": 61,
+                "dhw": 17,
+                "household_electricity": 23
               }
             },
             {
@@ -1460,6 +1533,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 773.28,
                 "dhw": 224,
                 "household_electricity": 289.14
+              },
+              "per_component_display": {
+                "heating": 64,
+                "dhw": 19,
+                "household_electricity": 24
               }
             },
             {
@@ -1469,6 +1547,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 820.37,
                 "dhw": 237.64,
                 "household_electricity": 302.9
+              },
+              "per_component_display": {
+                "heating": 68,
+                "dhw": 20,
+                "household_electricity": 25
               }
             },
             {
@@ -1478,6 +1561,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 870.34,
                 "dhw": 252.11,
                 "household_electricity": 317.32
+              },
+              "per_component_display": {
+                "heating": 73,
+                "dhw": 21,
+                "household_electricity": 26
               }
             },
             {
@@ -1487,6 +1575,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 923.34,
                 "dhw": 267.46,
                 "household_electricity": 332.42
+              },
+              "per_component_display": {
+                "heating": 77,
+                "dhw": 22,
+                "household_electricity": 28
               }
             }
           ],
@@ -1505,18 +1598,21 @@ export const MOCK_EXISTING: ReportData = {
             "rows": [
               {
                 "label_lt": "Šildymas (centrinis šildymas)",
+                "band": "heating",
                 "eur_year": 729,
                 "eur_month": 61,
                 "source_indicator": "📊 pagal pastato duomenis"
               },
               {
                 "label_lt": "Karštas vanduo (pritaikyta 3 asmenims)",
+                "band": "dhw",
                 "eur_year": 317,
                 "eur_month": 26,
                 "source_indicator": "📊 pagal pastato duomenis + 👥 pritaikyta pagal namų ūkio dydį"
               },
               {
                 "label_lt": "Buitinė elektra (3 asm.)",
+                "band": "household_electricity",
                 "eur_year": 365,
                 "eur_month": 30,
                 "source_indicator": "👥 statistinis vidurkis"
@@ -1634,6 +1730,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 728.89,
                 "dhw": 316.71,
                 "household_electricity": 360
+              },
+              "per_component_display": {
+                "heating": 61,
+                "dhw": 26,
+                "household_electricity": 30
               }
             },
             {
@@ -1643,6 +1744,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 773.28,
                 "dhw": 335.99,
                 "household_electricity": 377.14
+              },
+              "per_component_display": {
+                "heating": 65,
+                "dhw": 28,
+                "household_electricity": 31
               }
             },
             {
@@ -1652,6 +1758,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 820.37,
                 "dhw": 356.46,
                 "household_electricity": 395.09
+              },
+              "per_component_display": {
+                "heating": 68,
+                "dhw": 30,
+                "household_electricity": 33
               }
             },
             {
@@ -1661,6 +1772,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 870.34,
                 "dhw": 378.16,
                 "household_electricity": 413.89
+              },
+              "per_component_display": {
+                "heating": 73,
+                "dhw": 32,
+                "household_electricity": 34
               }
             },
             {
@@ -1670,6 +1786,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 923.34,
                 "dhw": 401.19,
                 "household_electricity": 433.6
+              },
+              "per_component_display": {
+                "heating": 77,
+                "dhw": 34,
+                "household_electricity": 36
               }
             }
           ],
@@ -1688,18 +1809,21 @@ export const MOCK_EXISTING: ReportData = {
             "rows": [
               {
                 "label_lt": "Šildymas (centrinis šildymas)",
+                "band": "heating",
                 "eur_year": 729,
                 "eur_month": 61,
                 "source_indicator": "📊 pagal pastato duomenis"
               },
               {
                 "label_lt": "Karštas vanduo (pritaikyta 4 asmenims)",
+                "band": "dhw",
                 "eur_year": 422,
                 "eur_month": 35,
                 "source_indicator": "📊 pagal pastato duomenis + 👥 pritaikyta pagal namų ūkio dydį"
               },
               {
                 "label_lt": "Buitinė elektra (4 asm.)",
+                "band": "household_electricity",
                 "eur_year": 434,
                 "eur_month": 36,
                 "source_indicator": "👥 statistinis vidurkis"
@@ -1817,6 +1941,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 728.89,
                 "dhw": 422.28,
                 "household_electricity": 432
+              },
+              "per_component_display": {
+                "heating": 61,
+                "dhw": 35,
+                "household_electricity": 36
               }
             },
             {
@@ -1826,6 +1955,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 773.28,
                 "dhw": 447.99,
                 "household_electricity": 452.56
+              },
+              "per_component_display": {
+                "heating": 64,
+                "dhw": 37,
+                "household_electricity": 38
               }
             },
             {
@@ -1835,6 +1969,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 820.37,
                 "dhw": 475.27,
                 "household_electricity": 474.11
+              },
+              "per_component_display": {
+                "heating": 68,
+                "dhw": 40,
+                "household_electricity": 39
               }
             },
             {
@@ -1844,6 +1983,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 870.34,
                 "dhw": 504.22,
                 "household_electricity": 496.67
+              },
+              "per_component_display": {
+                "heating": 73,
+                "dhw": 42,
+                "household_electricity": 41
               }
             },
             {
@@ -1853,6 +1997,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 923.34,
                 "dhw": 534.93,
                 "household_electricity": 520.31
+              },
+              "per_component_display": {
+                "heating": 77,
+                "dhw": 45,
+                "household_electricity": 43
               }
             }
           ],
@@ -1871,18 +2020,21 @@ export const MOCK_EXISTING: ReportData = {
             "rows": [
               {
                 "label_lt": "Šildymas (centrinis šildymas)",
+                "band": "heating",
                 "eur_year": 729,
                 "eur_month": 61,
                 "source_indicator": "📊 pagal pastato duomenis"
               },
               {
                 "label_lt": "Karštas vanduo (pritaikyta 5 asmenims)",
+                "band": "dhw",
                 "eur_year": 528,
                 "eur_month": 44,
                 "source_indicator": "📊 pagal pastato duomenis + 👥 pritaikyta pagal namų ūkio dydį"
               },
               {
                 "label_lt": "Buitinė elektra (5 asm.)",
+                "band": "household_electricity",
                 "eur_year": 506,
                 "eur_month": 42,
                 "source_indicator": "👥 statistinis vidurkis"
@@ -2000,6 +2152,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 728.89,
                 "dhw": 527.84,
                 "household_electricity": 504
+              },
+              "per_component_display": {
+                "heating": 61,
+                "dhw": 44,
+                "household_electricity": 42
               }
             },
             {
@@ -2009,6 +2166,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 773.28,
                 "dhw": 559.99,
                 "household_electricity": 527.99
+              },
+              "per_component_display": {
+                "heating": 64,
+                "dhw": 47,
+                "household_electricity": 44
               }
             },
             {
@@ -2018,6 +2180,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 820.37,
                 "dhw": 594.09,
                 "household_electricity": 553.12
+              },
+              "per_component_display": {
+                "heating": 68,
+                "dhw": 50,
+                "household_electricity": 46
               }
             },
             {
@@ -2027,6 +2194,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 870.34,
                 "dhw": 630.27,
                 "household_electricity": 579.45
+              },
+              "per_component_display": {
+                "heating": 73,
+                "dhw": 52,
+                "household_electricity": 48
               }
             },
             {
@@ -2036,6 +2208,11 @@ export const MOCK_EXISTING: ReportData = {
                 "heating": 923.34,
                 "dhw": 668.66,
                 "household_electricity": 607.03
+              },
+              "per_component_display": {
+                "heating": 77,
+                "dhw": 56,
+                "household_electricity": 50
               }
             }
           ],

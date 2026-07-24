@@ -2,7 +2,7 @@
 // jsdom a ResizeObserver + element dimensions so ResponsiveContainer lays out.
 import { render } from '@testing-library/react';
 import { afterAll, beforeAll } from 'vitest';
-import { Block2Section, legendEntries } from '../Block2Section';
+import { Block2Section, legendEntries, tooltipDisplay, DISPLAY_KEY } from '../Block2Section';
 import { MOCK_EXISTING } from '../mockReportData';
 
 const W = 600;
@@ -130,6 +130,50 @@ describe('Block2Section charts render', () => {
     // Both charts carry the mirrored pair — left scale + right ruler.
     expect(monthly.querySelectorAll('.recharts-yAxis')).toHaveLength(2);
     expect(forecast.querySelectorAll('.recharts-yAxis')).toHaveLength(2);
+  });
+
+  it('tooltips print the served display integers, never a local rounding', () => {
+    // ONE rounding convention, table-authoritative (ruling 2026-07-24). The
+    // defect: the breakdown table and the chart tooltips rounded the same money
+    // differently, so a customer reading both saw two numbers for one
+    // component. The backend now apportions the display integers once (the same
+    // largest-remainder rule the table uses) and both surfaces read them.
+    const row = { [DISPLAY_KEY]: { dhw: 16, heating: 57 } };
+    expect(tooltipDisplay(row, 'dhw', 16.51)).toBe(16);   // served wins...
+    expect(tooltipDisplay(row, 'heating', 57.4)).toBe(57);
+    // ...and a band with no served value falls back to plain rounding. That is
+    // the monthly chart's heating, which varies month to month and so has no
+    // single table figure to agree with.
+    expect(tooltipDisplay(row, 'household_electricity', 22.6)).toBe(23);
+    expect(tooltipDisplay(undefined, 'dhw', 16.51)).toBe(17);
+  });
+
+  it('year 1 of the forecast prints exactly what the table prints', () => {
+    // Crosses the wire: read off the SERVED capture, not recomputed here. Year 1
+    // is the same components at the same total as the table, so the shared
+    // apportionment makes them equal — this fails if either side drifts.
+    for (const o of MOCK_EXISTING.block2!.household_modelling!.options) {
+      const table: Record<string, number> = {};
+      for (const r of o.breakdown.rows) if (r.band) table[r.band] = r.eur_month;
+      expect(o.forecast_5yr![0].per_component_display).toEqual(table);
+      expect(Object.keys(table).length).toBeGreaterThan(0);
+    }
+  });
+
+  it('every forecast year sums to the numeral drawn above its stack', () => {
+    // The per-year totals put that sum on screen, so bands missing it by EUR1
+    // would be visibly wrong.
+    for (const o of MOCK_EXISTING.block2!.household_modelling!.options) {
+      for (const p of o.forecast_5yr!) {
+        const d = p.per_component_display!;
+        const sum = Object.values(d).reduce((a, b) => a + b, 0);
+        expect(sum).toBe(Math.round(p.total_eur_month));
+        // The display map speaks the human band vocabulary, never the monthly
+        // row's raw field names — the phantom's own vocabulary.
+        expect(Object.keys(d)).not.toContain('dhw_eur');
+        expect(Object.keys(d)).not.toContain('heating_eur');
+      }
+    }
   });
 
   it('the glance anchors read the served arrays and follow the selector', () => {

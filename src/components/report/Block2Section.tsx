@@ -9,6 +9,7 @@ import {
   Bar,
   CartesianGrid,
   ComposedChart,
+  LabelList,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -69,6 +70,33 @@ const AVERAGE_LABEL_LT = 'Vidutinė mėnesinė kaina';
 export const FORECAST_CHART_TITLE_LT =
   'Prognozuojamas mėnesio energijos kainos kitimas (per 5 metus)';
 
+/** Where a chart row carries the authoritative whole-€ display values for its
+ *  bands. Not plotted — read only when a tooltip needs a number to print. */
+export const DISPLAY_KEY = '__display';
+
+/** The whole-€ figure a tooltip shows for one band — table-authoritative.
+ *
+ *  The defect this closes: the breakdown table and the chart tooltips rounded
+ *  the same money differently, so a customer reading both saw two numbers for
+ *  one component (measured at household size 2: the table's hot-water row read
+ *  €16, the tooltip's own `Math.round` read €17, for one €16.51 component).
+ *
+ *  Which side moves was settled on the artifact: the table's rounding is a
+ *  deliberate largest-remainder apportionment whose stated purpose is that the
+ *  column sums to the headline. So the backend now serves the apportioned
+ *  integers and this reads them; the local `Math.round` survives only as the
+ *  fallback for a band with no served display value (the monthly chart's
+ *  heating, which genuinely varies month to month and so has no single table
+ *  figure to agree with). */
+export function tooltipDisplay(
+  row: Record<string, unknown> | undefined,
+  key: string,
+  raw: number,
+): number {
+  const served = (row?.[DISPLAY_KEY] as Record<string, number> | undefined)?.[key];
+  return typeof served === 'number' ? served : Math.round(raw);
+}
+
 export type LegendEntry = { key: string; label: string; color: string; dashed?: boolean };
 
 /** Legend entries for a chart — pure, so the dashed entry is testable without
@@ -112,6 +140,10 @@ const anchorLabel = (v: number) => ({
   fontWeight: 500,
   fill: '#1E3A5F',
 });
+// The forecast's per-year totals — deliberately the SAME typography as the
+// monthly average numeral above, so the two charts read as siblings. Matches
+// the PDF's shared `draw_anchor_at` origin.
+const YEAR_NUMERAL = { fontSize: 12, fontWeight: 500, fill: '#1E3A5F' } as const;
 // One domain + tick set, shared by the left axis and the right ruler.
 //
 // Two reasons this is computed rather than left to Recharts. (1) A right axis
@@ -125,9 +157,15 @@ const niceStep = (raw: number) => {
   const n = (raw || 1) / mag;
   return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * mag;
 };
-function axisScale(maxValue: number) {
-  const step = niceStep(Math.max(maxValue, 1) / 4);
-  const top = Math.ceil(Math.max(maxValue, 1) / step) * step;
+function axisScale(maxValue: number, opts: { headroom?: boolean } = {}) {
+  // `headroom` for a chart that draws numerals ABOVE its topmost value. Without
+  // it the nice step can land barely above the data: measured at household
+  // size 1 the forecast's €99.4 peak sat under a €100 domain top — 0.6% of the
+  // axis, and the year-5 numeral had nowhere to go. Padding only; no value
+  // moves and the axis still starts at zero.
+  const target = Math.max(maxValue, 1) * (opts.headroom ? 1.12 : 1);
+  const step = niceStep(target / 4);
+  const top = Math.ceil(target / step) * step;
   const ticks: number[] = [];
   for (let v = 0; v <= top + 1e-9; v += step) ticks.push(Math.round(v * 100) / 100);
   return { domain: [0, top] as [number, number], ticks };
@@ -156,13 +194,60 @@ const RULER = {
   tickLine: { stroke: '#cbd5e1' },
 };
 
-function MonthlyChart({ data }: { data: NonNullable<Block2Data['monthly_variation']> }) {
+/** The invisible series that keeps the right-hand ruler alive — ONE definition,
+ *  used by both charts, so a defect here is fixed once.
+ *
+ *  It leaked into both tooltips as a phantom entry: no `name`, so Recharts
+ *  listed it under its raw dataKey („dhw" on the forecast, „dhw_eur" on the
+ *  monthly), duplicating hot water under a machine name. That reached screen
+ *  readers too — the default tooltip carries `role="status" aria-live`, so the
+ *  raw key was announced. `tooltipType="none"` takes it out of the payload,
+ *  which closes both the visible and the announced defect at once.
+ *
+ *  Must stay an <Area>: bar series each claim a share of the category slot, so
+ *  a bar-shaped binding halves every visible bar. Areas claim none. */
+function RulerBinding({ dataKey }: { dataKey: string | undefined }) {
+  return (
+    <Area
+      yAxisId="right"
+      dataKey={dataKey}
+      tooltipType="none"
+      legendType="none"
+      fillOpacity={0}
+      strokeOpacity={0}
+      isAnimationActive={false}
+    />
+  );
+}
+
+function MonthlyChart({
+  data,
+  tableByBand,
+}: {
+  data: NonNullable<Block2Data['monthly_variation']>;
+  tableByBand: Record<string, number>;
+}) {
   // Only stack bands that are non-zero somewhere (cooling / household electricity
   // are €0 in the building-only v1, so they drop out of the legend).
   const bands = COMPONENT_BANDS.filter((b) =>
     data.some((m) => ((m as Record<string, number>)[b.monthlyKey] ?? 0) > 0),
   );
-  const rows = data.map((m) => ({ name: MONTHS_LT[m.month - 1] ?? String(m.month), ...m }));
+  // A band that holds ONE value all year is the same figure the breakdown table
+  // prints, so it must print identically; heating varies month to month and has
+  // no single table figure, so it keeps its own month's value.
+  const display: Record<string, number> = {};
+  for (const b of bands) {
+    const values = data.map((m) => (m as Record<string, number>)[b.monthlyKey] ?? 0);
+    const isFlat = values.every((v) => Math.abs(v - values[0]) < 0.005);
+    if (isFlat && typeof tableByBand[b.band] === 'number') {
+      display[b.monthlyKey] = tableByBand[b.band];
+    }
+  }
+  const rows = data.map((m) => ({
+    name: MONTHS_LT[m.month - 1] ?? String(m.month),
+    ...m,
+    [DISPLAY_KEY]: display,
+  }));
   const monthTotals = rows.map((r) => bands.reduce((t, b) => t + ((r as Record<string, number>)[b.monthlyKey] ?? 0), 0));
   const avg = monthTotals.reduce((s, v) => s + v, 0) / (rows.length || 1);
   const scale = axisScale(Math.max(...monthTotals, 0));
@@ -181,16 +266,24 @@ function MonthlyChart({ data }: { data: NonNullable<Block2Data['monthly_variatio
           <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748b' }} />
           <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => `€${v}`} width={44} domain={scale.domain} ticks={scale.ticks} />
           <YAxis {...RULER} domain={scale.domain} ticks={scale.ticks} />
-          <Tooltip formatter={(v: number, n) => [eur(v), n]} />
+          {/* Values print the SERVED display integers, not a local
+              rounding — see tooltipDisplay. */}
+          <Tooltip
+            formatter={(v: number, n, item) => [
+              `\u20ac${tooltipDisplay(
+                item?.payload as Record<string, unknown> | undefined,
+                String(item?.dataKey ?? ''),
+                Number(v),
+              )}`,
+              n,
+            ]}
+          />
           {/* The dashed average is NAMED here; its value is the in-chart
               numeral below — name and number, once each. */}
           {bands.map((b) => (
             <Bar key={b.band} yAxisId="left" dataKey={b.monthlyKey} stackId="m" fill={b.color} name={b.label} />
           ))}
-          {/* Invisible right-axis binding — see RULER_BINDING_NOTE. It is an
-              AREA, not a bar, precisely because bars split the category slot
-              and this one halved every bar in the chart. */}
-          <Area yAxisId="right" dataKey={bands[0]?.monthlyKey} fillOpacity={0} strokeOpacity={0} legendType="none" isAnimationActive={false} />
+          <RulerBinding dataKey={bands[0]?.monthlyKey} />
           <ReferenceLine
             yAxisId="left"
             y={avg}
@@ -215,12 +308,17 @@ function ForecastChart({ data }: { data: NonNullable<Block2Data['forecast_5yr']>
     data.some((p) => (p.per_component?.[b.band] ?? 0) > 0),
   );
   const rows = data.map((p) => {
-    const row: Record<string, number | string> = { name: String(p.year) };
+    const row: Record<string, unknown> = { name: String(p.year) };
     for (const b of bands) row[b.band] = (p.per_component?.[b.band] ?? 0) / 12;
+    // Served, apportioned per year so the bands sum exactly to the year's own
+    // numeral drawn above the stack (and year 1 equals the breakdown table).
+    row[DISPLAY_KEY] = p.per_component_display ?? {};
+    row.total = p.total_eur_month;
     return row;
   });
   const scale = axisScale(
     Math.max(...data.map((p) => p.total_eur_month), 0),
+    { headroom: true },
   );
 
   return (
@@ -233,11 +331,37 @@ function ForecastChart({ data }: { data: NonNullable<Block2Data['forecast_5yr']>
           <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748b' }} label={{ value: 'Metai', position: 'insideBottom', offset: -2, fontSize: 11, fill: '#64748b' }} />
           <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => `€${v}`} width={44} domain={scale.domain} ticks={scale.ticks} />
           <YAxis {...RULER} domain={scale.domain} ticks={scale.ticks} />
-          <Tooltip formatter={(v: number, n) => [eur(v), n]} />
-          {bands.map((b) => (
-            <Area key={b.band} yAxisId="left" type="monotone" dataKey={b.band} stackId="f" stroke={b.color} fill={b.color} name={b.label} />
+          {/* Values print the SERVED display integers, not a local
+              rounding — see tooltipDisplay. */}
+          <Tooltip
+            formatter={(v: number, n, item) => [
+              `\u20ac${tooltipDisplay(
+                item?.payload as Record<string, unknown> | undefined,
+                String(item?.dataKey ?? ''),
+                Number(v),
+              )}`,
+              n,
+            ]}
+          />
+          {bands.map((b, i) => (
+            <Area key={b.band} yAxisId="left" type="monotone" dataKey={b.band} stackId="f" stroke={b.color} fill={b.color} name={b.label}>
+              {/* The trajectory in numbers — one total per year, above that
+                  year's stack top. Attached to the TOP band because a stacked
+                  series' own points ARE the cumulative top, so `position="top"`
+                  lands on the stack rather than inside it.
+
+                  Restores Scope §2.3:85 ("A buyer seeing '€97/month now,
+                  €118/month in 5 years' understands the cost trajectory of
+                  their decision"), superseding the 2026-07-24 no-numeral
+                  ruling — that ruling rejected a single year-5 anchor as
+                  redundant beside the ruler, which five per-year totals are
+                  not. The ruler stays for the heights between the years. */}
+              {i === bands.length - 1 && (
+                <LabelList dataKey="total" position="top" formatter={(v: number) => eur(v)} {...YEAR_NUMERAL} />
+              )}
+            </Area>
           ))}
-          <Area yAxisId="right" dataKey={bands[0]?.band} fillOpacity={0} strokeOpacity={0} legendType="none" isAnimationActive={false} />
+          <RulerBinding dataKey={bands[0]?.band} />
           {/* No in-chart numeral here (adjustment 2026-07-24): with the right
               axis labelled, a floating year-5 figure duplicated the ruler
               beside it. The end height reads off the right edge. */}
@@ -291,6 +415,14 @@ export function Block2Section({
     ? { eur_month: selected.metric.eur_month, subtext_lt: selected.metric.subtext_lt }
     : metric;
   const shownRows = selected ? selected.breakdown.rows : breakdown?.rows;
+  // Band → the €/month the TABLE prints. The charts' tooltips print these same
+  // integers for any band that holds one value all year, so the customer never
+  // reads two numbers for one component. Keyed on the served `band`, never on
+  // the display label.
+  const tableByBand: Record<string, number> = {};
+  for (const r of shownRows ?? []) {
+    if (r.band) tableByBand[r.band] = r.eur_month;
+  }
   const shownTotal = selected ? selected.breakdown.total : breakdown?.total;
   const shownMonthly = selected
     ? selected.monthly_variation
@@ -495,7 +627,7 @@ export function Block2Section({
       {shownMonthly && shownMonthly.length > 0 && (
         <div className="mb-8">
           <h3 className="text-base font-semibold text-slate-800 mb-3">Mėnesinė energijos kaina per metus</h3>
-          <MonthlyChart data={shownMonthly} />
+          <MonthlyChart data={shownMonthly} tableByBand={tableByBand} />
         </div>
       )}
 
