@@ -394,7 +394,10 @@ function ForecastChart({ data }: { data: NonNullable<Block2Data['forecast_5yr']>
       <ChartLegend entries={legendEntries(bands)} />
       <div className="h-[280px] w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={rows} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
+        {/* bottom: 18 — the „Metai" axis label sits below the year ticks, and
+            with a zero bottom margin it had nowhere to go, so it rendered
+            clipped by the chart's own edge. The margin is the room it needs. */}
+        <AreaChart data={rows} margin={{ top: 8, right: 8, left: -8, bottom: 18 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#eef2f7" vertical={false} />
           <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748b' }} label={{ value: 'Metai', position: 'insideBottom', offset: -2, fontSize: 11, fill: '#64748b' }} />
           <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => `€${v}`} width={44} domain={scale.domain} ticks={scale.ticks} />
