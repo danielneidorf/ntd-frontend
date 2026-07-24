@@ -40,6 +40,16 @@ export interface Block2MonthlyRow {
   household_electricity_eur: number;
 }
 
+// One year of the 5-year forecast. Ruling 2026-07-23: bands are COMPONENTS
+// (fixed / dhw / heating / cooling / household_electricity — the shared band
+// vocabulary), replacing the former per-carrier map plus a separate
+// fixed_eur_year field. Values are ANNUAL €; charts divide by 12.
+export interface Block2ForecastPoint {
+  year: number;
+  total_eur_month: number;
+  per_component: Record<string, number>;
+}
+
 // B2-14: one precomputed personalised view per household size (1..5; 5 = the
 // "5+" band). All € values and LT copy are backend-computed — the selector
 // only picks which served option to show.
@@ -52,10 +62,15 @@ export interface Block2HouseholdOption {
     total: { label_lt: string; eur_year: number; eur_month: number };
   };
   monthly_variation: Block2MonthlyRow[];
+  // Ruling 2026-07-23: each option carries its OWN forecast, so the chart
+  // follows the selector and its year 1 equals this option's headline.
+  // Optional — legacy captures predate it and fall back to the building-only
+  // top-level forecast.
+  forecast_5yr?: Block2ForecastPoint[];
   explanation_lt: string;
   whats_not_included_lt: string;
-  // R5 (report-walk 2026-07-18): the option's own first-sentence body,
-  // quoting the PERSONALISED totals (optional — legacy captures lack it).
+  // The option's own first-sentence body, quoting the PERSONALISED totals
+  // (optional — legacy captures lack it).
   body_lt?: string;
 }
 
@@ -110,12 +125,7 @@ export interface Block2Data {
     eur_month: number | null;
   }[];
   monthly_variation?: Block2MonthlyRow[];
-  forecast_5yr?: {
-    year: number;
-    total_eur_month: number;
-    per_carrier: Record<string, number>;
-    fixed_eur_year: number;
-  }[];
+  forecast_5yr?: Block2ForecastPoint[];
   // B2-14: present only for residential+ready reports whose tariff and
   // occupancy resolve; absent → render the static table, no selector.
   standard_occupancy?: number;
@@ -343,8 +353,8 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 export const MOCK_EXISTING: ReportData = {
   "envelope": {
     "address": "Vilnius, Žirmūnų g. 12-5",
-    "request_id": "report-20260723161446",
-    "created_at": "2026-07-23T16:14:46.812464+00:00"
+    "request_id": "report-20260724080207",
+    "created_at": "2026-07-24T08:02:07.578588+00:00"
   },
   "blocks": [
     {
@@ -703,42 +713,42 @@ export const MOCK_EXISTING: ReportData = {
           {
             "year": 2026,
             "total_eur_month": 78.34,
-            "per_carrier": {
-              "cst": 940.03
-            },
-            "fixed_eur_year": 0
+            "per_component": {
+              "heating": 728.89,
+              "dhw": 211.14
+            }
           },
           {
             "year": 2027,
             "total_eur_month": 83.11,
-            "per_carrier": {
-              "cst": 997.28
-            },
-            "fixed_eur_year": 0
+            "per_component": {
+              "heating": 773.28,
+              "dhw": 224
+            }
           },
           {
             "year": 2028,
             "total_eur_month": 88.17,
-            "per_carrier": {
-              "cst": 1058.01
-            },
-            "fixed_eur_year": 0
+            "per_component": {
+              "heating": 820.37,
+              "dhw": 237.64
+            }
           },
           {
             "year": 2029,
             "total_eur_month": 93.54,
-            "per_carrier": {
-              "cst": 1122.45
-            },
-            "fixed_eur_year": 0
+            "per_component": {
+              "heating": 870.34,
+              "dhw": 252.11
+            }
           },
           {
             "year": 2030,
             "total_eur_month": 99.23,
-            "per_carrier": {
-              "cst": 1190.8
-            },
-            "fixed_eur_year": 0
+            "per_component": {
+              "heating": 923.34,
+              "dhw": 267.46
+            }
           }
         ],
         "confidence": "medium",
@@ -862,7 +872,7 @@ export const MOCK_EXISTING: ReportData = {
   "lat": 54.7007624,
   "lng": 25.2993035,
   "bundle_items": [],
-  "generated_at": "2026-07-23T16:14:46.812464+00:00",
+  "generated_at": "2026-07-24T08:02:07.578588+00:00",
   "order_reference": "NTD-DEV-001",
   "block2": {
     "status": "ready",
@@ -909,7 +919,7 @@ export const MOCK_EXISTING: ReportData = {
     "info_box": {
       "heading_lt": "Iš ko remiamės šiuo vertinimu?",
       "vat_lt": "Visos kainos nurodytos su PVM (21%)",
-      "escalation_lt": "Prognozė remiasi VERT reguliuojamų tarifų vidurkiu arba 4%/m. numatytu augimu",
+      "escalation_lt": "Prognozė remiasi Eurostat HICP energijos kainų indeksais (10 metų vidurkis), ne mažiau nei bendroji infliacija",
       "disclosure_lt": "Šildymo sistemos tipas (centrinis šildymas) nustatytas pagal pastato energinio naudingumo sertifikatą.",
       "bill_note_lt": null,
       "stale_note_lt": "Kainos apskaičiuotos pagal paskutinį žinomą AB „Miesto gijos“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
@@ -1031,42 +1041,42 @@ export const MOCK_EXISTING: ReportData = {
       {
         "year": 2026,
         "total_eur_month": 78.34,
-        "per_carrier": {
-          "cst": 940.03
-        },
-        "fixed_eur_year": 0
+        "per_component": {
+          "heating": 728.89,
+          "dhw": 211.14
+        }
       },
       {
         "year": 2027,
         "total_eur_month": 83.11,
-        "per_carrier": {
-          "cst": 997.28
-        },
-        "fixed_eur_year": 0
+        "per_component": {
+          "heating": 773.28,
+          "dhw": 224
+        }
       },
       {
         "year": 2028,
         "total_eur_month": 88.17,
-        "per_carrier": {
-          "cst": 1058.01
-        },
-        "fixed_eur_year": 0
+        "per_component": {
+          "heating": 820.37,
+          "dhw": 237.64
+        }
       },
       {
         "year": 2029,
         "total_eur_month": 93.54,
-        "per_carrier": {
-          "cst": 1122.45
-        },
-        "fixed_eur_year": 0
+        "per_component": {
+          "heating": 870.34,
+          "dhw": 252.11
+        }
       },
       {
         "year": 2030,
         "total_eur_month": 99.23,
-        "per_carrier": {
-          "cst": 1190.8
-        },
-        "fixed_eur_year": 0
+        "per_component": {
+          "heating": 923.34,
+          "dhw": 267.46
+        }
       }
     ],
     "household_reference": [
@@ -1250,9 +1260,56 @@ export const MOCK_EXISTING: ReportData = {
               "household_electricity_eur": 14
             }
           ],
+          "forecast_5yr": [
+            {
+              "year": 2026,
+              "total_eur_month": 83.54,
+              "per_component": {
+                "heating": 728.89,
+                "dhw": 105.57,
+                "household_electricity": 168
+              }
+            },
+            {
+              "year": 2027,
+              "total_eur_month": 88.44,
+              "per_component": {
+                "heating": 773.28,
+                "dhw": 112,
+                "household_electricity": 176
+              }
+            },
+            {
+              "year": 2028,
+              "total_eur_month": 93.63,
+              "per_component": {
+                "heating": 820.37,
+                "dhw": 118.82,
+                "household_electricity": 184.37
+              }
+            },
+            {
+              "year": 2029,
+              "total_eur_month": 99.13,
+              "per_component": {
+                "heating": 870.34,
+                "dhw": 126.05,
+                "household_electricity": 193.15
+              }
+            },
+            {
+              "year": 2030,
+              "total_eur_month": 104.95,
+              "per_component": {
+                "heating": 923.34,
+                "dhw": 133.73,
+                "household_electricity": 202.34
+              }
+            }
+          ],
           "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 1 asmens namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
           "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 1 asmens namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
-          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 1 asmens namų ūkiui sudarys apie €84 per mėnesį arba €1000 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, o buitinės elektros dalis išliks dabartinio lygio, mėnesinė kaina gali pasiekti apie €113."
+          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 1 asmens namų ūkiui sudarys apie €84 per mėnesį arba €1000 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €105."
         },
         {
           "household_size": 2,
@@ -1386,9 +1443,56 @@ export const MOCK_EXISTING: ReportData = {
               "household_electricity_eur": 23
             }
           ],
+          "forecast_5yr": [
+            {
+              "year": 2026,
+              "total_eur_month": 101.34,
+              "per_component": {
+                "heating": 728.89,
+                "dhw": 211.14,
+                "household_electricity": 276
+              }
+            },
+            {
+              "year": 2027,
+              "total_eur_month": 107.2,
+              "per_component": {
+                "heating": 773.28,
+                "dhw": 224,
+                "household_electricity": 289.14
+              }
+            },
+            {
+              "year": 2028,
+              "total_eur_month": 113.41,
+              "per_component": {
+                "heating": 820.37,
+                "dhw": 237.64,
+                "household_electricity": 302.9
+              }
+            },
+            {
+              "year": 2029,
+              "total_eur_month": 119.98,
+              "per_component": {
+                "heating": 870.34,
+                "dhw": 252.11,
+                "household_electricity": 317.32
+              }
+            },
+            {
+              "year": 2030,
+              "total_eur_month": 126.94,
+              "per_component": {
+                "heating": 923.34,
+                "dhw": 267.46,
+                "household_electricity": 332.42
+              }
+            }
+          ],
           "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 2 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
           "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 2 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
-          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 2 asmenų namų ūkiui sudarys apie €101 per mėnesį arba €1214 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, o buitinės elektros dalis išliks dabartinio lygio, mėnesinė kaina gali pasiekti apie €122."
+          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 2 asmenų namų ūkiui sudarys apie €101 per mėnesį arba €1214 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €127."
         },
         {
           "household_size": 3,
@@ -1522,9 +1626,56 @@ export const MOCK_EXISTING: ReportData = {
               "household_electricity_eur": 30
             }
           ],
+          "forecast_5yr": [
+            {
+              "year": 2026,
+              "total_eur_month": 117.13,
+              "per_component": {
+                "heating": 728.89,
+                "dhw": 316.71,
+                "household_electricity": 360
+              }
+            },
+            {
+              "year": 2027,
+              "total_eur_month": 123.87,
+              "per_component": {
+                "heating": 773.28,
+                "dhw": 335.99,
+                "household_electricity": 377.14
+              }
+            },
+            {
+              "year": 2028,
+              "total_eur_month": 130.99,
+              "per_component": {
+                "heating": 820.37,
+                "dhw": 356.46,
+                "household_electricity": 395.09
+              }
+            },
+            {
+              "year": 2029,
+              "total_eur_month": 138.53,
+              "per_component": {
+                "heating": 870.34,
+                "dhw": 378.16,
+                "household_electricity": 413.89
+              }
+            },
+            {
+              "year": 2030,
+              "total_eur_month": 146.51,
+              "per_component": {
+                "heating": 923.34,
+                "dhw": 401.19,
+                "household_electricity": 433.6
+              }
+            }
+          ],
           "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 3 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
           "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 3 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
-          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 3 asmenų namų ūkiui sudarys apie €117 per mėnesį arba €1411 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, o buitinės elektros dalis išliks dabartinio lygio, mėnesinė kaina gali pasiekti apie €129."
+          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 3 asmenų namų ūkiui sudarys apie €117 per mėnesį arba €1411 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €147."
         },
         {
           "household_size": 4,
@@ -1658,9 +1809,56 @@ export const MOCK_EXISTING: ReportData = {
               "household_electricity_eur": 36
             }
           ],
+          "forecast_5yr": [
+            {
+              "year": 2026,
+              "total_eur_month": 131.93,
+              "per_component": {
+                "heating": 728.89,
+                "dhw": 422.28,
+                "household_electricity": 432
+              }
+            },
+            {
+              "year": 2027,
+              "total_eur_month": 139.49,
+              "per_component": {
+                "heating": 773.28,
+                "dhw": 447.99,
+                "household_electricity": 452.56
+              }
+            },
+            {
+              "year": 2028,
+              "total_eur_month": 147.48,
+              "per_component": {
+                "heating": 820.37,
+                "dhw": 475.27,
+                "household_electricity": 474.11
+              }
+            },
+            {
+              "year": 2029,
+              "total_eur_month": 155.94,
+              "per_component": {
+                "heating": 870.34,
+                "dhw": 504.22,
+                "household_electricity": 496.67
+              }
+            },
+            {
+              "year": 2030,
+              "total_eur_month": 164.88,
+              "per_component": {
+                "heating": 923.34,
+                "dhw": 534.93,
+                "household_electricity": 520.31
+              }
+            }
+          ],
           "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 4 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
           "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 4 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
-          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 4 asmenų namų ūkiui sudarys apie €132 per mėnesį arba €1585 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, o buitinės elektros dalis išliks dabartinio lygio, mėnesinė kaina gali pasiekti apie €135."
+          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 4 asmenų namų ūkiui sudarys apie €132 per mėnesį arba €1585 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €165."
         },
         {
           "household_size": 5,
@@ -1794,9 +1992,56 @@ export const MOCK_EXISTING: ReportData = {
               "household_electricity_eur": 42
             }
           ],
+          "forecast_5yr": [
+            {
+              "year": 2026,
+              "total_eur_month": 146.73,
+              "per_component": {
+                "heating": 728.89,
+                "dhw": 527.84,
+                "household_electricity": 504
+              }
+            },
+            {
+              "year": 2027,
+              "total_eur_month": 155.11,
+              "per_component": {
+                "heating": 773.28,
+                "dhw": 559.99,
+                "household_electricity": 527.99
+              }
+            },
+            {
+              "year": 2028,
+              "total_eur_month": 163.97,
+              "per_component": {
+                "heating": 820.37,
+                "dhw": 594.09,
+                "household_electricity": 553.12
+              }
+            },
+            {
+              "year": 2029,
+              "total_eur_month": 173.34,
+              "per_component": {
+                "heating": 870.34,
+                "dhw": 630.27,
+                "household_electricity": 579.45
+              }
+            },
+            {
+              "year": 2030,
+              "total_eur_month": 183.25,
+              "per_component": {
+                "heating": 923.34,
+                "dhw": 668.66,
+                "household_electricity": 607.03
+              }
+            }
+          ],
           "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 5 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
           "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 5 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
-          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 5 asmenų namų ūkiui sudarys apie €147 per mėnesį arba €1763 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, o buitinės elektros dalis išliks dabartinio lygio, mėnesinė kaina gali pasiekti apie €141."
+          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 5 asmenų namų ūkiui sudarys apie €147 per mėnesį arba €1763 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €183."
         }
       ]
     }

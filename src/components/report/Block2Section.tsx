@@ -30,31 +30,22 @@ interface Block2SectionProps {
 
 const MONTHS_LT = ['Sau', 'Vas', 'Kov', 'Bal', 'Geg', 'Bir', 'Lie', 'Rgp', 'Rgs', 'Spa', 'Lap', 'Gru'];
 
-// Monthly-chart component bands (bottom→top: fixed → DHW → heating → cooling →
-// household electricity). Colours + LT labels mirror the PDF monthly chart.
-const COMPONENT_BANDS: { key: string; label: string; color: string }[] = [
-  { key: 'fixed_eur', label: 'Pastovūs mokesčiai', color: '#7F8C8D' },
-  { key: 'dhw_eur', label: 'Karštas vanduo', color: '#2980B9' },
-  { key: 'heating_eur', label: 'Šildymas', color: '#E67E22' },
-  { key: 'cooling_eur', label: 'Vėsinimas', color: '#48C9B0' },
-  { key: 'household_electricity_eur', label: 'Buitinė elektra', color: '#8E44AD' },
+// THE component band list — one origin for BOTH charts (ruling 2026-07-24).
+// Bottom→top: fixed → DHW → heating → cooling → household electricity, the same
+// order and palette the backend's shared `chart_bands` module serves to the PDF.
+// `band` keys the forecast's per_component map; `monthlyKey` keys the monthly
+// row. Never add a second list — the forecast used to carry a rival CARRIER
+// palette, which made "same palette as the forecast" unimplementable and even
+// collided on hue (#E67E22 was heating on one chart, solar on the other).
+const COMPONENT_BANDS: {
+  band: string; monthlyKey: string; label: string; color: string;
+}[] = [
+  { band: 'fixed', monthlyKey: 'fixed_eur', label: 'Pastovūs mokesčiai', color: '#7F8C8D' },
+  { band: 'dhw', monthlyKey: 'dhw_eur', label: 'Karštas vanduo', color: '#2980B9' },
+  { band: 'heating', monthlyKey: 'heating_eur', label: 'Šildymas', color: '#E67E22' },
+  { band: 'cooling', monthlyKey: 'cooling_eur', label: 'Vėsinimas', color: '#48C9B0' },
+  { band: 'household_electricity', monthlyKey: 'household_electricity_eur', label: 'Buitinė elektra', color: '#8E44AD' },
 ];
-
-// Forecast-chart carrier palette (§14.3, mirrors forecast.py CARRIER_COLOURS).
-const CARRIER_COLORS: Record<string, string> = {
-  cst: '#C0392B', natural_gas: '#2E86C1', electricity: '#F39C12', solid_fuel: '#7B4B27',
-  biomass_pellets: '#808000', heat_pump_air: '#17A2B8', heat_pump_ground: '#138496',
-  liquid_fuel: '#7D3C98', lpg: '#A569BD', solar_thermal: '#E67E22',
-  byproduct_heat: '#5D6D7E', other_renewable: '#27AE60', unknown: '#BDC3C7',
-};
-const CARRIER_LABELS_LT: Record<string, string> = {
-  cst: 'Centrinis šildymas', natural_gas: 'Gamtinės dujos', electricity: 'Elektra',
-  solid_fuel: 'Kietasis kuras', biomass_pellets: 'Granulės', heat_pump_air: 'Oro šilumos siurblys',
-  heat_pump_ground: 'Geoterminis siurblys', liquid_fuel: 'Skystasis kuras', lpg: 'Suskystintos dujos',
-  solar_thermal: 'Saulės kolektoriai', byproduct_heat: 'Antrinė šiluma',
-  other_renewable: 'Kiti atsinaujinantys', unknown: 'Nenustatytas',
-};
-const FIXED_COLOR = '#7F8C8D';
 
 const eur = (v: number | null | undefined) => (v == null ? '—' : `€${Math.round(v)}`);
 
@@ -62,10 +53,10 @@ function MonthlyChart({ data }: { data: NonNullable<Block2Data['monthly_variatio
   // Only stack bands that are non-zero somewhere (cooling / household electricity
   // are €0 in the building-only v1, so they drop out of the legend).
   const bands = COMPONENT_BANDS.filter((b) =>
-    data.some((m) => ((m as Record<string, number>)[b.key] ?? 0) > 0),
+    data.some((m) => ((m as Record<string, number>)[b.monthlyKey] ?? 0) > 0),
   );
   const rows = data.map((m) => ({ name: MONTHS_LT[m.month - 1] ?? String(m.month), ...m }));
-  const avg = rows.reduce((s, r) => s + bands.reduce((t, b) => t + ((r as Record<string, number>)[b.key] ?? 0), 0), 0) / (rows.length || 1);
+  const avg = rows.reduce((s, r) => s + bands.reduce((t, b) => t + ((r as Record<string, number>)[b.monthlyKey] ?? 0), 0), 0) / (rows.length || 1);
 
   return (
     <div data-block2="monthly-chart" className="h-[280px] w-full">
@@ -77,7 +68,7 @@ function MonthlyChart({ data }: { data: NonNullable<Block2Data['monthly_variatio
           <Tooltip formatter={(v: number, n) => [eur(v), n]} />
           <Legend wrapperStyle={{ fontSize: 12 }} />
           {bands.map((b) => (
-            <Bar key={b.key} dataKey={b.key} stackId="m" fill={b.color} name={b.label} />
+            <Bar key={b.band} dataKey={b.monthlyKey} stackId="m" fill={b.color} name={b.label} />
           ))}
           <ReferenceLine
             y={avg}
@@ -92,15 +83,17 @@ function MonthlyChart({ data }: { data: NonNullable<Block2Data['monthly_variatio
 }
 
 function ForecastChart({ data }: { data: NonNullable<Block2Data['forecast_5yr']> }) {
-  // per_carrier is annual €/carrier; the chart shows €/month, so divide by 12
-  // and add the monthly fixed fee. Stacked bands sum back to total_eur_month.
-  const carriers = Array.from(
-    new Set(data.flatMap((p) => Object.keys(p.per_carrier ?? {}))),
+  // per_component is annual € per COMPONENT band; the chart shows €/month, so
+  // divide by 12. Stacked bands sum back to total_eur_month. Same band list,
+  // colours and labels as the monthly chart above — one origin. Bands that are
+  // €0 across every year (e.g. the zeroed standing fee) drop out entirely, so
+  // they take no legend slot.
+  const bands = COMPONENT_BANDS.filter((b) =>
+    data.some((p) => (p.per_component?.[b.band] ?? 0) > 0),
   );
   const rows = data.map((p) => {
     const row: Record<string, number | string> = { name: String(p.year) };
-    for (const c of carriers) row[c] = (p.per_carrier?.[c] ?? 0) / 12;
-    row.fixed = (p.fixed_eur_year ?? 0) / 12;
+    for (const b of bands) row[b.band] = (p.per_component?.[b.band] ?? 0) / 12;
     return row;
   });
 
@@ -113,10 +106,9 @@ function ForecastChart({ data }: { data: NonNullable<Block2Data['forecast_5yr']>
           <YAxis tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => `€${v}`} width={44} />
           <Tooltip formatter={(v: number, n) => [eur(v), n]} />
           <Legend wrapperStyle={{ fontSize: 12 }} />
-          {carriers.map((c) => (
-            <Area key={c} type="monotone" dataKey={c} stackId="f" stroke={CARRIER_COLORS[c] ?? '#BDC3C7'} fill={CARRIER_COLORS[c] ?? '#BDC3C7'} name={CARRIER_LABELS_LT[c] ?? c} />
+          {bands.map((b) => (
+            <Area key={b.band} type="monotone" dataKey={b.band} stackId="f" stroke={b.color} fill={b.color} name={b.label} />
           ))}
-          <Area type="monotone" dataKey="fixed" stackId="f" stroke={FIXED_COLOR} fill={FIXED_COLOR} name="Pastovūs mokesčiai" />
         </AreaChart>
       </ResponsiveContainer>
     </div>
@@ -170,6 +162,12 @@ export function Block2Section({
   const shownMonthly = selected
     ? selected.monthly_variation
     : block2.monthly_variation;
+  // Ruling 2026-07-23: the forecast follows the selection too — so its year 1
+  // is the headline the customer just picked, instead of a building-only line
+  // that contradicted the number above it.
+  const shownForecast = selected
+    ? selected.forecast_5yr ?? block2.forecast_5yr
+    : block2.forecast_5yr;
   // §7.5 family paragraph: OFF variant served on the default view, ON variant
   // per option. §7.6 what's-not-included line switches the same way.
   const familyNote = selected
@@ -369,10 +367,10 @@ export function Block2Section({
       )}
 
       {/* 5 — 5-year forecast chart. */}
-      {block2.forecast_5yr && block2.forecast_5yr.length > 0 && (
+      {shownForecast && shownForecast.length > 0 && (
         <div className="mb-8">
           <h3 className="text-base font-semibold text-slate-800 mb-3">Prognozinė mėnesinė energijos kaina per 5 metus</h3>
-          <ForecastChart data={block2.forecast_5yr} />
+          <ForecastChart data={shownForecast} />
         </div>
       )}
 

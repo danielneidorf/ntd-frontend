@@ -50,6 +50,46 @@ describe('Block2Section charts render', () => {
     expect(forecast!.querySelector('svg.recharts-surface')).not.toBeNull();
   });
 
+  it('the forecast follows the household selection and starts at that headline', () => {
+    // Ruling 2026-07-23. The defect this closes: the forecast was building-only
+    // and never moved with the selector, so its year 1 (€78) contradicted the
+    // headline (€101) directly above it. Backend tests are the authoritative
+    // proof; this pins the served capture the chart actually consumes.
+    const opts = MOCK_EXISTING.block2!.household_modelling!.options;
+    expect(opts.length).toBe(5);
+
+    const y1 = opts.map((o) => o.forecast_5yr![0].total_eur_month);
+    const y5 = opts.map((o) => o.forecast_5yr![4].total_eur_month);
+    // Size-reactive: bigger household → higher forecast, both ends.
+    expect(y1).toEqual([...y1].sort((a, b) => a - b));
+    expect(y1[0]).toBeLessThan(y1[4]);
+    expect(y5[0]).toBeLessThan(y5[4]);
+
+    for (const o of opts) {
+      const fc = o.forecast_5yr!;
+      // The consistency pin: year 1 IS the headline for that size.
+      expect(Math.round(fc[0].total_eur_month)).toBe(o.metric.eur_month);
+      // Component bands, not carriers — and household electricity escalates
+      // (the superseded R5 held it flat, which would make these equal).
+      expect(fc[0].per_component.household_electricity).toBeGreaterThan(0);
+      expect(fc[4].per_component.household_electricity).toBeGreaterThan(
+        fc[0].per_component.household_electricity,
+      );
+      expect(Object.keys(fc[0].per_component)).not.toContain('cst');
+      // The €0 standing-fee band takes no slot at all.
+      expect(Object.keys(fc[0].per_component)).not.toContain('fixed');
+    }
+  });
+
+  it('renders the forecast chart for the selected size', () => {
+    const { container } = render(
+      <Block2Section block2={MOCK_EXISTING.block2} householdSize={5} />,
+    );
+    expect(
+      container.querySelector('[data-block2="forecast-chart"] svg.recharts-surface'),
+    ).not.toBeNull();
+  });
+
   it('renders the season-masked chart for the CŠT dev report — heating summer-free, annual intact', () => {
     // The authoritative proof the backend masks district-heat (CŠT) heating to
     // the Oct–Apr delivery season lives in the backend suite (test_monthly_
