@@ -5,26 +5,71 @@ import type { ReportData } from './mockReportData';
 
 type Profile = ReportData['property_profile'];
 
-const ENERGY_CLASS_COLORS: Record<string, string> = {
-  'A++': '#059669',
-  'A+': '#059669',
-  A: '#059669',
-  B: '#16a34a',
-  C: '#ca8a04',
-  D: '#ea580c',
-  E: '#dc2626',
-  F: '#dc2626',
-  G: '#dc2626',
+// THE energy-class ladder and ramp — kept character-identical to the backend's
+// one origin (block1/energy_class_scale.py), which a backend test reads off this
+// file to pin. Never edit one side alone.
+//
+// Colour provenance: styled after the DE-FACTO certificate / EU energy-label
+// convention (green → red). It is NOT an official ramp — STR 2.01.02:2016
+// specifies no class colours at all (verified 2026-07-24 against the regulation
+// itself: 249 pp. including the certificate-form annex, zero colour terms).
+//
+// Every colour clears WCAG AA 4.5:1 against the bold white label it carries; the
+// backend test computes that per entry. The previous ramp did not — C scored
+// 2.94, below even the relaxed large-text bar, on the very chip a customer reads.
+export const ENERGY_CLASS_SCALE = ['A++', 'A+', 'A', 'B', 'C', 'D', 'E', 'F', 'G'] as const;
+
+export const ENERGY_CLASS_COLORS: Record<string, string> = {
+  'A++': '#035139',
+  'A+': '#046A4A',
+  'A': '#04825B',
+  'B': '#12873D',
+  'C': '#9F6D03',
+  'D': '#CA4C0A',
+  'E': '#DB2323',
+  'F': '#B11F1F',
+  'G': '#7C1616',
 };
 
-function EnergyBadge({ cls }: { cls: string }) {
-  const bg = ENERGY_CLASS_COLORS[cls.toUpperCase()] ?? '#6b7280';
+export const UNKNOWN_CLASS_COLOR = '#637896';
+
+/** The scale's spelling of `value`, or null if it names no class — so an
+ *  unresolved class lights NOTHING rather than defaulting to a chip. */
+export function normaliseClass(value: string | null | undefined): string | null {
+  const cls = (value ?? '').trim().toUpperCase();
+  return cls in ENERGY_CLASS_COLORS ? cls : null;
+}
+
+/** The full ladder with the property's class lit.
+ *
+ *  Replaces a bare letter printed beside a chip of the same letter („D D") —
+ *  duplicated, and placeless: a lone „D" tells a buyer nothing about what the
+ *  ladder runs from or to, so the letter carried no position. The scale gives it
+ *  one. The lit chip IS the value now; no letter is repeated beside it.
+ *
+ *  Nine chips fit the card column in one row at desktop and at 375px alike;
+ *  `flex-wrap` is the graceful degradation if a narrower column ever appears. */
+export function EnergyClassScale({ cls }: { cls: string }) {
+  const active = normaliseClass(cls);
   return (
-    <span
-      className="inline-block text-white text-sm font-bold px-2.5 py-0.5 rounded ml-2"
-      style={{ backgroundColor: bg }}
-    >
-      {cls.toUpperCase()}
+    <span className="flex flex-wrap items-center gap-[2px]" data-energy-scale={active ?? ''}>
+      {ENERGY_CLASS_SCALE.map((c) => {
+        const isActive = c === active;
+        return (
+          <span
+            key={c}
+            data-class={c}
+            data-active={isActive ? 'true' : 'false'}
+            className={
+              'inline-block min-w-[24px] text-center rounded-[3px] px-1 py-[3px] text-[11px] leading-none ' +
+              (isActive ? 'text-white font-bold' : 'text-slate-400 font-medium')
+            }
+            style={{ backgroundColor: isActive ? ENERGY_CLASS_COLORS[c] : '#F1F5F9' }}
+          >
+            {c}
+          </span>
+        );
+      })}
     </span>
   );
 }
@@ -32,7 +77,11 @@ function EnergyBadge({ cls }: { cls: string }) {
 type Field = {
   label: string;
   value: string | number;
-  badge?: React.ReactNode;
+  // Renders INSTEAD of the text value, not beside it. It replaced `badge`,
+  // which sat next to the value and produced „D D" on the one row that used it:
+  // the letter and a chip of the same letter. Where a node is the value, the
+  // text must not also be printed.
+  valueNode?: React.ReactNode;
   // Report-walk C1: full-width muted note rendered AFTER this cell
   // (spans both grid columns; mobile stacking keeps it under the pair).
   helperAfter?: string;
@@ -43,13 +92,13 @@ type Field = {
   pairGroup?: string;
 };
 
-function buildGroup(fields: { label: string; raw: unknown; format?: (v: any) => string; badge?: React.ReactNode; helperAfter?: string; helper?: string | null; pairGroup?: string }[]): Field[] {
+function buildGroup(fields: { label: string; raw: unknown; format?: (v: any) => string; valueNode?: React.ReactNode; helperAfter?: string; helper?: string | null; pairGroup?: string }[]): Field[] {
   return fields
     .filter((f) => f.raw != null)
     .map((f) => ({
       label: f.label,
       value: f.format ? f.format(f.raw) : String(f.raw),
-      badge: f.badge,
+      valueNode: f.valueNode,
       helperAfter: f.helperAfter,
       helper: f.helper,
       pairGroup: f.pairGroup,
@@ -112,8 +161,7 @@ function FieldCell({ field }: { field: Field }) {
     <div className="py-1.5" data-cell={field.label}>
       <p className="text-[13px] leading-tight text-slate-400 mb-0.5">{field.label}</p>
       <p className="text-[15px] leading-snug text-slate-900 font-medium">
-        {field.value}
-        {field.badge}
+        {field.valueNode ?? field.value}
       </p>
       {field.helper && (
         <p className="text-[13px] leading-tight text-slate-400 mt-1 max-w-[65ch]">{field.helper}</p>
@@ -257,7 +305,12 @@ export default function PropertyProfile({
     {
       label: 'Energinė klasė',
       raw: profile.energy_class,
-      badge: profile.energy_class ? <EnergyBadge cls={profile.energy_class} /> : undefined,
+      // The scale IS the value — `raw` stays only so the null filter keeps the
+      // row absent when no class resolved, which is also what stops an empty
+      // ladder ever rendering.
+      valueNode: profile.energy_class ? (
+        <EnergyClassScale cls={profile.energy_class} />
+      ) : undefined,
       helper: profile.energy_class_provenance_lt,
     },
     {

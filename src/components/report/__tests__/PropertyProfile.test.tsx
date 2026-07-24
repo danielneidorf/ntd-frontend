@@ -10,7 +10,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import PropertyProfile from '../PropertyProfile';
+import PropertyProfile, { ENERGY_CLASS_SCALE, ENERGY_CLASS_COLORS } from '../PropertyProfile';
 import type { ReportData } from '../mockReportData';
 
 const PROFILE: ReportData['property_profile'] = {
@@ -368,5 +368,72 @@ describe('floors row (Aukštų skaičius, 2026-07-21)', () => {
     // here — no count, no row, no guess.
     const { container } = renderCard({ floors: null });
     expect(container.textContent).not.toContain('Aukštų skaičius');
+  });
+});
+
+describe('energy class scale', () => {
+  const renderProfile = (overrides = {}) =>
+    render(
+      <PropertyProfile
+        profile={{ ...PROFILE, ...overrides }}
+        lat={54.7}
+        lng={25.28}
+        address="Testo g. 1, Vilnius"
+      />,
+    );
+  const chips = (c: HTMLElement) => [...c.querySelectorAll('[data-energy-scale] [data-class]')];
+
+  it('renders the whole ladder, so the letter has a position', () => {
+    // The row used to print a bare letter beside a chip of the same letter —
+    // „D D". The duplication was the small problem; a lone „D" is PLACELESS,
+    // telling a buyer nothing about what the scale runs from or to.
+    const { container } = renderProfile();
+    expect(chips(container).map((e) => e.getAttribute('data-class'))).toEqual([
+      ...ENERGY_CLASS_SCALE,
+    ]);
+  });
+
+  it.each([...ENERGY_CLASS_SCALE])('lights %s and only %s', (cls) => {
+    const { container } = renderProfile({ energy_class: cls });
+    const lit = chips(container).filter((e) => e.getAttribute('data-active') === 'true');
+    expect(lit.map((e) => e.getAttribute('data-class'))).toEqual([cls]);
+    expect((lit[0] as HTMLElement).style.backgroundColor).toBeTruthy();
+  });
+
+  it('prints no duplicate letter beside the scale', () => {
+    // The lit chip IS the value. If the text value were still rendered, the row
+    // would read „D" followed by the ladder — the defect this replaced.
+    const { container } = renderProfile();
+    const cell = container.querySelector('[data-cell="Energinė klasė"]')!;
+    const valueLine = cell.querySelectorAll('p')[1];
+    expect(valueLine.textContent).toBe(ENERGY_CLASS_SCALE.join(''));
+  });
+
+  it('renders no row at all when no class resolved', () => {
+    // Fail-loud: the empty scale must never render.
+    const { container } = renderProfile({ energy_class: null });
+    expect(container.querySelector('[data-cell="Energinė klasė"]')).toBeNull();
+    expect(container.querySelector('[data-energy-scale]')).toBeNull();
+  });
+
+  it('keeps the era disclosure attached to the scale', () => {
+    const { container } = renderProfile({
+      energy_class_provenance: 'era',
+      energy_class_provenance_lt: 'Nustatyta pagal statybos periodą (sertifikato nėra)',
+    });
+    const cell = container.querySelector('[data-cell="Energinė klasė"]')!;
+    expect(cell.querySelector('[data-energy-scale]')).not.toBeNull();
+    expect(cell.textContent).toContain('Nustatyta pagal statybos periodą');
+  });
+
+  it('an unresolved class lights nothing rather than defaulting', () => {
+    const { container } = renderProfile({ energy_class: 'H' });
+    expect(chips(container).some((e) => e.getAttribute('data-active') === 'true')).toBe(false);
+  });
+
+  it('every class has its own colour — nine distinct steps', () => {
+    // The ramp this replaced collapsed E, F and G into one red, so the third of
+    // the ladder that matters most to a buyer carried no position.
+    expect(new Set(Object.values(ENERGY_CLASS_COLORS)).size).toBe(ENERGY_CLASS_SCALE.length);
   });
 });
