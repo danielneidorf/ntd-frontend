@@ -49,6 +49,32 @@ const COMPONENT_BANDS: {
 
 const eur = (v: number | null | undefined) => (v == null ? '—' : `€${Math.round(v)}`);
 
+// Glance anchors (ruling 2026-07-24) — ONE origin for both charts, so they read
+// as siblings: same typography, same whole-euro rounding, same placement.
+// Each chart carries exactly ONE in-chart numeral — the value its own shapes do
+// NOT show: the monthly chart's average (the bars already show peak and
+// trough), and the forecast's year-5 end height. Both charts also carry a
+// mirrored right-edge ruler — ticks and scale only, no labels — so a height can
+// be read against the edge nearest it. The ruler is a ruler, not a second value
+// mechanism, which is why it coexists with the numeral.
+const AVG_LINE_COLOR = '#2C3E50';
+const anchorLabel = (v: number) => ({
+  value: eur(v),
+  position: 'center' as const,
+  fontSize: 12,
+  fontWeight: 500,
+  fill: '#1E3A5F',
+});
+// Mirrored ruler: same domain as the left axis, tick marks only.
+const RULER = {
+  yAxisId: 'right' as const,
+  orientation: 'right' as const,
+  tickFormatter: () => '',
+  width: 16,
+  axisLine: { stroke: '#cbd5e1' },
+  tickLine: { stroke: '#cbd5e1' },
+};
+
 function MonthlyChart({ data }: { data: NonNullable<Block2Data['monthly_variation']> }) {
   // Only stack bands that are non-zero somewhere (cooling / household electricity
   // are €0 in the building-only v1, so they drop out of the legend).
@@ -64,17 +90,27 @@ function MonthlyChart({ data }: { data: NonNullable<Block2Data['monthly_variatio
         <BarChart data={rows} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#eef2f7" vertical={false} />
           <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748b' }} />
-          <YAxis tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => `€${v}`} width={44} />
+          <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => `€${v}`} width={44} />
+          <YAxis {...RULER} tick={{ fontSize: 0 }} />
           <Tooltip formatter={(v: number, n) => [eur(v), n]} />
-          <Legend wrapperStyle={{ fontSize: 12 }} />
+          {/* The dashed average is NAMED here; its value is the in-chart
+              numeral below — name and number, once each. */}
+          <Legend
+            wrapperStyle={{ fontSize: 12 }}
+            payload={[
+              ...bands.map((b) => ({ value: b.label, type: 'square' as const, color: b.color, id: b.band })),
+              { value: 'Vidutinė mėnesinė kaina', type: 'plainline' as const, color: AVG_LINE_COLOR, payload: { strokeDasharray: '5 4' } },
+            ]}
+          />
           {bands.map((b) => (
-            <Bar key={b.band} dataKey={b.monthlyKey} stackId="m" fill={b.color} name={b.label} />
+            <Bar key={b.band} yAxisId="left" dataKey={b.monthlyKey} stackId="m" fill={b.color} name={b.label} />
           ))}
           <ReferenceLine
+            yAxisId="left"
             y={avg}
-            stroke="#1E3A5F"
+            stroke={AVG_LINE_COLOR}
             strokeDasharray="5 4"
-            label={{ value: `Vidurkis ~${eur(avg)}/mėn.`, fontSize: 11, fill: '#1E3A5F', position: 'insideTopRight' }}
+            label={anchorLabel(avg)}
           />
         </BarChart>
       </ResponsiveContainer>
@@ -96,6 +132,8 @@ function ForecastChart({ data }: { data: NonNullable<Block2Data['forecast_5yr']>
     for (const b of bands) row[b.band] = (p.per_component?.[b.band] ?? 0) / 12;
     return row;
   });
+  // Read the served endpoint — never recomputed from the bands.
+  const year5 = data.length ? data[data.length - 1].total_eur_month : null;
 
   return (
     <div data-block2="forecast-chart" className="h-[280px] w-full">
@@ -103,12 +141,19 @@ function ForecastChart({ data }: { data: NonNullable<Block2Data['forecast_5yr']>
         <AreaChart data={rows} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#eef2f7" vertical={false} />
           <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748b' }} label={{ value: 'Metai', position: 'insideBottom', offset: -2, fontSize: 11, fill: '#64748b' }} />
-          <YAxis tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => `€${v}`} width={44} />
+          <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => `€${v}`} width={44} />
+          <YAxis {...RULER} tick={{ fontSize: 0 }} />
           <Tooltip formatter={(v: number, n) => [eur(v), n]} />
           <Legend wrapperStyle={{ fontSize: 12 }} />
           {bands.map((b) => (
-            <Area key={b.band} type="monotone" dataKey={b.band} stackId="f" stroke={b.color} fill={b.color} name={b.label} />
+            <Area key={b.band} yAxisId="left" type="monotone" dataKey={b.band} stackId="f" stroke={b.color} fill={b.color} name={b.label} />
           ))}
+          {/* The chart's ONE numeral: the year-5 total — the glance question
+              this chart exists to answer. No rule drawn; the ruler carries the
+              eye. */}
+          {year5 != null && (
+            <ReferenceLine yAxisId="left" y={year5} stroke="none" label={anchorLabel(year5)} />
+          )}
         </AreaChart>
       </ResponsiveContainer>
     </div>

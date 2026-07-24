@@ -81,6 +81,40 @@ describe('Block2Section charts render', () => {
     }
   });
 
+  it('the glance anchors read the served arrays and follow the selector', () => {
+    // Each chart carries ONE numeral: the monthly average (the level the bars
+    // do not show — peak/trough are self-evident and carry none) and the
+    // forecast's year-5. Both are read off the SELECTED option's served
+    // arrays, never recomputed. The backend suite proves what the PDF figure
+    // actually draws; this pins that the web is fed the same values.
+    const opts = MOCK_EXISTING.block2!.household_modelling!.options;
+    const eur = (v: number) => `€${Math.round(v)}`;
+
+    const anchors = opts.map((o) => {
+      const totals = o.monthly_variation.map(
+        (m) => m.heating_eur + m.dhw_eur + m.cooling_eur + m.fixed_eur + m.household_electricity_eur,
+      );
+      return {
+        avg: eur(totals.reduce((a, b) => a + b, 0) / totals.length),
+        year5: eur(o.forecast_5yr![o.forecast_5yr!.length - 1].total_eur_month),
+      };
+    });
+
+    // Selector-reactive: both anchors move with the household size.
+    expect(new Set(anchors.map((a) => a.avg)).size).toBe(5);
+    expect(new Set(anchors.map((a) => a.year5)).size).toBe(5);
+    // Whole euros, the report's display convention — no decimals leak through.
+    for (const a of anchors) {
+      expect(a.avg).toMatch(/^€\d+$/);
+      expect(a.year5).toMatch(/^€\d+$/);
+    }
+    // The average is the monthly anchor, so it must equal the headline's basis
+    // for that size (year-1 of the forecast is the same figure).
+    opts.forEach((o, i) => {
+      expect(anchors[i].avg).toBe(eur(o.metric.eur_month));
+    });
+  });
+
   it('renders the forecast chart for the selected size', () => {
     const { container } = render(
       <Block2Section block2={MOCK_EXISTING.block2} householdSize={5} />,
