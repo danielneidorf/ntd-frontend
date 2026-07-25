@@ -158,6 +158,59 @@ describe('Block2Section charts render', () => {
     expect(ForecastNumerals({ count: 5 }).props.legendType).toBe('none');
   });
 
+  it('each chart is one named image, not a nameless focusable region', () => {
+    // The defect (verified in the live DOM 2026-07-25): Recharts 3.8.1 turns its
+    // accessibilityLayer ON by default, so both charts shipped as tabIndex=0 +
+    // role="application" SVGs with NO name — a screen reader landed on a
+    // focusable "application" it couldn't identify. The fix: accessibilityLayer
+    // ={false} makes the SVG inert, and role="img" + an LT aria-label on the
+    // wrapper makes each chart one named image (the PDF's model too).
+    const { container } = render(<Block2Section block2={MOCK_EXISTING.block2} />);
+    for (const sel of ['monthly-chart', 'forecast-chart']) {
+      const root = container.querySelector(`[data-block2="${sel}"]`)!;
+      const svg = root.querySelector('svg.recharts-surface')!;
+      // The SVG is inert — no focus stop, not announced as an application.
+      expect(svg.getAttribute('tabindex')).toBeNull();
+      expect(svg.getAttribute('role')).not.toBe('application');
+      // The chart is a named image.
+      const img = root.querySelector('[role="img"]')!;
+      expect(img).not.toBeNull();
+      expect(img.getAttribute('aria-label')?.length ?? 0).toBeGreaterThan(0);
+      // The legend stays REAL text, outside the image region — band names must
+      // remain readable to AT, so they are not buried under role="img".
+      expect(root.querySelectorAll('ul li').length).toBeGreaterThan(0);
+    }
+  });
+
+  it('the chart labels speak the served numbers, per household size', () => {
+    // The label carries the chart's ANSWER, composed from the same served arrays
+    // the chart draws — no new claim. It moves with the selector, so each size's
+    // label states that size's figures.
+    const opts = MOCK_EXISTING.block2!.household_modelling!.options;
+    for (const o of opts) {
+      const totals = o.monthly_variation.map(
+        (m) => m.heating_eur + m.dhw_eur + m.cooling_eur + m.fixed_eur + m.household_electricity_eur,
+      );
+      const avg = Math.round(totals.reduce((a, b) => a + b, 0) / totals.length);
+      const { container } = render(
+        <Block2Section block2={MOCK_EXISTING.block2} householdSize={o.household_size} />,
+      );
+      const monthly = container
+        .querySelector('[data-block2="monthly-chart"] [role="img"]')!
+        .getAttribute('aria-label')!;
+      // The average the label states is the served average for this size.
+      expect(monthly).toContain(`€${avg}`);
+      const fc = o.forecast_5yr!;
+      const forecast = container
+        .querySelector('[data-block2="forecast-chart"] [role="img"]')!
+        .getAttribute('aria-label')!;
+      expect(forecast).toContain(`€${Math.round(fc[0].total_eur_month)}`);
+      expect(forecast).toContain(`€${Math.round(fc[fc.length - 1].total_eur_month)}`);
+      expect(forecast).toContain(String(fc[0].year));
+      expect(forecast).toContain(String(fc[fc.length - 1].year));
+    }
+  });
+
   it('tooltips print the served display integers, never a local rounding', () => {
     // ONE rounding convention, table-authoritative (ruling 2026-07-24). The
     // defect: the breakdown table and the chart tooltips rounded the same money

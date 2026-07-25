@@ -319,17 +319,33 @@ function MonthlyChart({
   const monthTotals = rows.map((r) => bands.reduce((t, b) => t + ((r as Record<string, number>)[b.monthlyKey] ?? 0), 0));
   const avg = monthTotals.reduce((s, v) => s + v, 0) / (rows.length || 1);
   const scale = axisScale(Math.max(...monthTotals, 0));
+  // The chart's ANSWER, for a screen reader — the average and the range, from
+  // the same totals the bars draw (no new claim). The chart is announced as one
+  // named image; the legend below stays real text, so band names are still
+  // read. Exact wording → B8-4.
+  const minIdx = monthTotals.indexOf(Math.min(...monthTotals));
+  const maxIdx = monthTotals.indexOf(Math.max(...monthTotals));
+  const ariaLabel =
+    `Mėnesinės energijos sąnaudos: vidutiniškai ${eur(avg)} per mėnesį, ` +
+    `nuo ${eur(monthTotals[minIdx])} (${rows[minIdx]?.name}) iki ` +
+    `${eur(monthTotals[maxIdx])} (${rows[maxIdx]?.name})`;
 
   return (
     <div data-block2="monthly-chart">
       {/* Legend rendered OUTSIDE Recharts. Routing it through <Legend> — by
           `payload` or by `content` — either got silently ignored or left every
           series marked `recharts-inactive-bar`, i.e. the bars stopped drawing.
-          Outside, we own it completely and it cannot touch series state. */}
+          Outside, we own it completely and it cannot touch series state.
+          It sits OUTSIDE the role="img" region below on purpose — the band
+          names are real text AT should read, not part of the chart image. */}
       <ChartLegend entries={legendEntries(bands, AVERAGE_LABEL_LT)} />
-      <div className="h-[280px] w-full">
+      <div className="h-[280px] w-full" role="img" aria-label={ariaLabel}>
       <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart data={rows} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
+        {/* accessibilityLayer={false}: Recharts' default (true) makes the SVG a
+            focusable role="application" with arrow-key point-nav. Announced as an
+            image, that would be a focusable, key-trapping "picture" — incoherent.
+            Off, the SVG is inert; the wrapper above is the one named image. */}
+        <ComposedChart accessibilityLayer={false} data={rows} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#eef2f7" vertical={false} />
           <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748b' }} />
           <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => `€${v}`} width={44} domain={scale.domain} ticks={scale.ticks} />
@@ -388,16 +404,26 @@ function ForecastChart({ data }: { data: NonNullable<Block2Data['forecast_5yr']>
     Math.max(...data.map((p) => p.total_eur_month), 0),
     { headroom: true },
   );
+  // The trajectory in one sentence for a screen reader — first year to last,
+  // from the served endpoints. Same img/label model as the monthly chart.
+  const first = data[0];
+  const last = data[data.length - 1];
+  const ariaLabel =
+    `Prognozuojama mėnesinė energijos kaina: nuo ${eur(first?.total_eur_month)} ` +
+    `(${first?.year}) iki ${eur(last?.total_eur_month)} (${last?.year})`;
 
   return (
     <div data-block2="forecast-chart">
+      {/* Legend stays real text outside the role="img" region (band names). */}
       <ChartLegend entries={legendEntries(bands)} />
-      <div className="h-[280px] w-full">
+      <div className="h-[280px] w-full" role="img" aria-label={ariaLabel}>
       <ResponsiveContainer width="100%" height="100%">
-        {/* bottom: 18 — the „Metai" axis label sits below the year ticks, and
+        {/* accessibilityLayer={false} — see MonthlyChart: no focusable
+            key-trapping SVG announced as a picture.
+            bottom: 18 — the „Metai" axis label sits below the year ticks, and
             with a zero bottom margin it had nowhere to go, so it rendered
             clipped by the chart's own edge. The margin is the room it needs. */}
-        <AreaChart data={rows} margin={{ top: 8, right: 8, left: -8, bottom: 18 }}>
+        <AreaChart accessibilityLayer={false} data={rows} margin={{ top: 8, right: 8, left: -8, bottom: 18 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#eef2f7" vertical={false} />
           <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748b' }} label={{ value: 'Metai', position: 'insideBottom', offset: -2, fontSize: 11, fill: '#64748b' }} />
           <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => `€${v}`} width={44} domain={scale.domain} ticks={scale.ticks} />
