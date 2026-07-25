@@ -33,11 +33,44 @@ export const ENERGY_CLASS_COLORS: Record<string, string> = {
 
 export const UNKNOWN_CLASS_COLOR = '#637896';
 
+// Muted-chip fills — each ramp colour mixed 28% with white. One origin, both
+// surfaces (backend `energy_class_scale.ENERGY_CLASS_TINTS` holds the same
+// values; the disk-read parity test pins them equal). The point of the tint,
+// per the 2026-07-24 ruling: an unlit chip still carries its OWN band colour, so
+// the green→red gradient reads as a gradient across the whole scale even where
+// nothing is highlighted — that is what makes the class's position legible.
+// Uniform grey (what shipped first) threw that information away.
+export const ENERGY_CLASS_TINTS: Record<string, string> = {
+  'A++': '#B8CEC8',
+  'A+': '#B9D5CC',
+  'A': '#B9DCD1',
+  'B': '#BDDDC9',
+  'C': '#E4D6B8',
+  'D': '#F0CDBA',
+  'E': '#F5C1C1',
+  'F': '#E9C0C0',
+  'G': '#DABEBE',
+};
+
+export const UNKNOWN_CLASS_TINT = '#D3D9E2';
+
 /** The scale's spelling of `value`, or null if it names no class — so an
  *  unresolved class lights NOTHING rather than defaulting to a chip. */
 export function normaliseClass(value: string | null | undefined): string | null {
   const cls = (value ?? '').trim().toUpperCase();
   return cls in ENERGY_CLASS_COLORS ? cls : null;
+}
+
+/** One LT sentence naming the scale for a screen reader — the class and where it
+ *  sits. Direction „Energinė klasė D skalėje nuo A++ iki G". Composed from the
+ *  served class + the shared ladder ends, no new copy. Exact wording → B8-4. */
+export function classScaleAriaLabel(cls: string): string {
+  const active = normaliseClass(cls);
+  const lo = ENERGY_CLASS_SCALE[0];
+  const hi = ENERGY_CLASS_SCALE[ENERGY_CLASS_SCALE.length - 1];
+  return active
+    ? `Energinė klasė ${active} skalėje nuo ${lo} iki ${hi}`
+    : `Energinės klasės skalė nuo ${lo} iki ${hi}`;
 }
 
 /** The full ladder with the property's class lit.
@@ -47,12 +80,26 @@ export function normaliseClass(value: string | null | undefined): string | null 
  *  ladder runs from or to, so the letter carried no position. The scale gives it
  *  one. The lit chip IS the value now; no letter is repeated beside it.
  *
- *  Nine chips fit the card column in one row at desktop and at 375px alike;
- *  `flex-wrap` is the graceful degradation if a narrower column ever appears. */
+ *  Sizing (2026-07-25): the lit chip reads at the weight of the „145.2 kWh/m²"
+ *  value beside it — the section's two headline facts. Unlit chips carry their
+ *  OWN band colour at 28% strength (ENERGY_CLASS_TINTS), so the green→red
+ *  gradient is visible as a gradient across the whole scale even where nothing
+ *  is lit — the first version's uniform grey threw that away. Lit stays full
+ *  colour + bold white; the lit/muted split survives the tinting (saturated +
+ *  white vs pale + own-hue text).
+ *
+ *  One row into the card column at desktop; `flex-wrap` degrades to two rows in
+ *  a narrow (≈375px) column, which is acceptable — shrinking to force one row
+ *  would undo the prominence this size-up exists to create. */
 export function EnergyClassScale({ cls }: { cls: string }) {
   const active = normaliseClass(cls);
   return (
-    <span className="flex flex-wrap items-center gap-[2px]" data-energy-scale={active ?? ''}>
+    <span
+      className="flex flex-wrap items-center gap-1"
+      data-energy-scale={active ?? ''}
+      role="img"
+      aria-label={classScaleAriaLabel(cls)}
+    >
       {ENERGY_CLASS_SCALE.map((c) => {
         const isActive = c === active;
         return (
@@ -60,11 +107,16 @@ export function EnergyClassScale({ cls }: { cls: string }) {
             key={c}
             data-class={c}
             data-active={isActive ? 'true' : 'false'}
+            aria-hidden="true"
             className={
-              'inline-block min-w-[24px] text-center rounded-[3px] px-1 py-[3px] text-[11px] leading-none ' +
-              (isActive ? 'text-white font-bold' : 'text-slate-400 font-medium')
+              'inline-block min-w-[30px] text-center rounded-[4px] px-1.5 py-1 text-[15px] leading-none ' +
+              (isActive ? 'text-white font-bold' : 'font-semibold')
             }
-            style={{ backgroundColor: isActive ? ENERGY_CLASS_COLORS[c] : '#F1F5F9' }}
+            style={
+              isActive
+                ? { backgroundColor: ENERGY_CLASS_COLORS[c] }
+                : { backgroundColor: ENERGY_CLASS_TINTS[c], color: ENERGY_CLASS_COLORS[c] }
+            }
           >
             {c}
           </span>

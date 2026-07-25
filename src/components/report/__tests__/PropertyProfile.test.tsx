@@ -10,7 +10,12 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import PropertyProfile, { ENERGY_CLASS_SCALE, ENERGY_CLASS_COLORS } from '../PropertyProfile';
+import PropertyProfile, {
+  ENERGY_CLASS_SCALE,
+  ENERGY_CLASS_COLORS,
+  ENERGY_CLASS_TINTS,
+  classScaleAriaLabel,
+} from '../PropertyProfile';
 import type { ReportData } from '../mockReportData';
 
 const PROFILE: ReportData['property_profile'] = {
@@ -436,4 +441,56 @@ describe('energy class scale', () => {
     // the ladder that matters most to a buyer carried no position.
     expect(new Set(Object.values(ENERGY_CLASS_COLORS)).size).toBe(ENERGY_CLASS_SCALE.length);
   });
+
+  // ── Part A: prominence + gradient + aria (2026-07-25) ──────────────────────
+
+  it('the scale is one named image, its chips hidden from AT', () => {
+    // A screen reader should hear one sentence — the class and where it sits —
+    // not „A++ A+ A B C D E F G" letter-soup. So role=img + aria-label on the
+    // scale, aria-hidden on every chip.
+    const { container } = renderProfile();
+    const scale = container.querySelector('[data-energy-scale]')!;
+    expect(scale.getAttribute('role')).toBe('img');
+    expect(scale.getAttribute('aria-label')).toBe('Energinė klasė D skalėje nuo A++ iki G');
+    expect(chips(container).every((c) => c.getAttribute('aria-hidden') === 'true')).toBe(true);
+  });
+
+  it('the aria sentence names the class and the ladder ends', () => {
+    // Composed, not authored: the class is served, the ends come from the shared
+    // ladder — so „A++" / „G" cannot drift from what the chips draw.
+    expect(classScaleAriaLabel('D')).toBe('Energinė klasė D skalėje nuo A++ iki G');
+    expect(classScaleAriaLabel('A++')).toBe('Energinė klasė A++ skalėje nuo A++ iki G');
+    // No class → the scale is still named, without asserting a class.
+    expect(classScaleAriaLabel('')).toBe('Energinės klasės skalė nuo A++ iki G');
+  });
+
+  it('unlit chips carry their OWN band tint, not uniform grey', () => {
+    // The gradient must read as a gradient even where nothing is lit — that is
+    // what makes position legible, and the whole reason the row exists. A muted
+    // chip whose background is a fixed grey (what shipped first) throws that
+    // away. Each unlit chip's background is its class's tint; its text is the
+    // full ramp colour.
+    const { container } = renderProfile();
+    for (const c of chips(container)) {
+      const cls = c.getAttribute('data-class')!;
+      if (c.getAttribute('data-active') === 'true') continue;
+      expect((c as HTMLElement).style.backgroundColor).toBe(hexToRgb(ENERGY_CLASS_TINTS[cls]));
+      expect((c as HTMLElement).style.color).toBe(hexToRgb(ENERGY_CLASS_COLORS[cls]));
+    }
+    // Every tint is its own — a real gradient, not one repeated grey.
+    expect(new Set(Object.values(ENERGY_CLASS_TINTS)).size).toBe(ENERGY_CLASS_SCALE.length);
+  });
+
+  it('the lit chip keeps full ramp colour (the contrast pins hold on it)', () => {
+    const { container } = renderProfile({ energy_class: 'C' });
+    const lit = chips(container).find((c) => c.getAttribute('data-active') === 'true')! as HTMLElement;
+    expect(lit.getAttribute('data-class')).toBe('C');
+    expect(lit.style.backgroundColor).toBe(hexToRgb(ENERGY_CLASS_COLORS['C']));
+  });
 });
+
+function hexToRgb(hex: string): string {
+  const h = hex.replace('#', '');
+  const n = parseInt(h, 16);
+  return `rgb(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255})`;
+}
