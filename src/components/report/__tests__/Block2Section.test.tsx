@@ -4,7 +4,7 @@
 // against mock option values asserts the component renders served data.
 import { useState } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { Block2Section } from '../Block2Section';
+import { Block2Section, HOUSEHOLD_REFERENCE_CAPTION } from '../Block2Section';
 import { MOCK_EXISTING, MOCK_FALLBACK, MOCK_LAND_ONLY } from '../mockReportData';
 
 // Controlled-component harness: selection state lives in ReportViewer in the
@@ -44,6 +44,23 @@ describe('Block2Section', () => {
       screen.getByText(`~€${MOCK_EXISTING.block2!.metric!.eur_month}`),
     ).toBeInTheDocument();
     expect(screen.getByText('Ką tai reiškia praktiškai?')).toBeInTheDocument();
+  });
+
+  it('the reference table lives INSIDE the merged section, as its last element (ruling 2026-07-25)', () => {
+    const { container } = render(<Block2Section block2={MOCK_EXISTING.block2} />);
+    // Exactly one reference table, and it is inside the collapsible section …
+    const tables = container.querySelectorAll('[data-block2="household-reference"]');
+    expect(tables.length).toBe(1);
+    const table = tables[0];
+    const section = table.closest('[data-info-section]');
+    expect(section).not.toBeNull(); // membership — not a standalone block outside
+    // … after the prose items (it is the section's last element) …
+    const items = section!.querySelector('[data-block2="info-section"]')!;
+    expect(
+      items.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    // … under the one-origin caption.
+    expect(section!.textContent).toContain(HOUSEHOLD_REFERENCE_CAPTION);
   });
 
   it('renders the 📊/👥 source-indicator glyphs in the breakdown table', () => {
@@ -384,8 +401,12 @@ describe('Block2Section', () => {
     expect(
       screen.getByText(`~€${MOCK_EXISTING.block2!.metric!.eur_month}`),
     ).toBeInTheDocument();
-    // The static reference table still renders.
-    expect(container.querySelector('[data-block2="household-reference"]')).not.toBeNull();
+    // The static reference table still renders — and, in this no-modelling
+    // shape too, it lives inside the merged section (the degradation floor,
+    // ruling 2026-07-25), directly after the assumptions with no 👥 sub-body.
+    const table = container.querySelector('[data-block2="household-reference"]');
+    expect(table).not.toBeNull();
+    expect(table!.closest('[data-info-section]')).not.toBeNull();
   });
 });
 

@@ -70,6 +70,15 @@ const AVERAGE_LABEL_LT = 'Vidutinė mėnesinė kaina';
 export const FORECAST_CHART_TITLE_LT =
   'Prognozuojamas mėnesio energijos kainos kitimas (per 5 metus)';
 
+// Caption for the household-electricity reference table (§7.7), now the last
+// element of the merged „Kokia informacija remiamės?" section (ruling
+// 2026-07-25). Exported and one-origin: the PDF holds the same string
+// (templates_lt.HOUSEHOLD_REFERENCE_CAPTION_LT) and a backend disk-read test
+// pins the two character-identical. Web wording is canonical here — the PDF
+// used to read „…suvartojimas"; that divergence closes, and both variants go
+// to B8-4.
+export const HOUSEHOLD_REFERENCE_CAPTION = 'Tipinės namų ūkio elektros sąnaudos';
+
 /** Where a chart row carries the authoritative whole-€ display values for its
  *  bands. Not plotted — read only when a tooltip needs a number to print. */
 export const DISPLAY_KEY = '__display';
@@ -670,6 +679,35 @@ export function Block2Section({
               <p key={i} className="whitespace-pre-line">{item}</p>
             ))}
           </div>
+          {/* 9 — Household-electricity reference table (§7.7): the LAST element
+              of the merged section (ruling 2026-07-25), a sibling of the prose
+              items above. Its own `household_reference` gate = residential, so it
+              still shows even when modelling degrades (the graceful floor: „the
+              web shows at most the reference table", B2-14). Behind the web
+              collapse; the customer's own size stays visible in the breakdown. */}
+          {household_reference && household_reference.length > 0 && (
+            <div className="overflow-x-auto mt-4">
+              <h3 className="text-base font-semibold text-slate-800 mb-3">{HOUSEHOLD_REFERENCE_CAPTION}</h3>
+              <table data-block2="household-reference" className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="text-left text-slate-500 border-b border-slate-200">
+                    <th className="py-2 pr-3 font-medium">Namų ūkio dydis</th>
+                    <th className="py-2 pr-3 font-medium text-right">Tipinis suvartojimas (kWh/mėn.)</th>
+                    <th className="py-2 font-medium text-right">~€ per mėnesį</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {household_reference.map((r, i) => (
+                    <tr key={i} className="border-b border-slate-100">
+                      <td className="py-2 pr-3 text-slate-700">{r.size_label_lt}</td>
+                      <td className="py-2 pr-3 text-right text-slate-700">{r.kwh_month}</td>
+                      <td className="py-2 text-right text-slate-700">{eur(r.eur_month)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </InfoSection>
       )}
 
@@ -726,31 +764,6 @@ export function Block2Section({
         </p>
       )}
 
-      {/* 9 — Household-electricity reference table (always visible regardless
-          of selection, §7.7; served only for residential reports). */}
-      {household_reference && household_reference.length > 0 && (
-        <div className="overflow-x-auto">
-          <h3 className="text-base font-semibold text-slate-800 mb-3">Tipinės namų ūkio elektros sąnaudos</h3>
-          <table data-block2="household-reference" className="w-full text-sm border-collapse">
-            <thead>
-              <tr className="text-left text-slate-500 border-b border-slate-200">
-                <th className="py-2 pr-3 font-medium">Namų ūkio dydis</th>
-                <th className="py-2 pr-3 font-medium text-right">Tipinis suvartojimas (kWh/mėn.)</th>
-                <th className="py-2 font-medium text-right">~€ per mėnesį</th>
-              </tr>
-            </thead>
-            <tbody>
-              {household_reference.map((r, i) => (
-                <tr key={i} className="border-b border-slate-100">
-                  <td className="py-2 pr-3 text-slate-700">{r.size_label_lt}</td>
-                  <td className="py-2 pr-3 text-right text-slate-700">{r.kwh_month}</td>
-                  <td className="py-2 text-right text-slate-700">{eur(r.eur_month)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
     </section>
   );
 }
