@@ -33,7 +33,7 @@ describe('Block2Section', () => {
       'monthly-chart',
       'forecast-chart',
       'explanation',
-      'info-box',
+      'info-section',
       'confidence',
       'household-reference',
     ]) {
@@ -292,34 +292,37 @@ describe('Block2Section', () => {
     expect(table.textContent).toContain('Buitinė elektra (3 asm.)');
   });
 
-  it('shows the disclosure box once a size is selected, and keeps it', () => {
+  it('the merged info section is one collapsible, collapsed by default', () => {
+    // Ruling 2026-07-25: the data-sources box and the assumptions box merged
+    // into ONE „Kokia informacija remiamės?" section, collapsed on load. The old
+    // titles are extinct. (jsdom can't measure the max-height animation — the
+    // pin is on aria-expanded, the state it follows.)
     const { container } = render(<Harness />);
-    const box = () => container.querySelector('[data-block2="disclosure-box"]');
-    expect(box()).toBeNull(); // Harness starts unpicked (ReportViewer preselects)
-
-    const btn4 = screen.getByRole('button', { name: '4' });
-    fireEvent.click(btn4);
-    expect(box()).not.toBeNull();
-    expect(box()!.textContent).toContain('Duomenų šaltiniai');
-
-    fireEvent.click(btn4); // active size is a no-op — the box stays (no toggle-off)
-    expect(box()).not.toBeNull();
-  });
-
-  it('the disclosure box is collapsible, collapsed by default', () => {
-    const { container } = render(<Harness />);
-    fireEvent.click(screen.getByRole('button', { name: '4' }));
-    const box = container.querySelector('[data-block2="disclosure-box"]')!;
-    const toggle = box.querySelector('button')!;
-    // The heading is the toggle label; default collapsed. (jsdom can't measure
-    // the max-height animation — the pin is on aria-expanded, the state it
-    // follows.)
-    expect(toggle.textContent).toContain('Duomenų šaltiniai');
+    const section = container.querySelector('[data-block2="info-section"]')!;
+    expect(section).not.toBeNull();
+    const toggle = section.closest('[data-info-section]')!.querySelector('button')!;
+    expect(toggle.textContent).toContain('Kokia informacija remiamės?');
+    expect(toggle.textContent).not.toContain('Duomenų šaltiniai');
+    expect(toggle.textContent).not.toContain('Iš ko remiamės');
     expect(toggle.getAttribute('aria-expanded')).toBe('false');
     fireEvent.click(toggle);
     expect(toggle.getAttribute('aria-expanded')).toBe('true');
     fireEvent.click(toggle);
     expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    // The data-sources explainer and the hot-water note live inside it.
+    expect(section.textContent).toContain('Šis vertinimas sujungia');
+    expect(section.textContent).toContain('rodomos atskirai');
+  });
+
+  it('the confidence line stays always-visible, outside the collapsible section', () => {
+    // §2.5 / §256-258: a trust disclosure must never hide behind the section's
+    // collapse. It renders as its own line, with the section collapsed on load.
+    const { container } = render(<Block2Section block2={MOCK_EXISTING.block2} />);
+    const conf = container.querySelector('[data-block2="confidence"]')!;
+    expect(conf).not.toBeNull();
+    expect(conf.textContent).toContain(MOCK_EXISTING.block2!.confidence_text_lt!);
+    // ...and it is NOT inside the collapsible info section.
+    expect(conf.closest('[data-info-section]')).toBeNull();
   });
 
   it('renders the served clamped values for the 5+ band, numeral in prose', () => {
@@ -335,17 +338,20 @@ describe('Block2Section', () => {
     expect(ref.textContent).toContain('5+ asmenys');
   });
 
-  it('swaps the §7.5/§7.6 family prose on selection', () => {
+  it('swaps the §7.5 family prose and the section scope line on selection', () => {
     const { container } = render(<Harness />);
     const note = () => container.querySelector('[data-block2="family-note"]');
-    const wni = () => container.querySelector('[data-block2="whats-not-included"]');
-    // Default: the served OFF variants.
+    const section = () => container.querySelector('[data-block2="info-section"]')!;
+    // Default: the served OFF family variant + the generic scope line.
     expect(note()!.textContent).toBe(MOCK_EXISTING.block2!.explanation!.family_note_lt);
-    expect(wni()!.textContent).toBe(MOCK_EXISTING.block2!.info_box!.whats_not_included_lt);
+    expect(section().textContent).toContain(
+      MOCK_EXISTING.block2!.info_section!.items_lt.find((i) => i.includes('neapima')) ?? '—',
+    );
 
     fireEvent.click(screen.getByRole('button', { name: '2' }));
     expect(note()!.textContent).toBe(OPTION(2).explanation_lt);
-    expect(wni()!.textContent).toBe(OPTION(2).whats_not_included_lt);
+    // The size-specific scope line („2 asmenų") is now in the section.
+    expect(section().textContent).toContain('2 asmenų namų ūkiui');
   });
 
   it('renders no selector and no family prose for a legacy/degraded payload', () => {
@@ -359,18 +365,22 @@ describe('Block2Section', () => {
         heading_lt: MOCK_EXISTING.block2!.explanation!.heading_lt,
         body_lt: MOCK_EXISTING.block2!.explanation!.body_lt,
       },
-      info_box: {
-        heading_lt: MOCK_EXISTING.block2!.info_box!.heading_lt,
-        vat_lt: MOCK_EXISTING.block2!.info_box!.vat_lt,
-        escalation_lt: MOCK_EXISTING.block2!.info_box!.escalation_lt,
-        disclosure_lt: MOCK_EXISTING.block2!.info_box!.disclosure_lt,
+      // A degraded payload's merged section is assumptions-only (no modelling →
+      // no data-sources body); still one section, one title.
+      info_section: {
+        title_lt: MOCK_EXISTING.block2!.info_section!.title_lt,
+        items_lt: MOCK_EXISTING.block2!.info_section!.items_lt.slice(0, 3),
       },
     };
     const { container } = render(<Harness block2={legacy} />);
     expect(container.querySelector('[data-block2="household-selector"]')).toBeNull();
     expect(container.querySelector('[data-block2="family-note"]')).toBeNull();
+    // The old floating idioms are gone entirely.
     expect(container.querySelector('[data-block2="whats-not-included"]')).toBeNull();
     expect(container.querySelector('[data-block2="disclosure-box"]')).toBeNull();
+    expect(container.querySelector('[data-block2="info-box"]')).toBeNull();
+    // ...but the merged section still renders (assumptions-only here).
+    expect(container.querySelector('[data-block2="info-section"]')).not.toBeNull();
     expect(
       screen.getByText(`~€${MOCK_EXISTING.block2!.metric!.eur_month}`),
     ).toBeInTheDocument();
@@ -382,24 +392,30 @@ describe('Block2Section', () => {
 // ─── B2-16: the €-bill conversion note (R9) ─────────────────────────────────
 
 describe('bill_note_lt (B2-16 R9)', () => {
-  it('renders the served note in the info box when present', () => {
+  it('renders the served bill note inside the merged info section when present', () => {
+    // The bill note is now one item of the backend-composed info_section (it
+    // used to be its own <p> in the info box).
     const billNote =
       'Pastaba: jūsų pateikta € suma perskaičiuota į energijos kiekį pagal '
       + 'dabartinį tarifą; tarifai atnaujinami pagal dokumentuotą grafiką, '
       + 'todėl pasikeitus tarifui išvestinis kiekis gali nežymiai kisti.';
+    const base = MOCK_EXISTING.block2!;
     const block2 = {
-      ...MOCK_EXISTING.block2!,
-      info_box: { ...MOCK_EXISTING.block2!.info_box!, bill_note_lt: billNote },
+      ...base,
+      info_section: {
+        title_lt: base.info_section!.title_lt,
+        items_lt: [...base.info_section!.items_lt, billNote],
+      },
     };
     const { container } = render(<Block2Section block2={block2} />);
-    const note = container.querySelector('[data-block2="bill-note"]');
-    expect(note).not.toBeNull();
-    expect(note!.textContent).toBe(billNote);
+    const section = container.querySelector('[data-block2="info-section"]')!;
+    expect(section.textContent).toContain(billNote);
   });
 
-  it('renders no note element when the report is not €-bills mode', () => {
+  it('the note is absent from the section when the report is not €-bills mode', () => {
     const { container } = render(<Block2Section block2={MOCK_EXISTING.block2} />);
-    expect(container.querySelector('[data-block2="bill-note"]')).toBeNull();
+    const section = container.querySelector('[data-block2="info-section"]')!;
+    expect(section.textContent).not.toContain('perskaičiuota į energijos kiekį');
   });
 });
 

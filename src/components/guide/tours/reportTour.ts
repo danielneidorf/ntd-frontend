@@ -169,13 +169,20 @@ export function extractReportData(): ReportTourData {
       }
     }
 
-    // measured basis: the B2-16 bill note's presence is the flag (the note
-    // text itself is tariff jargon — the flag line suffices)
-    measuredBasis = !!block2Section.querySelector('[data-block2="bill-note"]');
+    // Both hooks now read the merged info section (ruling 2026-07-25) — the
+    // bill note and the solar note used to be their own <p>s; they are now
+    // items of the one „Kokia informacija remiamės?" section. Read the section's
+    // paragraphs and match on a distinctive phrase.
+    const sectionParas = [
+      ...block2Section.querySelectorAll('[data-block2="info-section"] p'),
+    ].map((p) => p.textContent?.trim() ?? '');
+
+    // measured basis: the B2-16 bill note's presence is the flag (its text is
+    // tariff jargon — the flag suffices)
+    measuredBasis = sectionParas.some((t) => t.includes('perskaičiuota į energijos kiekį'));
 
     // solar note: the B2-17 served note, verbatim
-    solarNote = block2Section
-      .querySelector('[data-block2="solar-note"]')?.textContent?.trim() ?? null;
+    solarNote = sectionParas.find((t) => t.includes('saulės kolektoriai')) ?? null;
   }
 
   return {

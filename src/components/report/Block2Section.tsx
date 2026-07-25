@@ -16,8 +16,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { useState } from 'react';
 import type { Block2Data } from './mockReportData';
+import { InfoSection } from './InfoSection';
 
 interface Block2SectionProps {
   block2: Block2Data | undefined;
@@ -465,7 +465,6 @@ export function Block2Section({
   // collapsed — it became permanent once the standard size is preselected, and
   // it carries the legend, not primary content. (Before any early return, per
   // the rules of hooks.)
-  const [disclosureOpen, setDisclosureOpen] = useState(false);
   if (!block2) return null;
 
   // Not-applicable (e.g. land-only): render the backend message only.
@@ -485,7 +484,7 @@ export function Block2Section({
     );
   }
 
-  const { metric, breakdown, explanation, info_box, household_reference } = block2;
+  const { metric, breakdown, explanation, household_reference } = block2;
 
   // B2-14: selection swaps to the matching backend-precomputed option — no €
   // math and no LT copy composed here (all five views arrive served).
@@ -518,13 +517,15 @@ export function Block2Section({
     ? selected.forecast_5yr ?? block2.forecast_5yr
     : block2.forecast_5yr;
   // §7.5 family paragraph: OFF variant served on the default view, ON variant
-  // per option. §7.6 what's-not-included line switches the same way.
+  // per option.
   const familyNote = selected
     ? selected.explanation_lt
     : explanation?.family_note_lt;
-  const whatsNotIncluded = selected
-    ? selected.whats_not_included_lt
-    : info_box?.whats_not_included_lt;
+  // The ONE merged info section (ruling 2026-07-25) — assumptions + data-sources
+  // explainer + the hot-water note, composed once in the backend. The selected
+  // size carries its own (its scope line is size-specific); the default is the
+  // fallback. „what's not included" now lives inside it — no separate line.
+  const infoSection = selected?.info_section ?? block2.info_section;
 
   return (
     <section
@@ -653,50 +654,24 @@ export function Block2Section({
               </tr>
             </tbody>
           </table>
-          {breakdown.dhw_footnote_lt && (
-            <p className="text-xs text-slate-400 mt-2 leading-relaxed">{breakdown.dhw_footnote_lt}</p>
-          )}
         </div>
       )}
 
-      {/* 2b — B2-14 data-source disclosure box (§7.7): backend-served multiline
-          text, COLLAPSIBLE (ruling 2026-07-23, default collapsed). The served
-          string is „<heading>\n\n<body>"; the first segment is the toggle
-          label, the rest the collapsible body. Web-only — the PDF prints the
-          whole box (report_pdf.html), so content parity holds. */}
-      {selected && hm && (() => {
-        const [dsHeading, ...dsRest] = hm.disclosure_box_lt.split('\n\n');
-        const dsBody = dsRest.join('\n\n');
-        return (
-          <div
-            data-block2="disclosure-box"
-            className="bg-slate-50 border border-slate-200 rounded-lg p-5 mb-6"
-          >
-            <button
-              type="button"
-              aria-expanded={disclosureOpen}
-              onClick={() => setDisclosureOpen((v) => !v)}
-              className="flex items-center gap-2 w-full text-left cursor-pointer bg-transparent border-none p-0 min-h-[44px] text-sm font-medium text-slate-700"
-            >
-              <span
-                className="text-[12px] text-[#0D7377] transition-transform duration-200"
-                style={{ display: 'inline-block', transform: disclosureOpen ? 'rotate(90deg)' : 'rotate(0)' }}
-              >
-                &#9654;
-              </span>
-              {dsHeading}
-            </button>
-            <div
-              className="overflow-hidden transition-all duration-300"
-              style={{ maxHeight: disclosureOpen ? '2000px' : '0', opacity: disclosureOpen ? 1 : 0 }}
-            >
-              <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line mt-3">
-                {dsBody}
-              </p>
-            </div>
+      {/* 2b — THE one merged info section (ruling 2026-07-25): the assumptions,
+          the data-sources explainer and the hot-water note, composed once in the
+          backend and rendered here via the shared collapsible idiom — collapsed
+          by default. The PDF prints the same body fully expanded (content parity;
+          the kept document is the complete one). The old „Duomenų šaltiniai" and
+          „Iš ko remiamės" boxes both die into this. */}
+      {infoSection && infoSection.items_lt.length > 0 && (
+        <InfoSection title={infoSection.title_lt}>
+          <div data-block2="info-section" className="text-sm text-slate-600 leading-relaxed space-y-2 mt-3 px-1">
+            {infoSection.items_lt.map((item, i) => (
+              <p key={i} className="whitespace-pre-line">{item}</p>
+            ))}
           </div>
-        );
-      })()}
+        </InfoSection>
+      )}
 
       {/* 3 — Carrier-inference warning (only when the carrier was inferred). */}
       {block2.carrier_warning_lt && (
@@ -740,27 +715,13 @@ export function Block2Section({
         </div>
       )}
 
-      {/* 7 — Info box (+ §7.6 conditional what's-not-included line). */}
-      {info_box && (
-        <div data-block2="info-box" className="bg-slate-50 rounded-lg p-5 mb-6 text-sm text-slate-600 leading-relaxed space-y-1">
-          <p className="font-semibold text-slate-800">{info_box.heading_lt}</p>
-          <p>{info_box.vat_lt}</p>
-          <p>{info_box.escalation_lt}</p>
-          <p>{info_box.disclosure_lt}</p>
-          {/* B2-16 (R9): €-bill conversion residual — served only in €-bills mode. */}
-          {info_box.bill_note_lt && <p data-block2="bill-note">{info_box.bill_note_lt}</p>}
-          {/* B2-17: solar-thermal note (served, flag-gated). */}
-          {info_box.solar_note_lt && <p data-block2="solar-note">{info_box.solar_note_lt}</p>}
-          {/* R8: the price-side honesty line — served whenever prices ride
-              an expired tariff record (one story with the confidence line). */}
-          {info_box.stale_note_lt && <p data-block2="stale-note">{info_box.stale_note_lt}</p>}
-          {whatsNotIncluded && <p data-block2="whats-not-included">{whatsNotIncluded}</p>}
-        </div>
-      )}
-
-      {/* 8 — Confidence indicator (explanation-only sentence, not a badge). */}
+      {/* 7 — Confidence indicator (§2.5): a standalone, ALWAYS-VISIBLE line — a
+          trust disclosure that must never hide behind the section's collapse
+          (§256-258). Restyled 2026-07-25 to read as placed, not floating (the
+          detached `border-t` is gone); it is not folded into the merged section
+          above. */}
       {block2.confidence_text_lt && (
-        <p data-block2="confidence" className="text-sm text-slate-500 leading-relaxed mb-6 border-t border-slate-100 pt-4">
+        <p data-block2="confidence" className="text-sm text-slate-500 leading-relaxed mb-6">
           <span aria-hidden="true">ℹ️ </span>{block2.confidence_text_lt}
         </p>
       )}

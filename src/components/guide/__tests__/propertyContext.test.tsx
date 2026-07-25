@@ -54,12 +54,16 @@ describe('extractReportData — Block 2 fields (B2-17 R2)', () => {
     expect(data.solarNote).toBeNull();
     cleanup();
 
+    // Both notes now live inside the merged info section (ruling 2026-07-25).
     const billsSolar = {
       ...BLOCK2,
-      info_box: {
-        ...BLOCK2.info_box!,
-        bill_note_lt: 'Pastaba: jūsų pateikta € suma perskaičiuota…',
-        solar_note_lt: 'Objekte įrengti saulės kolektoriai (saulės šilumos sistema) — …',
+      info_section: {
+        title_lt: BLOCK2.info_section!.title_lt,
+        items_lt: [
+          ...BLOCK2.info_section!.items_lt,
+          'Pastaba: jūsų pateikta € suma perskaičiuota į energijos kiekį…',
+          'Objekte įrengti saulės kolektoriai (saulės šilumos sistema) — …',
+        ],
       },
     };
     render(<Harness block2={billsSolar} />);

@@ -1,6 +1,7 @@
 // P7-A1: Interactive report page — ReportViewer shell
 import { useState, useEffect } from 'react';
 import { DEV_MOCKS, type ReportData } from './report/mockReportData';
+import { InfoSection } from './report/InfoSection';
 import PropertyProfile from './report/PropertyProfile';
 import Citations from './report/Citations';
 import AdditionalDocuments from './report/AdditionalDocuments';
@@ -299,40 +300,20 @@ export function DriversSection({
   );
 }
 
+// Block 1's basis box — now the shared collapsible idiom under the shared title
+// („Iš ko remiamės šiuo vertinimu?" retired), collapsed by default (was open).
 function InfoBox({ items }: { items: string[] }) {
-  const [expanded, setExpanded] = useState(true);
   if (items.length === 0) return null;
   return (
-    <div className="mb-6">
-      <button
-        type="button"
-        onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-2 cursor-pointer bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 w-full text-left hover:bg-gray-100 transition-colors"
-      >
-        <span className="text-base">&#9432;</span>
-        <span className="text-base font-medium text-[#1E3A5F]">
-          Iš ko remiamės šiuo vertinimu?
-        </span>
-        <span
-          className="ml-auto text-[12px] text-slate-400 transition-transform duration-200"
-          style={{ display: 'inline-block', transform: expanded ? 'rotate(90deg)' : 'rotate(0)' }}
-        >
-          &#9654;
-        </span>
-      </button>
-      <div
-        className="overflow-hidden transition-all duration-300"
-        style={{ maxHeight: expanded ? '500px' : '0', opacity: expanded ? 1 : 0 }}
-      >
-        <ul className="mt-2 space-y-2 pl-4">
-          {items.map((item, i) => (
-            <li key={i} className="text-sm text-slate-600 leading-relaxed list-disc">
-              {item}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
+    <InfoSection>
+      <ul className="mt-2 space-y-2 pl-4">
+        {items.map((item, i) => (
+          <li key={i} className="text-sm text-slate-600 leading-relaxed list-disc">
+            {item}
+          </li>
+        ))}
+      </ul>
+    </InfoSection>
   );
 }
 
