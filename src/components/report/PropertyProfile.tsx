@@ -33,26 +33,33 @@ export const ENERGY_CLASS_COLORS: Record<string, string> = {
 
 export const UNKNOWN_CLASS_COLOR = '#637896';
 
-// Muted-chip fills — each ramp colour mixed 28% with white. One origin, both
+// Muted-chip fills — each ramp colour mixed 10% with white. One origin, both
 // surfaces (backend `energy_class_scale.ENERGY_CLASS_TINTS` holds the same
-// values; the disk-read parity test pins them equal). The point of the tint,
-// per the 2026-07-24 ruling: an unlit chip still carries its OWN band colour, so
-// the green→red gradient reads as a gradient across the whole scale even where
-// nothing is highlighted — that is what makes the class's position legible.
-// Uniform grey (what shipped first) threw that information away.
+// values; the disk-read parity test pins them equal). An unlit chip carries its
+// OWN band colour, so the green→red gradient survives as a WHISPER across the
+// scale — perceptible, but unmistakably background, so the eye snaps to the lit
+// chip rather than searching a row of pastel siblings. (Adjustment 2026-07-25:
+// the first pass mixed 28%, which read as pastels competing with the highlight;
+// dropped to 10%, and the muted letters go grey — the colour lives in the faint
+// wash, the size + full colour carry the highlight.)
 export const ENERGY_CLASS_TINTS: Record<string, string> = {
-  'A++': '#B8CEC8',
-  'A+': '#B9D5CC',
-  'A': '#B9DCD1',
-  'B': '#BDDDC9',
-  'C': '#E4D6B8',
-  'D': '#F0CDBA',
-  'E': '#F5C1C1',
-  'F': '#E9C0C0',
-  'G': '#DABEBE',
+  'A++': '#E6EEEB',
+  'A+': '#E6F0ED',
+  'A': '#E6F2EF',
+  'B': '#E7F3EC',
+  'C': '#F5F0E6',
+  'D': '#FAEDE6',
+  'E': '#FBE9E9',
+  'F': '#F7E9E9',
+  'G': '#F2E8E8',
 };
 
-export const UNKNOWN_CLASS_TINT = '#D3D9E2';
+export const UNKNOWN_CLASS_TINT = '#EFF2F4';
+
+// Muted-chip letters — one quiet grey for all of them, so the gradient reads in
+// the background wash while the letters recede. Colour-matched letters (the
+// first pass) made every chip a coloured sibling of the lit one.
+export const MUTED_CLASS_TEXT = '#94A3B8';
 
 /** The scale's spelling of `value`, or null if it names no class — so an
  *  unresolved class lights NOTHING rather than defaulting to a chip. */
@@ -80,17 +87,18 @@ export function classScaleAriaLabel(cls: string): string {
  *  ladder runs from or to, so the letter carried no position. The scale gives it
  *  one. The lit chip IS the value now; no letter is repeated beside it.
  *
- *  Sizing (2026-07-25): the lit chip reads at the weight of the „145.2 kWh/m²"
- *  value beside it — the section's two headline facts. Unlit chips carry their
- *  OWN band colour at 28% strength (ENERGY_CLASS_TINTS), so the green→red
- *  gradient is visible as a gradient across the whole scale even where nothing
- *  is lit — the first version's uniform grey threw that away. Lit stays full
- *  colour + bold white; the lit/muted split survives the tinting (saturated +
- *  white vs pale + own-hue text).
+ *  Sizing (adjustment 2026-07-25): the LIT chip is the one fact in the row, so
+ *  it dominates by SIZE, not colour alone — it is taller, wider and bolder than
+ *  its neighbours, its letter reading at roughly the weight of the „145.2 kWh/m²"
+ *  value beside it. The neighbours recede: smaller, a faint own-hue wash
+ *  (ENERGY_CLASS_TINTS, 10%) under a quiet grey letter, so the green→red
+ *  gradient reads as a whisper while the eye snaps to the lit step. The flex row
+ *  is `items-center`, so the shorter neighbours centre against the taller lit
+ *  chip — one ladder with one raised step, not a skyline.
  *
  *  One row into the card column at desktop; `flex-wrap` degrades to two rows in
  *  a narrow (≈375px) column, which is acceptable — shrinking to force one row
- *  would undo the prominence this size-up exists to create. */
+ *  would undo the prominence this exists to create. */
 export function EnergyClassScale({ cls }: { cls: string }) {
   const active = normaliseClass(cls);
   return (
@@ -109,13 +117,15 @@ export function EnergyClassScale({ cls }: { cls: string }) {
             data-active={isActive ? 'true' : 'false'}
             aria-hidden="true"
             className={
-              'inline-block min-w-[30px] text-center rounded-[4px] px-1.5 py-1 text-[15px] leading-none ' +
-              (isActive ? 'text-white font-bold' : 'font-semibold')
+              'inline-block text-center leading-none ' +
+              (isActive
+                ? 'min-w-[34px] rounded-[5px] px-2.5 py-1.5 text-[19px] font-bold text-white'
+                : 'min-w-[26px] rounded-[4px] px-1.5 py-1 text-[13px] font-medium')
             }
             style={
               isActive
                 ? { backgroundColor: ENERGY_CLASS_COLORS[c] }
-                : { backgroundColor: ENERGY_CLASS_TINTS[c], color: ENERGY_CLASS_COLORS[c] }
+                : { backgroundColor: ENERGY_CLASS_TINTS[c], color: MUTED_CLASS_TEXT }
             }
           >
             {c}

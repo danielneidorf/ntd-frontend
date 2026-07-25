@@ -14,6 +14,7 @@ import PropertyProfile, {
   ENERGY_CLASS_SCALE,
   ENERGY_CLASS_COLORS,
   ENERGY_CLASS_TINTS,
+  MUTED_CLASS_TEXT,
   classScaleAriaLabel,
 } from '../PropertyProfile';
 import type { ReportData } from '../mockReportData';
@@ -464,28 +465,37 @@ describe('energy class scale', () => {
     expect(classScaleAriaLabel('')).toBe('Energinės klasės skalė nuo A++ iki G');
   });
 
-  it('unlit chips carry their OWN band tint, not uniform grey', () => {
-    // The gradient must read as a gradient even where nothing is lit — that is
-    // what makes position legible, and the whole reason the row exists. A muted
-    // chip whose background is a fixed grey (what shipped first) throws that
-    // away. Each unlit chip's background is its class's tint; its text is the
-    // full ramp colour.
+  it('unlit chips carry their OWN band tint under a quiet grey letter', () => {
+    // The gradient must survive even where nothing is lit — a whisper in the
+    // background wash, so position stays legible without competing with the
+    // highlight. Each unlit chip's background is its class's faint (10%) tint;
+    // its letter is one muted grey (not the ramp colour — colour-matched letters
+    // read as coloured siblings of the lit chip, which is the adjustment this
+    // fixes).
     const { container } = renderProfile();
     for (const c of chips(container)) {
       const cls = c.getAttribute('data-class')!;
       if (c.getAttribute('data-active') === 'true') continue;
       expect((c as HTMLElement).style.backgroundColor).toBe(hexToRgb(ENERGY_CLASS_TINTS[cls]));
-      expect((c as HTMLElement).style.color).toBe(hexToRgb(ENERGY_CLASS_COLORS[cls]));
+      expect((c as HTMLElement).style.color).toBe(hexToRgb(MUTED_CLASS_TEXT));
     }
     // Every tint is its own — a real gradient, not one repeated grey.
     expect(new Set(Object.values(ENERGY_CLASS_TINTS)).size).toBe(ENERGY_CLASS_SCALE.length);
   });
 
-  it('the lit chip keeps full ramp colour (the contrast pins hold on it)', () => {
+  it('the lit chip dominates by size AND keeps full ramp colour', () => {
+    // The lit chip is the row's one fact, so it is bigger than its neighbours
+    // (a larger font) as well as fully coloured — size carries the highlight,
+    // not colour alone. The contrast pins still hold on the full colour.
     const { container } = renderProfile({ energy_class: 'C' });
-    const lit = chips(container).find((c) => c.getAttribute('data-active') === 'true')! as HTMLElement;
+    const all = chips(container) as HTMLElement[];
+    const lit = all.find((c) => c.getAttribute('data-active') === 'true')!;
+    const muted = all.find((c) => c.getAttribute('data-active') === 'false')!;
     expect(lit.getAttribute('data-class')).toBe('C');
     expect(lit.style.backgroundColor).toBe(hexToRgb(ENERGY_CLASS_COLORS['C']));
+    // Bigger: parse the px font sizes off the classes and compare.
+    const fontPx = (el: HTMLElement) => Number((el.className.match(/text-\[(\d+)px\]/) ?? [])[1]);
+    expect(fontPx(lit)).toBeGreaterThan(fontPx(muted));
   });
 });
 
