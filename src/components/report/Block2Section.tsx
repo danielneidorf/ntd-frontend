@@ -685,12 +685,56 @@ export function Block2Section({
         </div>
       )}
 
-      {/* 2b — THE one merged info section (ruling 2026-07-25): the assumptions,
-          the data-sources explainer and the hot-water note, composed once in the
-          backend and rendered here via the shared collapsible idiom — collapsed
-          by default. The PDF prints the same body fully expanded (content parity;
-          the kept document is the complete one). The old „Duomenų šaltiniai" and
-          „Iš ko remiamės" boxes both die into this. */}
+      {/* 3 — Carrier-inference warning (only when the carrier was inferred). */}
+      {block2.carrier_warning_lt && (
+        <div data-block2="carrier-warning" className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6 rounded-r">
+          <p className="text-sm text-amber-900 leading-relaxed">{block2.carrier_warning_lt}</p>
+        </div>
+      )}
+
+      {/* 4 — Monthly variation chart (per-option rows when selected: DHW band
+          scaled, flat household-electricity band appears via the zero-band
+          filter). */}
+      {shownMonthly && shownMonthly.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-base font-semibold text-slate-800 mb-3">Mėnesinė energijos kaina per metus</h3>
+          <MonthlyChart data={shownMonthly} tableByBand={tableByBand} />
+        </div>
+      )}
+
+      {/* 5 — 5-year forecast chart. */}
+      {shownForecast && shownForecast.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-base font-semibold text-slate-800 mb-3">{FORECAST_CHART_TITLE_LT}</h3>
+          <ForecastChart data={shownForecast} />
+        </div>
+      )}
+
+      {/* 6 — Practical explanation (+ §7.5 family paragraph, OFF/ON variant). */}
+      {explanation && (
+        <div data-block2="explanation" className="mb-6">
+          <h3 className="text-base font-semibold text-slate-800 mb-2">{explanation.heading_lt}</h3>
+          <p className="text-sm text-slate-700 leading-relaxed">
+            {/* R5: the selected option carries its own personalised body —
+                „Ši suma" then points at the figure it describes. */}
+            {selected?.body_lt ?? explanation.body_lt}
+          </p>
+          {familyNote && (
+            <p data-block2="family-note" className="text-sm text-slate-700 leading-relaxed mt-2">
+              {familyNote}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* 6b — THE one merged info section (ruling 2026-07-25), placed at the card's
+          footer (2026-07-27): content first, meta last — matching Block 1's basis
+          box. The assumptions, the data-sources explainer and the hot-water note,
+          composed once in the backend and rendered here via the shared collapsible
+          idiom — collapsed by default. The PDF prints the same body fully expanded
+          and already orders box-then-confidence; this converges the web onto that
+          order. The confidence line stays OUTSIDE this collapsible (below), so the
+          disclosure is always visible regardless of collapse (§256-258). */}
       {infoSection && infoSection.items_lt.length > 0 && (
         <InfoSection title={infoSection.title_lt}>
           <div data-block2="info-section" className={`${INFO_SECTION_BODY} mt-3 px-1`}>
@@ -732,48 +776,6 @@ export function Block2Section({
             </div>
           )}
         </InfoSection>
-      )}
-
-      {/* 3 — Carrier-inference warning (only when the carrier was inferred). */}
-      {block2.carrier_warning_lt && (
-        <div data-block2="carrier-warning" className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6 rounded-r">
-          <p className="text-sm text-amber-900 leading-relaxed">{block2.carrier_warning_lt}</p>
-        </div>
-      )}
-
-      {/* 4 — Monthly variation chart (per-option rows when selected: DHW band
-          scaled, flat household-electricity band appears via the zero-band
-          filter). */}
-      {shownMonthly && shownMonthly.length > 0 && (
-        <div className="mb-8">
-          <h3 className="text-base font-semibold text-slate-800 mb-3">Mėnesinė energijos kaina per metus</h3>
-          <MonthlyChart data={shownMonthly} tableByBand={tableByBand} />
-        </div>
-      )}
-
-      {/* 5 — 5-year forecast chart. */}
-      {shownForecast && shownForecast.length > 0 && (
-        <div className="mb-8">
-          <h3 className="text-base font-semibold text-slate-800 mb-3">{FORECAST_CHART_TITLE_LT}</h3>
-          <ForecastChart data={shownForecast} />
-        </div>
-      )}
-
-      {/* 6 — Practical explanation (+ §7.5 family paragraph, OFF/ON variant). */}
-      {explanation && (
-        <div data-block2="explanation" className="mb-6">
-          <h3 className="text-base font-semibold text-slate-800 mb-2">{explanation.heading_lt}</h3>
-          <p className="text-sm text-slate-700 leading-relaxed">
-            {/* R5: the selected option carries its own personalised body —
-                „Ši suma" then points at the figure it describes. */}
-            {selected?.body_lt ?? explanation.body_lt}
-          </p>
-          {familyNote && (
-            <p data-block2="family-note" className="text-sm text-slate-700 leading-relaxed mt-2">
-              {familyNote}
-            </p>
-          )}
-        </div>
       )}
 
       {/* 7 — Confidence indicator (§2.5): a standalone, ALWAYS-VISIBLE line — a

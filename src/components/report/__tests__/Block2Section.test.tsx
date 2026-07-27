@@ -40,6 +40,15 @@ describe('Block2Section', () => {
     ]) {
       expect(section!.querySelector(`[data-block2="${name}"]`)).not.toBeNull();
     }
+    // Card order (2026-07-27): the info section is the card's quiet footer —
+    // after the forecast chart AND the explanation, with the confidence line last
+    // (content first, meta last; matching Block 1 + the PDF's existing order).
+    const at = (name: string) => section!.querySelector(`[data-block2="${name}"]`)!;
+    const follows = (a: Element, b: Element) =>
+      Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(follows(at('forecast-chart'), at('info-section'))).toBe(true);
+    expect(follows(at('explanation'), at('info-section'))).toBe(true);
+    expect(follows(at('info-section'), at('confidence'))).toBe(true);
     // Backend-rounded headline + a breakdown total rendered verbatim.
     expect(
       screen.getByText(`~€${MOCK_EXISTING.block2!.metric!.eur_month}`),
@@ -341,6 +350,12 @@ describe('Block2Section', () => {
     expect(conf.textContent).toContain(MOCK_EXISTING.block2!.confidence_text_lt!);
     // ...and it is NOT inside the collapsible info section.
     expect(conf.closest('[data-info-section]')).toBeNull();
+    // ...and it sits AFTER the section (its card-footer position, 2026-07-27) —
+    // always-visible disclosure below the collapsed box, never swept inside it.
+    const infoSection = container.querySelector('[data-block2="info-section"]')!;
+    expect(
+      infoSection.compareDocumentPosition(conf) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it('renders the served clamped values for the 5+ band, numeral in prose', () => {
