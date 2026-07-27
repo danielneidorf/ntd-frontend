@@ -267,60 +267,11 @@ export interface ReportData {
   };
 }
 
-// --- Winter rows (exact copy from Thermal Comfort annex) ---
-
-const WINTER_ROWS = [
-  {
-    band: 'GOOD',
-    label_lt: 'Gerai',
-    description_lt:
-      'Įprastomis žiemos sąlygomis apie 20–22 °C gyvenamosiose patalpose pasiekiama be didesnių pastangų, šaltesnių kampų turėtų būti nedaug. Šildymo poreikis turėtų būti nuosaikus ir atitikti tikėtiną tokio tipo būstui (tikslesnę šildymo kainą rasite 2 bloke).',
-    range_lt: undefined,
-  },
-  {
-    band: 'INTERMEDIATE',
-    label_lt: 'Vidutiniškai',
-    description_lt:
-      '20–22 °C pasiekti įmanoma, bet kai kurios patalpos (pavyzdžiui, kampiniai kambariai ar zonos prie didelių langų) gali dažniau jaustis vėsesnės. Vertinant pagal techninius parametrus, norint išlaikyti komforto temperatūrą, šildymo sąnaudos gali būti maždaug 10–30 % didesnės, palyginti su techniškai efektyviu būstu tokiomis pačiomis sąlygomis (tikslesnę šildymo kainą rasite 2 bloke).',
-    range_lt: '~10–30 %',
-  },
-  {
-    band: 'WEAK',
-    label_lt: 'Silpnai',
-    description_lt:
-      'Norint palaikyti apie 20–22 °C visame būste, reikės gana intensyvaus šildymo, o dalis patalpų vis tiek gali išlikti vėsesnės arba su šaltesnėmis sienomis ir grindimis. Vertinant pagal techninius parametrus, norint išlaikyti komforto temperatūrą, šildymo sąnaudos gali būti maždaug 30–60 % ar daugiau didesnės, palyginti su tuo pačiu efektyviu etaloniniu būstu (konkretesnį įvertinimą rasite 2 bloke).',
-    range_lt: '~30–60 %+',
-  },
-];
-
-const SUMMER_ROWS = [
-  {
-    band: 'LOW',
-    label_lt: 'Maža',
-    description_lt:
-      'Net ir per karštas dienas patalpos linkusios išlikti pakankamai vėsios; dažniausiai pakanka natūralaus vėdinimo ir paprastų saulės kontrolės priemonių (užuolaidos, žaliuzės). Papildomo vėsinimo (pavyzdžiui, kondicionavimo) poreikis tikėtinas retai, todėl papildomos elektros sąnaudos dėl vėsinimo turėtų būti nedidelės.',
-  },
-  {
-    band: 'MODERATE',
-    label_lt: 'Vidutinė',
-    description_lt:
-      'Per karščio bangas kai kuriose patalpose gali tapti per šilta, ypač ten, kur yra dideli langai ar viršutiniai aukštai — reikės dažnai vėdinti ir riboti tiesioginę saulę. Gali prireikti ventiliatorių ar nešiojamo kondicionieriaus per karščiausias dienas, tad dalį metų papildomai didės elektros sąnaudos dėl vėsinimo.',
-  },
-  {
-    band: 'HIGH',
-    label_lt: 'Didelė',
-    description_lt:
-      'Karštomis vasaros dienomis patalpos linkusios perkaisti; be aktyvių vėsinimo priemonių (kondicionavimo, intensyvaus naktinio vėdinimo ir pan.) gali būti nuolat per karšta. Dažnas kondicionavimo poreikis reiškia didesnį papildomą elektros suvartojimą ir atitinkamai didesnes sąskaitas už vėsinimą (konkretesnę įtaką bendroms išlaidoms bus galima matyti ilgalaikėse sąnaudose).',
-  },
-];
-
-function winterRows(level: 'GOOD' | 'INTERMEDIATE' | 'WEAK') {
-  return WINTER_ROWS.map((r) => ({ ...r, highlighted: r.band === level }));
-}
-
-function summerRows(level: 'LOW' | 'MODERATE' | 'HIGH') {
-  return SUMMER_ROWS.map((r) => ({ ...r, highlighted: r.band === level }));
-}
+// (The WINTER_ROWS / SUMMER_ROWS block + its winterRows()/summerRows() helpers
+//  were removed 2026-07-27 — dead since a06001c (RWF Commit A removed the last
+//  callers at the one-fixture mock rebuild). The block held the retired A-now
+//  static-range winter copy; the live scenarios below carry the current served
+//  copy. See Block1_Thermal_Comfort/winter_rows_deadness_probe_2026-07-27.md.)
 
 function mockBlock2(carrierWarning: string | null = null): Block2Data {
   return { ...(MOCK_EXISTING.block2 as Block2Data), carrier_warning_lt: carrierWarning };
@@ -380,7 +331,7 @@ export const MOCK_EXISTING: ReportData = {
           "not_assessed_reason": null,
           "provenance_label_key": null,
           "segment": "D",
-          "description_lt": "Žema pastato energinė klasė (D ar žemesnė) rodo didelius šilumos poreikius: norint palaikyti 20–22 °C visame būste reikės intensyvaus šildymo, dalis patalpų gali likti vėsesnės, o šildymo poreikis gerokai viršija net renovuoto pastato lygį — žr. palyginimą žemiau (tikslesnę šildymo kainą rasite 2 bloke).",
+          "description_lt": "Žema pastato energinė klasė (D ar žemesnė) rodo didelius šilumos poreikius: norint palaikyti 20–22 °C visame būste reikės intensyvaus šildymo, dalis patalpų gali likti vėsesnės (tikslesnę šildymo kainą rasite 2 bloke).",
           "comparison_lines_lt": [
             "Palyginti su naujos statybos etalonu (A++): apie 11 kartų didesnis šildymo poreikis.",
             "Palyginti su renovuoto pastato etalonu (C klasė): ~+97% didesnis."
@@ -424,8 +375,7 @@ export const MOCK_EXISTING: ReportData = {
         },
         "info_box": [
           "Vertinimas remiasi Pastatų energinio naudingumo sertifikatų duomenimis ir standartinėmis prielaidomis panašiems būstams.",
-          "Šiame bloke atskirai nemodeliuojame realių vidaus drėgmės ir skersvėjų, nes jie stipriai priklauso nuo gyventojų įpročių ir konkrečios buto būklės (langų, durų, sandūrų ir pan.).",
-          "Ventiliacijos sistema: natūrali"
+          "Šiame bloke atskirai nemodeliuojame realių vidaus drėgmės ir skersvėjų, nes jie stipriai priklauso nuo gyventojų įpročių ir konkrečios buto būklės (langų, durų, sandūrų ir pan.)."
         ],
         "bundle_note_key": "block1.bundle.note.default",
         "snapshot": {
@@ -2309,7 +2259,7 @@ export const MOCK_EXISTING: ReportData = {
         {
           "band": "WEAK",
           "label_lt": "Silpnai",
-          "description_lt": "Žema pastato energinė klasė (D ar žemesnė) rodo didelius šilumos poreikius: norint palaikyti 20–22 °C visame būste reikės intensyvaus šildymo, dalis patalpų gali likti vėsesnės, o šildymo poreikis gerokai viršija net renovuoto pastato lygį — žr. palyginimą žemiau (tikslesnę šildymo kainą rasite 2 bloke).",
+          "description_lt": "Žema pastato energinė klasė (D ar žemesnė) rodo didelius šilumos poreikius: norint palaikyti 20–22 °C visame būste reikės intensyvaus šildymo, dalis patalpų gali likti vėsesnės (tikslesnę šildymo kainą rasite 2 bloke).",
           "highlighted": true
         }
       ],
@@ -2372,8 +2322,7 @@ export const MOCK_EXISTING: ReportData = {
     "info_box": {
       "items_lt": [
         "Vertinimas remiasi Pastatų energinio naudingumo sertifikatų duomenimis ir standartinėmis prielaidomis panašiems būstams.",
-        "Šiame bloke atskirai nemodeliuojame realių vidaus drėgmės ir skersvėjų, nes jie stipriai priklauso nuo gyventojų įpročių ir konkrečios buto būklės (langų, durų, sandūrų ir pan.).",
-        "Ventiliacijos sistema: natūrali"
+        "Šiame bloke atskirai nemodeliuojame realių vidaus drėgmės ir skersvėjų, nes jie stipriai priklauso nuo gyventojų įpročių ir konkrečios buto būklės (langų, durų, sandūrų ir pan.)."
       ]
     },
     "inputs_snapshot": {
