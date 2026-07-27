@@ -640,7 +640,26 @@ export function Block2Section({
             <thead>
               <tr className="text-left text-slate-500 border-b border-slate-200">
                 {breakdown.column_headers_lt.map((h, i) => (
-                  <th key={i} className={`py-2 pr-3 font-medium ${i > 0 ? 'text-right' : ''}`}>{h}</th>
+                  // The two €-amount columns are centred (header + values line up
+                  // down the middle). The „(su PVM)" qualifier drops to its own line
+                  // under the label — kept whole, split from the served string (not
+                  // hardcoded), so it never breaks mid-parenthesis.
+                  <th
+                    key={i}
+                    className={`py-2 pr-3 font-medium ${
+                      i === 1 || i === 2 ? 'text-center whitespace-nowrap' : i > 0 ? 'text-right' : ''
+                    }`}
+                  >
+                    {h.includes(' (') ? (
+                      <>
+                        {h.slice(0, h.indexOf(' ('))}
+                        <br />
+                        {h.slice(h.indexOf(' (') + 1)}
+                      </>
+                    ) : (
+                      h
+                    )}
+                  </th>
                 ))}
               </tr>
             </thead>
@@ -650,15 +669,15 @@ export function Block2Section({
               {shownRows.map((r, i) => (
                 <tr key={i} className="border-b border-slate-100">
                   <td className="py-2 pr-3 text-slate-700">{r.label_lt}</td>
-                  <td className="py-2 pr-3 text-right text-slate-700">€{r.eur_month}</td>
-                  <td className="py-2 pr-3 text-right text-slate-700">€{r.eur_year}</td>
+                  <td className="py-2 pr-3 text-center text-slate-700">€{r.eur_month}</td>
+                  <td className="py-2 pr-3 text-center text-slate-700">€{r.eur_year}</td>
                   <td className="py-2 text-right text-slate-500">{r.source_indicator}</td>
                 </tr>
               ))}
               <tr className="font-semibold text-[#1E3A5F]">
                 <td className="py-2 pr-3">{shownTotal.label_lt}</td>
-                <td className="py-2 pr-3 text-right">€{shownTotal.eur_month}</td>
-                <td className="py-2 pr-3 text-right">€{shownTotal.eur_year}</td>
+                <td className="py-2 pr-3 text-center">€{shownTotal.eur_month}</td>
+                <td className="py-2 pr-3 text-center">€{shownTotal.eur_year}</td>
                 <td />
               </tr>
             </tbody>
