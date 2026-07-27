@@ -877,7 +877,7 @@ export const MOCK_EXISTING: ReportData = {
     },
     "explanation": {
       "heading_lt": "Ką tai reiškia praktiškai?",
-      "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos sudarys apie €78 per mėnesį arba €940 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €99."
+      "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos sudarys apie €78 per mėnesį arba €940 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €99. Visos sumos nurodytos su PVM."
     },
     "confidence": "medium",
     "confidence_text_lt": "šildymo sistema ir energinė klasė žinomos, tačiau galiojančio tarifo įrašo šiuo metu nėra — skaičiuojama pagal paskutinį žinomą tarifą",
@@ -1307,11 +1307,10 @@ export const MOCK_EXISTING: ReportData = {
               }
             }
           ],
-          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 1 asmens namų ūkiui sudarys apie €84 per mėnesį arba €1000 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €105.",
+          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 1 asmens namų ūkiui sudarys apie €84 per mėnesį arba €1000 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €105. Visos sumos nurodytos su PVM.",
           "info_section": {
             "title_lt": "Kokia informacija remiamės?",
             "items_lt": [
-              "Visos kainos nurodytos su PVM (21%)",
               "Prognozė remiasi Eurostat HICP energijos kainų indeksais (10 metų vidurkis), ne mažiau nei bendroji infliacija",
               "Kainos apskaičiuotos pagal paskutinį žinomą AB „Kauno energija“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
               "Šis vertinimas sujungia du duomenų tipus:",
@@ -1527,11 +1526,10 @@ export const MOCK_EXISTING: ReportData = {
               }
             }
           ],
-          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 2 asmenų namų ūkiui sudarys apie €101 per mėnesį arba €1214 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €127.",
+          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 2 asmenų namų ūkiui sudarys apie €101 per mėnesį arba €1214 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €127. Visos sumos nurodytos su PVM.",
           "info_section": {
             "title_lt": "Kokia informacija remiamės?",
             "items_lt": [
-              "Visos kainos nurodytos su PVM (21%)",
               "Prognozė remiasi Eurostat HICP energijos kainų indeksais (10 metų vidurkis), ne mažiau nei bendroji infliacija",
               "Kainos apskaičiuotos pagal paskutinį žinomą AB „Kauno energija“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
               "Šis vertinimas sujungia du duomenų tipus:",
@@ -1747,11 +1745,10 @@ export const MOCK_EXISTING: ReportData = {
               }
             }
           ],
-          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 3 asmenų namų ūkiui sudarys apie €117 per mėnesį arba €1411 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €147.",
+          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 3 asmenų namų ūkiui sudarys apie €117 per mėnesį arba €1411 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €147. Visos sumos nurodytos su PVM.",
           "info_section": {
             "title_lt": "Kokia informacija remiamės?",
             "items_lt": [
-              "Visos kainos nurodytos su PVM (21%)",
               "Prognozė remiasi Eurostat HICP energijos kainų indeksais (10 metų vidurkis), ne mažiau nei bendroji infliacija",
               "Kainos apskaičiuotos pagal paskutinį žinomą AB „Kauno energija“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
               "Šis vertinimas sujungia du duomenų tipus:",
@@ -1967,11 +1964,10 @@ export const MOCK_EXISTING: ReportData = {
               }
             }
           ],
-          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 4 asmenų namų ūkiui sudarys apie €132 per mėnesį arba €1585 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €165.",
+          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 4 asmenų namų ūkiui sudarys apie €132 per mėnesį arba €1585 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €165. Visos sumos nurodytos su PVM.",
           "info_section": {
             "title_lt": "Kokia informacija remiamės?",
             "items_lt": [
-              "Visos kainos nurodytos su PVM (21%)",
               "Prognozė remiasi Eurostat HICP energijos kainų indeksais (10 metų vidurkis), ne mažiau nei bendroji infliacija",
               "Kainos apskaičiuotos pagal paskutinį žinomą AB „Kauno energija“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
               "Šis vertinimas sujungia du duomenų tipus:",
@@ -2187,11 +2183,10 @@ export const MOCK_EXISTING: ReportData = {
               }
             }
           ],
-          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 5 asmenų namų ūkiui sudarys apie €147 per mėnesį arba €1763 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €183.",
+          "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 5 asmenų namų ūkiui sudarys apie €147 per mėnesį arba €1763 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €183. Visos sumos nurodytos su PVM.",
           "info_section": {
             "title_lt": "Kokia informacija remiamės?",
             "items_lt": [
-              "Visos kainos nurodytos su PVM (21%)",
               "Prognozė remiasi Eurostat HICP energijos kainų indeksais (10 metų vidurkis), ne mažiau nei bendroji infliacija",
               "Kainos apskaičiuotos pagal paskutinį žinomą AB „Kauno energija“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
               "Šis vertinimas sujungia du duomenų tipus:",
@@ -2205,7 +2200,6 @@ export const MOCK_EXISTING: ReportData = {
     "info_section": {
       "title_lt": "Kokia informacija remiamės?",
       "items_lt": [
-        "Visos kainos nurodytos su PVM (21%)",
         "Prognozė remiasi Eurostat HICP energijos kainų indeksais (10 metų vidurkis), ne mažiau nei bendroji infliacija",
         "Kainos apskaičiuotos pagal paskutinį žinomą AB „Kauno energija“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
         "Šis vertinimas sujungia du duomenų tipus:",
