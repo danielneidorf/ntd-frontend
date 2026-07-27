@@ -19,6 +19,15 @@ export const INFO_SECTION_TITLE = 'Kokia informacija remiamės?';
 // not a cross-repo pin (it's a style, not a served string).
 export const INFO_SECTION_LABEL = 'text-sm font-semibold text-slate-700';
 
+// The ONE body style for prose inside an info section — the running text of the
+// „what we based this on" surfaces (Block 2's merged section, Block 1's basis
+// box). Items render as plain paragraphs (`<p className="whitespace-pre-line">`),
+// not a bulleted list. Named once here so both blocks route through it (one
+// origin); its value is exactly Block 2's pre-existing inline classes, so routing
+// Block 2 through it is a no-op. Completes the family with INFO_SECTION_TITLE
+// (served, disk-read-pinned) and INFO_SECTION_LABEL (the caption token).
+export const INFO_SECTION_BODY = 'text-sm text-slate-600 leading-relaxed space-y-2';
+
 /** The ONE collapsible info-section idiom — Block 1's basis box and Block 2's
  *  merged section both use it, so they read as siblings (one icon, one chevron,
  *  one default). Collapsed by default on the web (ruling 2026-07-25); the PDF

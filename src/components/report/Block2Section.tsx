@@ -17,7 +17,7 @@ import {
   YAxis,
 } from 'recharts';
 import type { Block2Data } from './mockReportData';
-import { InfoSection, INFO_SECTION_LABEL } from './InfoSection';
+import { InfoSection, INFO_SECTION_LABEL, INFO_SECTION_BODY } from './InfoSection';
 
 interface Block2SectionProps {
   block2: Block2Data | undefined;
@@ -693,7 +693,7 @@ export function Block2Section({
           „Iš ko remiamės" boxes both die into this. */}
       {infoSection && infoSection.items_lt.length > 0 && (
         <InfoSection title={infoSection.title_lt}>
-          <div data-block2="info-section" className="text-sm text-slate-600 leading-relaxed space-y-2 mt-3 px-1">
+          <div data-block2="info-section" className={`${INFO_SECTION_BODY} mt-3 px-1`}>
             {infoSection.items_lt.map((item, i) => (
               <p key={i} className="whitespace-pre-line">{item}</p>
             ))}

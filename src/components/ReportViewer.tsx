@@ -1,7 +1,7 @@
 // P7-A1: Interactive report page — ReportViewer shell
 import { useState, useEffect } from 'react';
 import { DEV_MOCKS, type ReportData } from './report/mockReportData';
-import { InfoSection } from './report/InfoSection';
+import { InfoSection, INFO_SECTION_BODY } from './report/InfoSection';
 import PropertyProfile from './report/PropertyProfile';
 import Citations from './report/Citations';
 import AdditionalDocuments from './report/AdditionalDocuments';
@@ -313,13 +313,14 @@ function InfoBox({ items }: { items: string[] }) {
   if (items.length === 0) return null;
   return (
     <InfoSection>
-      <ul className="mt-2 space-y-2 pl-4">
+      {/* Paragraphs, not bullets — the shared info-section body idiom (one origin
+          with Block 2's section via INFO_SECTION_BODY). Same body typography and
+          spacing rhythm; the strings are unchanged. */}
+      <div data-block1="info-section" className={`${INFO_SECTION_BODY} mt-3 px-1`}>
         {items.map((item, i) => (
-          <li key={i} className="text-sm text-slate-600 leading-relaxed list-disc">
-            {item}
-          </li>
+          <p key={i} className="whitespace-pre-line">{item}</p>
         ))}
-      </ul>
+      </div>
     </InfoSection>
   );
 }

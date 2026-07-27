@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { Block2Section, HOUSEHOLD_REFERENCE_CAPTION } from '../Block2Section';
+import { INFO_SECTION_BODY } from '../InfoSection';
 import { MOCK_EXISTING, MOCK_FALLBACK, MOCK_LAND_ONLY } from '../mockReportData';
 
 // Controlled-component harness: selection state lives in ReportViewer in the
@@ -370,6 +371,17 @@ describe('Block2Section', () => {
     // no size-specific scope line and does not change with the selection.
     expect(section().textContent).toBe(sectionBefore);
     expect(section().textContent).not.toMatch(/\d+\s+asmen/);
+  });
+
+  it('routes its body through the shared INFO_SECTION_BODY token (one origin)', () => {
+    // The paragraph body style lives once (InfoSection.tsx) and both blocks read
+    // it (Block 1's basis box + this section). Routing Block 2 through the token
+    // is a no-op — the rendered className stays byte-identical to the old inline
+    // string — and this pin guards that the two can't silently drift.
+    const { container } = render(<Harness />);
+    const section = container.querySelector('[data-block2="info-section"]')!;
+    expect(section.className).toContain(INFO_SECTION_BODY);
+    expect(section.className).toBe(`${INFO_SECTION_BODY} mt-3 px-1`);
   });
 
   it('renders no selector and no family prose for a legacy/degraded payload', () => {
