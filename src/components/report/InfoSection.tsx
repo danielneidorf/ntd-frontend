@@ -8,6 +8,17 @@ import { useState, type ReactNode } from 'react';
 // „Iš ko remiamės…", the data-sources box read „Duomenų šaltiniai"). → B8-4.
 export const INFO_SECTION_TITLE = 'Kokia informacija remiamės?';
 
+// The ONE internal-label style for content that sits *inside* an info section
+// (first use: Block 2's household-reference table caption, 2026-07-27). One rung
+// under the block-heading size (`text-sm` vs the chart titles' `text-base`),
+// semibold-muted so it labels rather than narrates and can't be mistaken for a
+// block section of its own — clearly below the section title above. Named once
+// here so the next labelled element that lands in any info section reuses it
+// instead of minting an ad-hoc caption style. Its PDF twin is the `.info-label`
+// class in report_pdf.html (`#334155` = slate-700); parity is by shared intent,
+// not a cross-repo pin (it's a style, not a served string).
+export const INFO_SECTION_LABEL = 'text-sm font-semibold text-slate-700';
+
 /** The ONE collapsible info-section idiom — Block 1's basis box and Block 2's
  *  merged section both use it, so they read as siblings (one icon, one chevron,
  *  one default). Collapsed by default on the web (ruling 2026-07-25); the PDF

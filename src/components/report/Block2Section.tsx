@@ -17,7 +17,7 @@ import {
   YAxis,
 } from 'recharts';
 import type { Block2Data } from './mockReportData';
-import { InfoSection } from './InfoSection';
+import { InfoSection, INFO_SECTION_LABEL } from './InfoSection';
 
 interface Block2SectionProps {
   block2: Block2Data | undefined;
@@ -706,21 +706,25 @@ export function Block2Section({
               collapse; the customer's own size stays visible in the breakdown. */}
           {household_reference && household_reference.length > 0 && (
             <div className="overflow-x-auto mt-4">
-              <h3 className="text-base font-semibold text-slate-800 mb-3">{HOUSEHOLD_REFERENCE_CAPTION}</h3>
-              <table data-block2="household-reference" className="w-full text-sm border-collapse">
+              {/* Caption is section-internal content, not a block section: the
+                  shared INFO_SECTION_LABEL token (bold body-size, muted), and a
+                  <p> so it leaves the heading outline. The table compacts to
+                  natural width (no w-full sprawl) at one step below body text. */}
+              <p className={`${INFO_SECTION_LABEL} mb-2`}>{HOUSEHOLD_REFERENCE_CAPTION}</p>
+              <table data-block2="household-reference" className="text-xs border-collapse">
                 <thead>
                   <tr className="text-left text-slate-500 border-b border-slate-200">
-                    <th className="py-2 pr-3 font-medium">Namų ūkio dydis</th>
-                    <th className="py-2 pr-3 font-medium text-right">Tipinis suvartojimas (kWh/mėn.)</th>
-                    <th className="py-2 font-medium text-right">~€ per mėnesį</th>
+                    <th className="py-1 pr-3 font-medium">Namų ūkio dydis</th>
+                    <th className="py-1 pr-3 font-medium text-right">Tipinis suvartojimas (kWh/mėn.)</th>
+                    <th className="py-1 font-medium text-right">~€ per mėnesį</th>
                   </tr>
                 </thead>
                 <tbody>
                   {household_reference.map((r, i) => (
                     <tr key={i} className="border-b border-slate-100">
-                      <td className="py-2 pr-3 text-slate-700">{r.size_label_lt}</td>
-                      <td className="py-2 pr-3 text-right text-slate-700">{r.kwh_month}</td>
-                      <td className="py-2 text-right text-slate-700">{eur(r.eur_month)}</td>
+                      <td className="py-1 pr-3 text-slate-700">{r.size_label_lt}</td>
+                      <td className="py-1 pr-3 text-right text-slate-700">{r.kwh_month}</td>
+                      <td className="py-1 text-right text-slate-700">{eur(r.eur_month)}</td>
                     </tr>
                   ))}
                 </tbody>
