@@ -190,6 +190,13 @@ export function SummarySection({
   const winterDesc = winter.rows?.find((r) => r.highlighted)?.description_lt ?? '';
   const summerDesc = summer.rows?.find((r) => r.highlighted)?.description_lt ?? '';
   const comparisons = winter.comparison_lines_lt ?? [];
+  // One body style for the whole „Ką tai reiškia praktiškai?" section (2026-07-27):
+  // the winter/summer descriptions AND the etalon comparison lines read as one voice.
+  // The comparison lines previously kept their under-the-bar footnote styling
+  // (text-sm / slate-600) and read as footnotes to the paragraph they now belong to —
+  // routing all three through one constant makes the harmony structural, not
+  // coincidental, so they can't silently re-drift.
+  const SEASON_BODY = 'text-base text-slate-700 leading-relaxed';
   if (!winterDesc && !summerDesc) return null;
 
   return (
@@ -217,12 +224,12 @@ export function SummarySection({
           {winterDesc && (
             <div className="mb-4" data-season="winter">
               <h4 className="text-sm font-semibold text-[#1E3A5F] mb-1">Žiema</h4>
-              <p className="text-base text-slate-700 leading-relaxed">{winterDesc}</p>
+              <p className={SEASON_BODY}>{winterDesc}</p>
               {comparisons.map((line, i) => (
                 <p
                   key={i}
                   data-winter-comparison
-                  className="text-sm text-slate-600 leading-relaxed mt-2"
+                  className={`${SEASON_BODY} mt-2`}
                 >
                   {line}
                 </p>
@@ -232,7 +239,7 @@ export function SummarySection({
           {summerDesc && (
             <div data-season="summer">
               <h4 className="text-sm font-semibold text-[#1E3A5F] mb-1">Vasara</h4>
-              <p className="text-base text-slate-700 leading-relaxed">{summerDesc}</p>
+              <p className={SEASON_BODY}>{summerDesc}</p>
             </div>
           )}
         </div>

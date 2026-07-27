@@ -64,6 +64,27 @@ describe('practical-meaning section (2026-07-22 relocation)', () => {
     lines.forEach((line) => expect(section.contains(line)).toBe(true));
   });
 
+  it('the comparison lines share the description body typography, not the old footnote style', () => {
+    // Regression pin for the 2026-07-27 harmonisation: detached into „Ką tai
+    // reiškia praktiškai?", the etalon comparison lines adopt the description
+    // paragraph's size + colour (one section voice) — they no longer render in
+    // the smaller/lighter under-the-bar footnote style (text-sm / slate-600).
+    const { container } = renderReport();
+    const winter = container.querySelector('[data-season="winter"]') as HTMLElement;
+    const descP = Array.from(winter.querySelectorAll('p')).find(
+      (p) => (p.textContent ?? '').trim() === WINTER_DESC.trim(),
+    )!;
+    const comparison = winter.querySelector('[data-winter-comparison]') as HTMLElement;
+    // the description carries the body size + colour …
+    expect(descP.className).toContain('text-base');
+    expect(descP.className).toContain('text-slate-700');
+    // … and the comparison line now matches it, having shed the footnote pair.
+    expect(comparison.className).toContain('text-base');
+    expect(comparison.className).toContain('text-slate-700');
+    expect(comparison.className).not.toContain('text-sm');
+    expect(comparison.className).not.toContain('text-slate-600');
+  });
+
   it('the section is open by default — the move must not hide shipped content', () => {
     const { container } = renderReport();
     const section = container.querySelector('[data-practical-meaning]') as HTMLElement;
