@@ -77,7 +77,7 @@ export interface Block2HouseholdOption {
   // Optional — legacy captures predate it and fall back to the building-only
   // top-level forecast.
   forecast_5yr?: Block2ForecastPoint[];
-  explanation_lt: string;
+  // (The explanation's ¶2 family note (explanation_lt) was retired 2026-07-27.)
   // The option's own merged info section (ruling 2026-07-25) — its scope line is
   // size-specific, the rest identical across sizes. Optional: legacy captures
   // predate the merge.
@@ -111,9 +111,8 @@ export interface Block2Data {
     rows: Block2BreakdownRow[];
     total: { label_lt: string; eur_year: number; eur_month: number };
   };
-  // family_note_lt: §7.5 conditional paragraph (OFF variant served by default
-  // for residential reports with a selector; the ON variant lives per option).
-  explanation?: { heading_lt: string; body_lt: string; family_note_lt?: string };
+  // (The explanation's ¶2 family note was retired 2026-07-27 — cross-section dedup.)
+  explanation?: { heading_lt: string; body_lt: string };
   // The default merged info section (used when no size selected; each option
   // carries its own). Ruling 2026-07-25 — replaced info_box + disclosure box.
   info_section?: Block2InfoSection;
@@ -878,8 +877,7 @@ export const MOCK_EXISTING: ReportData = {
     },
     "explanation": {
       "heading_lt": "Ką tai reiškia praktiškai?",
-      "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos sudarys apie €78 per mėnesį arba €940 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €99.",
-      "family_note_lt": "Svarbu atsiminti, kad ši suma neapima buitinės elektros (apšvietimas, prietaisai, viryklė). Pasirinkite namų ūkio dydį žemiau, kad pamatytumėte bendrą mėnesinę energijos kainą."
+      "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos sudarys apie €78 per mėnesį arba €940 per metus. Per 5 metus, jei tarifai kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €99."
     },
     "confidence": "medium",
     "confidence_text_lt": "šildymo sistema ir energinė klasė žinomos, tačiau galiojančio tarifo įrašo šiuo metu nėra — skaičiuojama pagal paskutinį žinomą tarifą",
@@ -1309,7 +1307,6 @@ export const MOCK_EXISTING: ReportData = {
               }
             }
           ],
-          "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 1 asmens namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
           "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 1 asmens namų ūkiui sudarys apie €84 per mėnesį arba €1000 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €105.",
           "info_section": {
             "title_lt": "Kokia informacija remiamės?",
@@ -1530,7 +1527,6 @@ export const MOCK_EXISTING: ReportData = {
               }
             }
           ],
-          "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 2 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
           "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 2 asmenų namų ūkiui sudarys apie €101 per mėnesį arba €1214 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €127.",
           "info_section": {
             "title_lt": "Kokia informacija remiamės?",
@@ -1751,7 +1747,6 @@ export const MOCK_EXISTING: ReportData = {
               }
             }
           ],
-          "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 3 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
           "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 3 asmenų namų ūkiui sudarys apie €117 per mėnesį arba €1411 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €147.",
           "info_section": {
             "title_lt": "Kokia informacija remiamės?",
@@ -1972,7 +1967,6 @@ export const MOCK_EXISTING: ReportData = {
               }
             }
           ],
-          "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 4 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
           "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 4 asmenų namų ūkiui sudarys apie €132 per mėnesį arba €1585 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €165.",
           "info_section": {
             "title_lt": "Kokia informacija remiamės?",
@@ -2193,7 +2187,6 @@ export const MOCK_EXISTING: ReportData = {
               }
             }
           ],
-          "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 5 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
           "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 5 asmenų namų ūkiui sudarys apie €147 per mėnesį arba €1763 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €183.",
           "info_section": {
             "title_lt": "Kokia informacija remiamės?",

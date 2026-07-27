@@ -525,11 +525,8 @@ export function Block2Section({
   const shownForecast = selected
     ? selected.forecast_5yr ?? block2.forecast_5yr
     : block2.forecast_5yr;
-  // §7.5 family paragraph: OFF variant served on the default view, ON variant
-  // per option.
-  const familyNote = selected
-    ? selected.explanation_lt
-    : explanation?.family_note_lt;
+  // (The explanation's ¶2 family note was retired 2026-07-27 — cross-section
+  // dedup; the explanation is now ¶1 only, the selected option's body_lt.)
   // The ONE merged info section (ruling 2026-07-25) — assumptions + data-sources
   // explainer + the hot-water note, composed once in the backend. The selected
   // size carries its own (its scope line is size-specific); the default is the
@@ -710,20 +707,16 @@ export function Block2Section({
         </div>
       )}
 
-      {/* 6 — Practical explanation (+ §7.5 family paragraph, OFF/ON variant). */}
+      {/* 6 — Practical explanation (¶1 only; the ¶2 family note was retired
+          2026-07-27 — cross-section dedup). */}
       {explanation && (
         <div data-block2="explanation" className="mb-6">
           <h3 className="text-base font-semibold text-slate-800 mb-2">{explanation.heading_lt}</h3>
           <p className="text-sm text-slate-700 leading-relaxed">
-            {/* R5: the selected option carries its own personalised body —
-                „Ši suma" then points at the figure it describes. */}
+            {/* R5: the selected option carries its own personalised body — the
+                figure sentence names the inputs + the totals. */}
             {selected?.body_lt ?? explanation.body_lt}
           </p>
-          {familyNote && (
-            <p data-block2="family-note" className="text-sm text-slate-700 leading-relaxed mt-2">
-              {familyNote}
-            </p>
-          )}
         </div>
       )}
 

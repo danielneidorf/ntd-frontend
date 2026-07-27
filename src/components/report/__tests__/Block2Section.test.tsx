@@ -371,19 +371,24 @@ describe('Block2Section', () => {
     expect(ref.textContent).toContain('5+ asmenys');
   });
 
-  it('swaps the §7.5 family prose on selection; the info section is size-independent', () => {
+  it('swaps the ¶1 body on selection; ¶2 family note gone; info section size-independent', () => {
     const { container } = render(<Harness />);
-    const note = () => container.querySelector('[data-block2="family-note"]');
+    const explanation = () => container.querySelector('[data-block2="explanation"]')!;
     const section = () => container.querySelector('[data-block2="info-section"]')!;
-    // Default: the served OFF family variant.
-    expect(note()!.textContent).toBe(MOCK_EXISTING.block2!.explanation!.family_note_lt);
+    // The explanation's ¶2 family note was retired 2026-07-27 (cross-section dedup):
+    // no [data-block2="family-note"] element on either the default or a selection.
+    expect(container.querySelector('[data-block2="family-note"]')).toBeNull();
+    const bodyBefore = explanation().textContent;
     const sectionBefore = section().textContent;
 
     fireEvent.click(screen.getByRole('button', { name: '2' }));
-    // The family prose swaps to the selected size…
-    expect(note()!.textContent).toBe(OPTION(2).explanation_lt);
-    // …but the info section is now SIZE-INDEPENDENT (dedup 2026-07-27): it carries
-    // no size-specific scope line and does not change with the selection.
+    // The ¶1 body (R5 personalised) swaps to the selected size…
+    expect(explanation().textContent).not.toBe(bodyBefore);
+    expect(explanation().textContent).toContain('2 asmenų namų ūkiui');
+    // …still no ¶2 family note…
+    expect(container.querySelector('[data-block2="family-note"]')).toBeNull();
+    // …and the info section is SIZE-INDEPENDENT (dedup 2026-07-27): no size-specific
+    // scope line, and it does not change with the selection.
     expect(section().textContent).toBe(sectionBefore);
     expect(section().textContent).not.toMatch(/\d+\s+asmen/);
   });
