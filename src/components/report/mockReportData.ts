@@ -896,7 +896,7 @@ export const MOCK_EXISTING: ReportData = {
       "eur_month_raw": 78.34,
       "subtext_lt": "Vidutinė mėnesinė energijos kaina pagal dabartinius tarifus (su PVM)"
     },
-    "intro_lt": "Šiame bloke pateikiame, kiek šiame būste tikėtina mokėti už energiją kiekvieną mėnesį — šildymą, karštą vandenį, vėsinimą ir ventiliaciją, bei pastovius mokesčius — pagal dabartinius tarifus ir pastato energinius parametrus. Taip pat galite sužinoti preliminarų elektros suvartojimą buities reikmėms, pasirinkę savo namų ūkio dydį.",
+    "intro_lt": "Šiame bloke pateikiame, kiek šiame būste tikėtina mokėti už energiją kiekvieną mėnesį — šildymą, karštą vandenį ir buitinę elektrą, pritaikytą jūsų namų ūkio dydžiui — pagal dabartinius tarifus ir pastato energinius parametrus. Namų ūkio dydį galite pakeisti.",
     "breakdown": {
       "column_headers_lt": [
         "Komponentas",
