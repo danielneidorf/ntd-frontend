@@ -355,20 +355,21 @@ describe('Block2Section', () => {
     expect(ref.textContent).toContain('5+ asmenys');
   });
 
-  it('swaps the §7.5 family prose and the section scope line on selection', () => {
+  it('swaps the §7.5 family prose on selection; the info section is size-independent', () => {
     const { container } = render(<Harness />);
     const note = () => container.querySelector('[data-block2="family-note"]');
     const section = () => container.querySelector('[data-block2="info-section"]')!;
-    // Default: the served OFF family variant + the generic scope line.
+    // Default: the served OFF family variant.
     expect(note()!.textContent).toBe(MOCK_EXISTING.block2!.explanation!.family_note_lt);
-    expect(section().textContent).toContain(
-      MOCK_EXISTING.block2!.info_section!.items_lt.find((i) => i.includes('neapima')) ?? '—',
-    );
+    const sectionBefore = section().textContent;
 
     fireEvent.click(screen.getByRole('button', { name: '2' }));
+    // The family prose swaps to the selected size…
     expect(note()!.textContent).toBe(OPTION(2).explanation_lt);
-    // The size-specific scope line („2 asmenų") is now in the section.
-    expect(section().textContent).toContain('2 asmenų namų ūkiui');
+    // …but the info section is now SIZE-INDEPENDENT (dedup 2026-07-27): it carries
+    // no size-specific scope line and does not change with the selection.
+    expect(section().textContent).toBe(sectionBefore);
+    expect(section().textContent).not.toMatch(/\d+\s+asmen/);
   });
 
   it('renders no selector and no family prose for a legacy/degraded payload', () => {

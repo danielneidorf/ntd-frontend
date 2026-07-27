@@ -1360,20 +1360,16 @@ export const MOCK_EXISTING: ReportData = {
             }
           ],
           "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 1 asmens namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
-          "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 1 asmens namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
           "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 1 asmens namų ūkiui sudarys apie €84 per mėnesį arba €1000 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €105.",
           "info_section": {
             "title_lt": "Kokia informacija remiamės?",
             "items_lt": [
-              "Šildymo sistemos tipas (centrinis šildymas) nustatytas pagal pastato energinio naudingumo sertifikatą.",
               "Visos kainos nurodytos su PVM (21%)",
               "Prognozė remiasi Eurostat HICP energijos kainų indeksais (10 metų vidurkis), ne mažiau nei bendroji infliacija",
-              "Kainos apskaičiuotos pagal paskutinį žinomą AB „Miesto gijos“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
-              "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 1 asmens namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
+              "Kainos apskaičiuotos pagal paskutinį žinomą AB „Kauno energija“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
               "Šis vertinimas sujungia du duomenų tipus:",
-              "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui.",
-              "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų pasirinktą namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių.",
-              "Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių."
+              "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
+              "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių."
             ]
           }
         },
@@ -1585,20 +1581,16 @@ export const MOCK_EXISTING: ReportData = {
             }
           ],
           "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 2 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
-          "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 2 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
           "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 2 asmenų namų ūkiui sudarys apie €101 per mėnesį arba €1214 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €127.",
           "info_section": {
             "title_lt": "Kokia informacija remiamės?",
             "items_lt": [
-              "Šildymo sistemos tipas (centrinis šildymas) nustatytas pagal pastato energinio naudingumo sertifikatą.",
               "Visos kainos nurodytos su PVM (21%)",
               "Prognozė remiasi Eurostat HICP energijos kainų indeksais (10 metų vidurkis), ne mažiau nei bendroji infliacija",
-              "Kainos apskaičiuotos pagal paskutinį žinomą AB „Miesto gijos“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
-              "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 2 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
+              "Kainos apskaičiuotos pagal paskutinį žinomą AB „Kauno energija“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
               "Šis vertinimas sujungia du duomenų tipus:",
-              "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui.",
-              "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų pasirinktą namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių.",
-              "Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių."
+              "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
+              "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių."
             ]
           }
         },
@@ -1810,20 +1802,16 @@ export const MOCK_EXISTING: ReportData = {
             }
           ],
           "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 3 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
-          "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 3 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
           "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 3 asmenų namų ūkiui sudarys apie €117 per mėnesį arba €1411 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €147.",
           "info_section": {
             "title_lt": "Kokia informacija remiamės?",
             "items_lt": [
-              "Šildymo sistemos tipas (centrinis šildymas) nustatytas pagal pastato energinio naudingumo sertifikatą.",
               "Visos kainos nurodytos su PVM (21%)",
               "Prognozė remiasi Eurostat HICP energijos kainų indeksais (10 metų vidurkis), ne mažiau nei bendroji infliacija",
-              "Kainos apskaičiuotos pagal paskutinį žinomą AB „Miesto gijos“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
-              "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 3 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
+              "Kainos apskaičiuotos pagal paskutinį žinomą AB „Kauno energija“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
               "Šis vertinimas sujungia du duomenų tipus:",
-              "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui.",
-              "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų pasirinktą namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių.",
-              "Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių."
+              "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
+              "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių."
             ]
           }
         },
@@ -2035,20 +2023,16 @@ export const MOCK_EXISTING: ReportData = {
             }
           ],
           "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 4 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
-          "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 4 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
           "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 4 asmenų namų ūkiui sudarys apie €132 per mėnesį arba €1585 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €165.",
           "info_section": {
             "title_lt": "Kokia informacija remiamės?",
             "items_lt": [
-              "Šildymo sistemos tipas (centrinis šildymas) nustatytas pagal pastato energinio naudingumo sertifikatą.",
               "Visos kainos nurodytos su PVM (21%)",
               "Prognozė remiasi Eurostat HICP energijos kainų indeksais (10 metų vidurkis), ne mažiau nei bendroji infliacija",
-              "Kainos apskaičiuotos pagal paskutinį žinomą AB „Miesto gijos“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
-              "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 4 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
+              "Kainos apskaičiuotos pagal paskutinį žinomą AB „Kauno energija“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
               "Šis vertinimas sujungia du duomenų tipus:",
-              "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui.",
-              "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų pasirinktą namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių.",
-              "Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių."
+              "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
+              "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių."
             ]
           }
         },
@@ -2260,20 +2244,16 @@ export const MOCK_EXISTING: ReportData = {
             }
           ],
           "explanation_lt": "Ši suma apima pastato energiją ir preliminarų buitinės elektros suvartojimą, pritaikytą 5 asmenų namų ūkiui. Buitinės elektros dalis yra statistinis vidurkis — faktinės sąnaudos priklauso nuo prietaisų ir įpročių.",
-          "whats_not_included_lt": "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 5 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
           "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 5 asmenų namų ūkiui sudarys apie €147 per mėnesį arba €1763 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €183.",
           "info_section": {
             "title_lt": "Kokia informacija remiamės?",
             "items_lt": [
-              "Šildymo sistemos tipas (centrinis šildymas) nustatytas pagal pastato energinio naudingumo sertifikatą.",
               "Visos kainos nurodytos su PVM (21%)",
               "Prognozė remiasi Eurostat HICP energijos kainų indeksais (10 metų vidurkis), ne mažiau nei bendroji infliacija",
-              "Kainos apskaičiuotos pagal paskutinį žinomą AB „Miesto gijos“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
-              "Buitinė elektra ir karšto vandens sąnaudos pritaikytos 5 asmenų namų ūkiui (statistinis vidurkis). Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
+              "Kainos apskaičiuotos pagal paskutinį žinomą AB „Kauno energija“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
               "Šis vertinimas sujungia du duomenų tipus:",
-              "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui.",
-              "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų pasirinktą namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių.",
-              "Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių."
+              "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
+              "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių."
             ]
           }
         }
@@ -2282,15 +2262,12 @@ export const MOCK_EXISTING: ReportData = {
     "info_section": {
       "title_lt": "Kokia informacija remiamės?",
       "items_lt": [
-        "Šildymo sistemos tipas (centrinis šildymas) nustatytas pagal pastato energinio naudingumo sertifikatą.",
         "Visos kainos nurodytos su PVM (21%)",
         "Prognozė remiasi Eurostat HICP energijos kainų indeksais (10 metų vidurkis), ne mažiau nei bendroji infliacija",
-        "Kainos apskaičiuotos pagal paskutinį žinomą AB „Miesto gijos“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
-        "Šis vertinimas neapima buitinės elektros (apšvietimas, prietaisai, viryklė) ir nėra pritaikytas konkrečiam gyventojų skaičiui. Pasirinkite namų ūkio dydį, kad vertinimas būtų išsamesnis.",
+        "Kainos apskaičiuotos pagal paskutinį žinomą AB „Kauno energija“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
         "Šis vertinimas sujungia du duomenų tipus:",
-        "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui.",
-        "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų pasirinktą namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių.",
-        "Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių."
+        "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
+        "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių."
       ]
     }
   },
