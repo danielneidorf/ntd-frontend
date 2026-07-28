@@ -3,6 +3,7 @@
 
 export interface Block8Content {
   pattern: string;
+  pattern_title_lt: string;
   scope_prefix: string;
   intro_lt: string;
   viewing_questions_lt: string[];
@@ -786,8 +787,9 @@ export const MOCK_EXISTING: ReportData = {
         "status": "ready",
         "data": {
           "pattern": "D",
+          "pattern_title_lt": "Iššūkiai abiem sezonais",
           "scope_prefix": "Šilumos komforto požiūriu",
-          "intro_lt": "Šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais — žiemą šildymo sąnaudos gali būti didelės, o vasarą patalpos linkusios perkaisti. Tai stipriausias signalas būti atidiems. Šio pastato šildymo poreikis yra apie 35 % mažesnis nei vidutinio tos pačios energinės klasės pastato Lietuvoje. Pastato energijos kaina (be buitinės elektros) — apie €78 per mėnesį.",
+          "intro_lt": "Lyginant su tos pačios klasės (D) pastatais Lietuvoje, šio pastato šildymo poreikis yra apie 35 % mažesnis nei vidurkis. Tačiau, šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais — žiemą šildymo sąnaudos gali būti gerokai didesnės nei techniškai efektyviame pastate (A++), o vasarą patalpos linkusios perkaisti. Tai stipriausias signalas būti atidiems. Šildymas — vidutiniškai apie €61 per mėnesį (apie €729 per metus).",
           "viewing_questions_lt": [
             "Paprašykite faktinių šildymo sąskaitų už paskutinius 2–3 žiemos sezonus.",
             "Apžiūrėkite izoliaciją: stogo / pastogės apšiltinimą, sienų būklę, langų sandarumą.",
@@ -2331,8 +2333,9 @@ export const MOCK_EXISTING: ReportData = {
     "status": "ready",
     "data": {
       "pattern": "D",
+      "pattern_title_lt": "Iššūkiai abiem sezonais",
       "scope_prefix": "Šilumos komforto požiūriu",
-      "intro_lt": "Šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais — žiemą šildymo sąnaudos gali būti didelės, o vasarą patalpos linkusios perkaisti. Tai stipriausias signalas būti atidiems. Šio pastato šildymo poreikis yra apie 35 % mažesnis nei vidutinio tos pačios energinės klasės pastato Lietuvoje. Pastato energijos kaina (be buitinės elektros) — apie €78 per mėnesį.",
+      "intro_lt": "Lyginant su tos pačios klasės (D) pastatais Lietuvoje, šio pastato šildymo poreikis yra apie 35 % mažesnis nei vidurkis. Tačiau, šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais — žiemą šildymo sąnaudos gali būti gerokai didesnės nei techniškai efektyviame pastate (A++), o vasarą patalpos linkusios perkaisti. Tai stipriausias signalas būti atidiems. Šildymas — vidutiniškai apie €61 per mėnesį (apie €729 per metus).",
       "viewing_questions_lt": [
         "Paprašykite faktinių šildymo sąskaitų už paskutinius 2–3 žiemos sezonus.",
         "Apžiūrėkite izoliaciją: stogo / pastogės apšiltinimą, sienų būklę, langų sandarumą.",

@@ -12,34 +12,15 @@ interface PatternStyle {
   banner: string; // bg + border classes
   text: string; // banner text colour
   dot: string; // severity-dot bg
-  verdict: string; // Lithuanian one-word verdict
+  // The card title moved to the backend contract (d.pattern_title_lt, 2026-07-28,
+  // Ruling 2 c) — one origin for web + PDF. PATTERN_STYLES keeps colour only.
 }
 
 const PATTERN_STYLES: Record<PatternKey, PatternStyle> = {
-  A: {
-    banner: 'bg-emerald-50 border-emerald-200',
-    text: 'text-emerald-800',
-    dot: 'bg-emerald-500',
-    verdict: 'Komfortiškas pastatas',
-  },
-  B: {
-    banner: 'bg-amber-50 border-amber-200',
-    text: 'text-amber-800',
-    dot: 'bg-amber-500',
-    verdict: 'Šildymo iššūkis',
-  },
-  C: {
-    banner: 'bg-amber-50 border-amber-200',
-    text: 'text-amber-800',
-    dot: 'bg-amber-500',
-    verdict: 'Perkaitimo rizika',
-  },
-  D: {
-    banner: 'bg-red-50 border-red-200',
-    text: 'text-red-800',
-    dot: 'bg-red-500',
-    verdict: 'Dviguba rizika',
-  },
+  A: { banner: 'bg-emerald-50 border-emerald-200', text: 'text-emerald-800', dot: 'bg-emerald-500' },
+  B: { banner: 'bg-amber-50 border-amber-200', text: 'text-amber-800', dot: 'bg-amber-500' },
+  C: { banner: 'bg-amber-50 border-amber-200', text: 'text-amber-800', dot: 'bg-amber-500' },
+  D: { banner: 'bg-red-50 border-red-200', text: 'text-red-800', dot: 'bg-red-500' },
 };
 
 // Defensive fallback for unknown / "land_only" pattern strings.
@@ -48,7 +29,6 @@ const FALLBACK_STYLE: PatternStyle = {
   banner: 'bg-slate-50 border-slate-200',
   text: 'text-slate-800',
   dot: 'bg-slate-500',
-  verdict: 'Rekomendacijos',
 };
 
 function styleFor(pattern: string): PatternStyle {
@@ -87,9 +67,14 @@ export function Block8Section({ block8 }: Block8SectionProps) {
             className={`${style.dot} w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0`}
           />
           <div className="min-w-0">
-            <p className={`text-sm font-semibold ${style.text} mb-1`}>
-              {style.verdict}
-            </p>
+            {d.pattern_title_lt && (
+              <p
+                data-block8="pattern-title"
+                className={`text-sm font-semibold ${style.text} mb-1`}
+              >
+                {d.pattern_title_lt}
+              </p>
+            )}
             <p
               data-block8="intro"
               className={`text-sm ${style.text} leading-relaxed`}

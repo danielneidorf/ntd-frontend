@@ -9,6 +9,7 @@ const READY_BLOCK8: Block8Data = {
   status: 'ready',
   data: {
     pattern: 'B',
+    pattern_title_lt: 'Šildymo iššūkis',
     scope_prefix: 'Šilumos komforto požiūriu',
     intro_lt: 'Šilumos komforto požiūriu, šis pastatas kelia šildymo iššūkį.',
     viewing_questions_lt: [
@@ -32,6 +33,10 @@ describe('Block8Section', () => {
     expect(
       screen.getByRole('heading', { level: 2, name: /Rekomendacijos/i }),
     ).toBeInTheDocument();
+    // The per-pattern card title now comes from the backend contract
+    // (pattern_title_lt, 2026-07-28) — not a frontend verdict string.
+    const title = document.querySelector('[data-block8="pattern-title"]');
+    expect(title?.textContent).toBe('Šildymo iššūkis');
     expect(
       screen.getByText(/šis pastatas kelia šildymo iššūkį/),
     ).toBeInTheDocument();
