@@ -160,7 +160,7 @@ export interface ReportData {
   block8?: Block8Data;
   block1: {
     applicable: boolean;
-    neutral_message_lt?: string;
+    neutral_message_lt?: string | null;
     winter: {
       // 'NOT_ASSESSED' ⇒ no real/estimated heating value — show "Neįvertinta"
       // + the reason, never an A–E band (the backend keeps it off the ordinal
@@ -313,8 +313,8 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 export const MOCK_EXISTING: ReportData = {
   "envelope": {
     "address": "Vilnius, Žirmūnų g. 12-5",
-    "request_id": "report-20260725150153",
-    "created_at": "2026-07-25T15:01:53.208384+00:00"
+    "request_id": "report-20260728174238",
+    "created_at": "2026-07-28T17:42:38.998948+00:00"
   },
   "blocks": [
     {
@@ -333,8 +333,9 @@ export const MOCK_EXISTING: ReportData = {
           "segment": "D",
           "description_lt": "Žema pastato energinė klasė (D ar žemesnė) rodo didelius šilumos poreikius: norint palaikyti 20–22 °C visame būste reikės intensyvaus šildymo, dalis patalpų gali likti vėsesnės (tikslesnę šildymo kainą rasite 2 bloke).",
           "comparison_lines_lt": [
-            "Palyginti su naujos statybos etalonu (A++): apie 11 kartų didesnis šildymo poreikis.",
-            "Palyginti su renovuoto pastato etalonu (C klasė): ~+97% didesnis."
+            "Palyginti su renovuoto pastato etalonu (C klasė): apie 97 % didesnis.",
+            "Palyginti su efektyvių (A klasių grupės) pastatų mediana Lietuvoje: apie 6,5 karto didesnis.",
+            "Palyginti su naujos statybos etalonu (A++): apie 11 kartų didesnis šildymo poreikis."
           ]
         },
         "summer": {
@@ -371,7 +372,9 @@ export const MOCK_EXISTING: ReportData = {
           "relative_vs_newbuild": 10.76,
           "relative_vs_renovated": 1.97,
           "diff_vs_newbuild_kwhm2_year": 131.7,
-          "diff_vs_renovated_kwhm2_year": 71.37
+          "diff_vs_renovated_kwhm2_year": 71.37,
+          "etalon_class": "A++",
+          "a_band_anchor_kwhm2_year": 22.36
         },
         "info_box": [
           "Vertinimas remiasi Pastatų energinio naudingumo sertifikatų duomenimis ir standartinėmis prielaidomis panašiems būstams.",
@@ -743,11 +746,12 @@ export const MOCK_EXISTING: ReportData = {
           },
           {
             "category": "💰 Energijos tarifai",
-            "label_lt": "Centrinis šildymas: {supplier_name}, VERT patvirtintas tarifas, galioja nuo {effective_from} (šaltinis: vert.lt)",
+            "label_lt": "Centrinis šildymas: {supplier_name}, paskutinis žinomas VERT patvirtintas tarifas, galiojo nuo {effective_from} iki {effective_to} (šaltinis: vert.lt)",
             "source_reference": "energy_tariffs.yaml",
             "dynamic_fields": {
               "supplier_name": "AB „Miesto gijos“",
-              "effective_from": "2026 m. gegužės"
+              "effective_from": "2026 m. gegužės",
+              "effective_to": "2026-05-31"
             }
           },
           {
@@ -786,23 +790,22 @@ export const MOCK_EXISTING: ReportData = {
         "title_lt": "8) Rekomendacijos ir sprendimai",
         "status": "ready",
         "data": {
-          "pattern": "D",
-          "pattern_title_lt": "Iššūkiai abiem sezonais",
+          "pattern": "B",
+          "pattern_title_lt": "Šildymo iššūkis",
           "scope_prefix": "Šilumos komforto požiūriu",
-          "intro_lt": "Lyginant su tos pačios klasės (D) pastatais Lietuvoje, šio pastato šildymo poreikis yra apie 35 % mažesnis nei vidurkis. Tačiau, šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais — žiemą šildymo sąnaudos gali būti gerokai didesnės nei techniškai efektyviame pastate (A++), o vasarą patalpos linkusios perkaisti. Tai stipriausias signalas būti atidiems. Šildymas — vidutiniškai apie €61 per mėnesį (apie €729 per metus).",
+          "intro_lt": "Lyginant su tos pačios klasės (D) pastatais Lietuvoje, šio pastato šildymo poreikis yra apie 35 % mažesnis nei vidurkis. Tačiau, šilumos komforto požiūriu, šis pastatas kelia šildymo iššūkį — šildymo sąnaudos gali būti reikšmingai didesnės nei techniškai efektyviame pastate (A++), todėl verta atkreipti dėmesį į keletą dalykų. Šildymas — vidutiniškai apie €61 per mėnesį (apie €729 per metus).",
           "viewing_questions_lt": [
-            "Paprašykite faktinių šildymo sąskaitų už paskutinius 2–3 žiemos sezonus.",
-            "Apžiūrėkite izoliaciją: stogo / pastogės apšiltinimą, sienų būklę, langų sandarumą.",
-            "Jei įmanoma, aplankykite objektą šiltą popietę — pajuskite temperatūrą pietinėse ir vakarinėse patalpose.",
-            "Patikrinkite ventiliaciją ir esamas saulės apsaugos priemones (žaliuzės, markizės).",
-            "Ar pastatas buvo renovuotas? Jei taip — paprašykite renovacijos dokumentų. Jei ne — verta paklausti, ar planuojama renovacija (tai gali būti argumentas kainai derėtis)."
+            "Paprašykite faktinių šildymo sąskaitų už paskutinius 2–3 žiemos sezonus — ne įvertinimų, o tikrų sąskaitų.",
+            "Apžiūrėkite izoliaciją: stogo / pastogės apšiltinimą, grindų / rūsio izoliaciją, sienų būklę (matomi plyšiai, drėgmės žymės).",
+            "Patikrinkite langų būklę: dvigubas ar trigubas stiklo paketas, rėmų būklė, ar jaučiamas skersvėjis.",
+            "Paklauskite, ar yra patalpų, kurios žiemą būna nuolat šaltos arba nenaudojamos dėl šalčio."
           ],
           "negotiation_angles_lt": [
-            "Šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais. Tai turėtų atsispindėti kainoje — arba tiesiogiai (mažesnė pardavimo kaina), arba per pardavėjo įsipareigojimą finansuoti dalį renovacijos.",
-            "Pastato energijos kaina (be buitinės elektros) — apie €78 per mėnesį; iš jos šildymui tenka apie €61 per mėnesį. Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyviame analogiškame pastate — tai apie €620 per metus. Per 5 metus, įvertinus prognozuojamą energijos kainų augimą (pagal 10 metų kainų tendencijas), skirtumas sudarytų apie €3480. Nerenovavus pastato, vien šildymas kainuotų apie €360 per metus daugiau nei renovuotame (C klasės) pastate.",
-            "Pastatas statytas iki 1993 m. — šio laikotarpio pastatai dažnai turi silpnesnę izoliaciją ir pasenusias inžinerines sistemas. Tai sustiprina argumentą dėl kainos korekcijos."
+            "Pastato energijos kaina (be buitinės elektros) — apie €78 per mėnesį; iš jos šildymui tenka apie €61 per mėnesį. Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyvių (A klasių grupės) pastatų mediana — tai apie €620 per metus. Per 5 metus, įvertinus prognozuojamą energijos kainų augimą (pagal 10 metų kainų tendencijas), skirtumas sudarytų apie €3480. Nerenovavus pastato, vien šildymas kainuotų apie €360 per metus daugiau nei renovuotame (C klasės) pastate.",
+            "Šio laikotarpio pastatai dažnai turi silpnesnę izoliaciją — verta paklausti pardavėjo, ar buvo atlikta modernizacija.",
+            "Atsižvelgiant į didelį šildymo poreikį, verta svarstyti kainos sumažinimą, kuris atspindėtų orientacines apšiltinimo išlaidas."
           ],
-          "forward_note_lt": "Tikslias šildymo sąnaudas eurais rasite 2 bloke (Energijos sąnaudos). Šilumos komforto požiūriu, ši informacija yra ypač svarbi priimant sprendimą.",
+          "forward_note_lt": "Kiek konkrečiai kainuoja šildymas eurais per mėnesį, rasite 2 bloke (Energijos sąnaudos).",
           "caveat_lt": null,
           "scope_disclaimer_lt": "Šios rekomendacijos apima tik šilumos komforto aspektą."
         }
@@ -837,7 +840,7 @@ export const MOCK_EXISTING: ReportData = {
   "lat": 54.7007624,
   "lng": 25.2993035,
   "bundle_items": [],
-  "generated_at": "2026-07-25T15:01:53.208384+00:00",
+  "generated_at": "2026-07-28T17:42:38.998948+00:00",
   "order_reference": "NTD-DEV-001",
   "block2": {
     "status": "ready",
@@ -889,7 +892,7 @@ export const MOCK_EXISTING: ReportData = {
     "citations_lt": [
       "Energinio naudingumo sertifikatas — Registrų centro energinio naudingumo sertifikatų registras (registrucentras.lt)",
       "Šildymo sistemos tipas: Registrų centro energinio naudingumo sertifikatų registro duomenys",
-      "Centrinis šildymas: AB „Miesto gijos“, VERT patvirtintas tarifas, galioja nuo 2026 m. gegužės (šaltinis: vert.lt)",
+      "Centrinis šildymas: AB „Miesto gijos“, paskutinis žinomas VERT patvirtintas tarifas, galiojo nuo 2026 m. gegužės iki 2026-05-31 (šaltinis: vert.lt)",
       "Visos kainos su PVM (21%)",
       "Tarifų augimo prognozė (per energijos rūšį): HICP CP0455 (Heat energy), GEO=LT, 2016–2025 trailing average of December YoY change",
       "Minimalus augimo tempas: Lietuvos infliacija (Eurostat HICP, 10 metų vidurkis: 4.76%/m.)"
@@ -1314,7 +1317,7 @@ export const MOCK_EXISTING: ReportData = {
             "title_lt": "Kokia informacija remiamės?",
             "items_lt": [
               "Prognozė remiasi Eurostat HICP energijos kainų indeksais (10 metų vidurkis), ne mažiau nei bendroji infliacija",
-              "Kainos apskaičiuotos pagal paskutinį žinomą AB „Kauno energija“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
+              "Kainos apskaičiuotos pagal paskutinį žinomą AB „Miesto gijos“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
               "Šis vertinimas sujungia du duomenų tipus:",
               "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
               "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių."
@@ -1533,7 +1536,7 @@ export const MOCK_EXISTING: ReportData = {
             "title_lt": "Kokia informacija remiamės?",
             "items_lt": [
               "Prognozė remiasi Eurostat HICP energijos kainų indeksais (10 metų vidurkis), ne mažiau nei bendroji infliacija",
-              "Kainos apskaičiuotos pagal paskutinį žinomą AB „Kauno energija“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
+              "Kainos apskaičiuotos pagal paskutinį žinomą AB „Miesto gijos“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
               "Šis vertinimas sujungia du duomenų tipus:",
               "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
               "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių."
@@ -1752,7 +1755,7 @@ export const MOCK_EXISTING: ReportData = {
             "title_lt": "Kokia informacija remiamės?",
             "items_lt": [
               "Prognozė remiasi Eurostat HICP energijos kainų indeksais (10 metų vidurkis), ne mažiau nei bendroji infliacija",
-              "Kainos apskaičiuotos pagal paskutinį žinomą AB „Kauno energija“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
+              "Kainos apskaičiuotos pagal paskutinį žinomą AB „Miesto gijos“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
               "Šis vertinimas sujungia du duomenų tipus:",
               "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
               "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių."
@@ -1971,7 +1974,7 @@ export const MOCK_EXISTING: ReportData = {
             "title_lt": "Kokia informacija remiamės?",
             "items_lt": [
               "Prognozė remiasi Eurostat HICP energijos kainų indeksais (10 metų vidurkis), ne mažiau nei bendroji infliacija",
-              "Kainos apskaičiuotos pagal paskutinį žinomą AB „Kauno energija“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
+              "Kainos apskaičiuotos pagal paskutinį žinomą AB „Miesto gijos“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
               "Šis vertinimas sujungia du duomenų tipus:",
               "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
               "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių."
@@ -2190,7 +2193,7 @@ export const MOCK_EXISTING: ReportData = {
             "title_lt": "Kokia informacija remiamės?",
             "items_lt": [
               "Prognozė remiasi Eurostat HICP energijos kainų indeksais (10 metų vidurkis), ne mažiau nei bendroji infliacija",
-              "Kainos apskaičiuotos pagal paskutinį žinomą AB „Kauno energija“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
+              "Kainos apskaičiuotos pagal paskutinį žinomą AB „Miesto gijos“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
               "Šis vertinimas sujungia du duomenų tipus:",
               "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
               "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių."
@@ -2203,7 +2206,7 @@ export const MOCK_EXISTING: ReportData = {
       "title_lt": "Kokia informacija remiamės?",
       "items_lt": [
         "Prognozė remiasi Eurostat HICP energijos kainų indeksais (10 metų vidurkis), ne mažiau nei bendroji infliacija",
-        "Kainos apskaičiuotos pagal paskutinį žinomą AB „Kauno energija“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
+        "Kainos apskaičiuotos pagal paskutinį žinomą AB „Miesto gijos“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
         "Šis vertinimas sujungia du duomenų tipus:",
         "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
         "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių."
@@ -2253,8 +2256,9 @@ export const MOCK_EXISTING: ReportData = {
         }
       ],
       "comparison_lines_lt": [
-        "Palyginti su naujos statybos etalonu (A++): apie 11 kartų didesnis šildymo poreikis.",
-        "Palyginti su renovuoto pastato etalonu (C klasė): ~+97% didesnis."
+        "Palyginti su renovuoto pastato etalonu (C klasė): apie 97 % didesnis.",
+        "Palyginti su efektyvių (A klasių grupės) pastatų mediana Lietuvoje: apie 6,5 karto didesnis.",
+        "Palyginti su naujos statybos etalonu (A++): apie 11 kartų didesnis šildymo poreikis."
       ]
     },
     "summer": {
@@ -2262,7 +2266,7 @@ export const MOCK_EXISTING: ReportData = {
       "rows": [
         {
           "band": "MODERATE",
-          "label_lt": "",
+          "label_lt": "Vidutinė",
           "description_lt": "Per karščio bangas kai kuriose patalpose gali tapti per šilta, ypač ten, kur yra dideli langai ar viršutiniai aukštai — reikės dažnai vėdinti ir riboti tiesioginę saulę. Gali prireikti ventiliatorių ar nešiojamo kondicionieriaus per karščiausias dienas, tad dalį metų papildomai didės elektros sąnaudos dėl vėsinimo.",
           "highlighted": true
         }
@@ -2332,23 +2336,22 @@ export const MOCK_EXISTING: ReportData = {
     "title_lt": "8) Rekomendacijos ir sprendimai",
     "status": "ready",
     "data": {
-      "pattern": "D",
-      "pattern_title_lt": "Iššūkiai abiem sezonais",
+      "pattern": "B",
+      "pattern_title_lt": "Šildymo iššūkis",
       "scope_prefix": "Šilumos komforto požiūriu",
-      "intro_lt": "Lyginant su tos pačios klasės (D) pastatais Lietuvoje, šio pastato šildymo poreikis yra apie 35 % mažesnis nei vidurkis. Tačiau, šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais — žiemą šildymo sąnaudos gali būti gerokai didesnės nei techniškai efektyviame pastate (A++), o vasarą patalpos linkusios perkaisti. Tai stipriausias signalas būti atidiems. Šildymas — vidutiniškai apie €61 per mėnesį (apie €729 per metus).",
+      "intro_lt": "Lyginant su tos pačios klasės (D) pastatais Lietuvoje, šio pastato šildymo poreikis yra apie 35 % mažesnis nei vidurkis. Tačiau, šilumos komforto požiūriu, šis pastatas kelia šildymo iššūkį — šildymo sąnaudos gali būti reikšmingai didesnės nei techniškai efektyviame pastate (A++), todėl verta atkreipti dėmesį į keletą dalykų. Šildymas — vidutiniškai apie €61 per mėnesį (apie €729 per metus).",
       "viewing_questions_lt": [
-        "Paprašykite faktinių šildymo sąskaitų už paskutinius 2–3 žiemos sezonus.",
-        "Apžiūrėkite izoliaciją: stogo / pastogės apšiltinimą, sienų būklę, langų sandarumą.",
-        "Jei įmanoma, aplankykite objektą šiltą popietę — pajuskite temperatūrą pietinėse ir vakarinėse patalpose.",
-        "Patikrinkite ventiliaciją ir esamas saulės apsaugos priemones (žaliuzės, markizės).",
-        "Ar pastatas buvo renovuotas? Jei taip — paprašykite renovacijos dokumentų. Jei ne — verta paklausti, ar planuojama renovacija (tai gali būti argumentas kainai derėtis)."
+        "Paprašykite faktinių šildymo sąskaitų už paskutinius 2–3 žiemos sezonus — ne įvertinimų, o tikrų sąskaitų.",
+        "Apžiūrėkite izoliaciją: stogo / pastogės apšiltinimą, grindų / rūsio izoliaciją, sienų būklę (matomi plyšiai, drėgmės žymės).",
+        "Patikrinkite langų būklę: dvigubas ar trigubas stiklo paketas, rėmų būklė, ar jaučiamas skersvėjis.",
+        "Paklauskite, ar yra patalpų, kurios žiemą būna nuolat šaltos arba nenaudojamos dėl šalčio."
       ],
       "negotiation_angles_lt": [
-        "Šilumos komforto požiūriu, šis pastatas kelia iššūkių abiem sezonais. Tai turėtų atsispindėti kainoje — arba tiesiogiai (mažesnė pardavimo kaina), arba per pardavėjo įsipareigojimą finansuoti dalį renovacijos.",
-        "Pastato energijos kaina (be buitinės elektros) — apie €78 per mėnesį; iš jos šildymui tenka apie €61 per mėnesį. Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyviame analogiškame pastate — tai apie €620 per metus. Per 5 metus, įvertinus prognozuojamą energijos kainų augimą (pagal 10 metų kainų tendencijas), skirtumas sudarytų apie €3480. Nerenovavus pastato, vien šildymas kainuotų apie €360 per metus daugiau nei renovuotame (C klasės) pastate.",
-        "Pastatas statytas iki 1993 m. — šio laikotarpio pastatai dažnai turi silpnesnę izoliaciją ir pasenusias inžinerines sistemas. Tai sustiprina argumentą dėl kainos korekcijos."
+        "Pastato energijos kaina (be buitinės elektros) — apie €78 per mėnesį; iš jos šildymui tenka apie €61 per mėnesį. Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyvių (A klasių grupės) pastatų mediana — tai apie €620 per metus. Per 5 metus, įvertinus prognozuojamą energijos kainų augimą (pagal 10 metų kainų tendencijas), skirtumas sudarytų apie €3480. Nerenovavus pastato, vien šildymas kainuotų apie €360 per metus daugiau nei renovuotame (C klasės) pastate.",
+        "Šio laikotarpio pastatai dažnai turi silpnesnę izoliaciją — verta paklausti pardavėjo, ar buvo atlikta modernizacija.",
+        "Atsižvelgiant į didelį šildymo poreikį, verta svarstyti kainos sumažinimą, kuris atspindėtų orientacines apšiltinimo išlaidas."
       ],
-      "forward_note_lt": "Tikslias šildymo sąnaudas eurais rasite 2 bloke (Energijos sąnaudos). Šilumos komforto požiūriu, ši informacija yra ypač svarbi priimant sprendimą.",
+      "forward_note_lt": "Kiek konkrečiai kainuoja šildymas eurais per mėnesį, rasite 2 bloke (Energijos sąnaudos).",
       "caveat_lt": null,
       "scope_disclaimer_lt": "Šios rekomendacijos apima tik šilumos komforto aspektą."
     }
