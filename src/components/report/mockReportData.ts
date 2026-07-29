@@ -313,8 +313,8 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 export const MOCK_EXISTING: ReportData = {
   "envelope": {
     "address": "Vilnius, Žirmūnų g. 12-5",
-    "request_id": "report-20260728174238",
-    "created_at": "2026-07-28T17:42:38.998948+00:00"
+    "request_id": "report-20260729071357",
+    "created_at": "2026-07-29T07:13:57.318989+00:00"
   },
   "blocks": [
     {
@@ -801,9 +801,9 @@ export const MOCK_EXISTING: ReportData = {
             "Paklauskite, ar yra patalpų, kurios žiemą būna nuolat šaltos arba nenaudojamos dėl šalčio."
           ],
           "negotiation_angles_lt": [
-            "Pastato energijos kaina (be buitinės elektros) — apie €78 per mėnesį; iš jos šildymui tenka apie €61 per mėnesį. Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyvių (A klasių grupės) pastatų mediana — tai apie €620 per metus. Per 5 metus, įvertinus prognozuojamą energijos kainų augimą (pagal 10 metų kainų tendencijas), skirtumas sudarytų apie €3480. Nerenovavus pastato, vien šildymas kainuotų apie €360 per metus daugiau nei renovuotame (C klasės) pastate.",
-            "Šio laikotarpio pastatai dažnai turi silpnesnę izoliaciją — verta paklausti pardavėjo, ar buvo atlikta modernizacija.",
-            "Atsižvelgiant į didelį šildymo poreikį, verta svarstyti kainos sumažinimą, kuris atspindėtų orientacines apšiltinimo išlaidas."
+            "Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyvių (A klasių grupės) pastatų mediana — tai apie €620 per metus. Per 5 metus, įvertinus prognozuojamą energijos kainų augimą (pagal 10 metų kainų tendencijas), skirtumas sudarytų apie €3480. Nerenovavus pastato, vien šildymas kainuotų apie €360 per metus daugiau nei renovuotame (C klasės) pastate.",
+            "Iki 1993 m. statyti pastatai dažnai turi silpnesnę izoliaciją — verta paklausti pardavėjo, ar buvo atlikta modernizacija.",
+            "Didelis šildymo poreikis rodo, kad apšiltinimas anksčiau ar vėliau taps aktualus. Tikslios sumos be projekto dokumentų apskaičiuoti neįmanoma, tačiau pats poreikis yra pagrįstas argumentas derėtis dėl kainos ar aptarti tai su pardavėju."
           ],
           "forward_note_lt": "Kiek konkrečiai kainuoja šildymas eurais per mėnesį, rasite 2 bloke (Energijos sąnaudos).",
           "caveat_lt": null,
@@ -840,7 +840,7 @@ export const MOCK_EXISTING: ReportData = {
   "lat": 54.7007624,
   "lng": 25.2993035,
   "bundle_items": [],
-  "generated_at": "2026-07-28T17:42:38.998948+00:00",
+  "generated_at": "2026-07-29T07:13:57.318989+00:00",
   "order_reference": "NTD-DEV-001",
   "block2": {
     "status": "ready",
@@ -2347,9 +2347,9 @@ export const MOCK_EXISTING: ReportData = {
         "Paklauskite, ar yra patalpų, kurios žiemą būna nuolat šaltos arba nenaudojamos dėl šalčio."
       ],
       "negotiation_angles_lt": [
-        "Pastato energijos kaina (be buitinės elektros) — apie €78 per mėnesį; iš jos šildymui tenka apie €61 per mėnesį. Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyvių (A klasių grupės) pastatų mediana — tai apie €620 per metus. Per 5 metus, įvertinus prognozuojamą energijos kainų augimą (pagal 10 metų kainų tendencijas), skirtumas sudarytų apie €3480. Nerenovavus pastato, vien šildymas kainuotų apie €360 per metus daugiau nei renovuotame (C klasės) pastate.",
-        "Šio laikotarpio pastatai dažnai turi silpnesnę izoliaciją — verta paklausti pardavėjo, ar buvo atlikta modernizacija.",
-        "Atsižvelgiant į didelį šildymo poreikį, verta svarstyti kainos sumažinimą, kuris atspindėtų orientacines apšiltinimo išlaidas."
+        "Pagal mūsų vertinimą, šildymo sąnaudos gali būti apie 6,5 karto didesnės nei efektyvių (A klasių grupės) pastatų mediana — tai apie €620 per metus. Per 5 metus, įvertinus prognozuojamą energijos kainų augimą (pagal 10 metų kainų tendencijas), skirtumas sudarytų apie €3480. Nerenovavus pastato, vien šildymas kainuotų apie €360 per metus daugiau nei renovuotame (C klasės) pastate.",
+        "Iki 1993 m. statyti pastatai dažnai turi silpnesnę izoliaciją — verta paklausti pardavėjo, ar buvo atlikta modernizacija.",
+        "Didelis šildymo poreikis rodo, kad apšiltinimas anksčiau ar vėliau taps aktualus. Tikslios sumos be projekto dokumentų apskaičiuoti neįmanoma, tačiau pats poreikis yra pagrįstas argumentas derėtis dėl kainos ar aptarti tai su pardavėju."
       ],
       "forward_note_lt": "Kiek konkrečiai kainuoja šildymas eurais per mėnesį, rasite 2 bloke (Energijos sąnaudos).",
       "caveat_lt": null,
