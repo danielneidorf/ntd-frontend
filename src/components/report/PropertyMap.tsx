@@ -74,6 +74,9 @@ export default function PropertyMap({
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+  // ODbL: the building outline is OpenStreetMap data — attribution must show
+  // whenever the outline is actually drawn (Overpass fetch succeeded).
+  const [hasContour, setHasContour] = useState(false);
 
   useEffect(() => {
     if (!MAPS_KEY || !mapRef.current) {
@@ -122,6 +125,7 @@ export default function PropertyMap({
           fillColor: '#0D7377',
           fillOpacity: 0.15,
         });
+        setHasContour(true);  // ODbL attribution shows only when the OSM outline is drawn
       });
     });
 
@@ -200,6 +204,20 @@ export default function PropertyMap({
             Padidinti
           </button>
         )}
+        {hasContour && (
+          <p className="mt-1 text-[11px] leading-tight text-gray-400">
+            Pastato kontūras: ©{' '}
+            <a
+              href="https://www.openstreetmap.org/copyright"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-gray-600"
+            >
+              OpenStreetMap
+            </a>{' '}
+            contributors
+          </p>
+        )}
       </div>
 
       {/* Fullscreen overlay */}
@@ -214,6 +232,20 @@ export default function PropertyMap({
             >
               Uždaryti
             </button>
+            {hasContour && (
+              <p className="absolute bottom-2 left-2 z-10 bg-white/85 px-2 py-0.5 rounded text-[11px] text-gray-600">
+                Pastato kontūras: ©{' '}
+                <a
+                  href="https://www.openstreetmap.org/copyright"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  OpenStreetMap
+                </a>{' '}
+                contributors
+              </p>
+            )}
           </div>
         </div>
       )}

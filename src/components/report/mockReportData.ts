@@ -150,11 +150,13 @@ export interface ReportData {
   bundle_items: { kind: string; address?: string }[];
   generated_at: string;
   order_reference: string;
+  // The served Block-1 bibliography ([1]–[4]+) — consumed by Citations.tsx
+  // (2026-07-29 unification: one backend builder feeds web + PDF).
+  citations?: string[];
   // Served-but-not-yet-consumed wire sections (kept verbatim by the mock
   // regeneration recipe so the capture needs no hand filtering).
   envelope?: Record<string, unknown>;
   blocks?: unknown[];
-  citations?: unknown[];
   permits?: unknown[];
   block2?: Block2Data;
   block8?: Block8Data;
@@ -733,47 +735,51 @@ export const MOCK_EXISTING: ReportData = {
         "solar_thermal_present": null,
         "citations_lt": [
           {
-            "category": "📊 Pastato energijos duomenys",
-            "label_lt": "Energinio naudingumo sertifikatas — Registrų centro energinio naudingumo sertifikatų registras (registrucentras.lt)",
-            "source_reference": "registrucentras.lt",
-            "dynamic_fields": {}
-          },
-          {
-            "category": "📊 Pastato energijos duomenys",
-            "label_lt": "Šildymo sistemos tipas: Registrų centro energinio naudingumo sertifikatų registro duomenys",
-            "source_reference": "block2 carrier resolution (§8 cascade)",
-            "dynamic_fields": {}
-          },
-          {
             "category": "💰 Energijos tarifai",
-            "label_lt": "Centrinis šildymas: {supplier_name}, paskutinis žinomas VERT patvirtintas tarifas, galiojo nuo {effective_from} iki {effective_to} (šaltinis: vert.lt)",
-            "source_reference": "energy_tariffs.yaml",
+            "label_lt": "VALSTYBINĖ ENERGETIKOS REGULIAVIMO TARYBA. {supplier_name} centralizuotai tiekiamos šilumos kaina: paskutinis žinomas patvirtintas tarifas, galiojęs nuo {effective_from} iki {effective_to} [interaktyvus]. Vilnius: VERT [žiūrėta {date}]. Prieiga per internetą: https://www.vert.lt",
+            "source_reference": "energy_tariffs.yaml (VERT, stale)",
             "dynamic_fields": {
               "supplier_name": "AB „Miesto gijos“",
-              "effective_from": "2026 m. gegužės",
+              "effective_from": "2026-05-01",
               "effective_to": "2026-05-31"
             }
           },
           {
             "category": "💰 Energijos tarifai",
-            "label_lt": "Visos kainos su PVM (21%)",
-            "source_reference": "VAT 21%",
+            "label_lt": "AB „Energijos skirstymo operatorius“ (ESO). Buitinės elektros energijos kaina: „Standartinis“ planas (be mėnesinio mokesčio), verslui — „Verslas“ planas; tarifus reguliuoja VERT [interaktyvus]. Vilnius: ESO [žiūrėta {date}]. Prieiga per internetą: https://www.eso.lt",
+            "source_reference": "energy_tariffs.yaml (ESO)",
+            "dynamic_fields": {}
+          },
+          {
+            "category": "💰 Energijos tarifai",
+            "label_lt": "LIETUVOS RESPUBLIKOS ŠILUMOS ŪKIO ĮSTATYMAS: 13 straipsnis „Šilumos tiekimo sezoniškumas“ (šildymo sezono nustatymo kriterijus pagal vidutinę paros oro temperatūrą; sezono datas skelbia savivaldybės) [interaktyvus]. Vilnius: LR Seimas [žiūrėta {date}]. Prieiga per internetą: https://e-seimas.lrs.lt. Sektoriaus kontekstas: LIETUVOS ŠILUMOS TIEKĖJŲ ASOCIACIJA (LŠTA), CŠT sektoriaus apžvalgos (https://www.lsta.lt/silumos-ukis/cst-sektoriaus-apzvalga/). Spalio–balandžio mėnesių langas yra NT Duomenų modeliavimo prielaida (vidaus metodikos sprendimas, 2026-07-23), atspindinti tipinį kriterijaus rezultatą.",
+            "source_reference": "Šilumos ūkio įstatymas 13 str. / LŠTA",
+            "dynamic_fields": {}
+          },
+          {
+            "category": "💰 Energijos tarifai",
+            "label_lt": "LIETUVOS RESPUBLIKOS PRIDĖTINĖS VERTĖS MOKESČIO ĮSTATYMAS, 2002 m. kovo 5 d. Nr. IX-751 (aktuali redakcija): 19 straipsnis — standartinis 21 % PVM tarifas, nuo 2026 m. sausio 1 d. taikomas ir gyvenamosioms patalpoms tiekiamai šilumos energijai bei karštam vandeniui [interaktyvus]. Vilnius: LR Seimas [žiūrėta {date}]. Prieiga per internetą: https://e-seimas.lrs.lt",
+            "source_reference": "PVMĮ 19 str.",
             "dynamic_fields": {}
           },
           {
             "category": "📈 Prognozės pagrindas",
-            "label_lt": "Tarifų augimo prognozė (per energijos rūšį): {source}",
-            "source_reference": "energy_tariffs.yaml escalation_rates",
-            "dynamic_fields": {
-              "source": "HICP CP0455 (Heat energy), GEO=LT, 2016–2025 trailing average of December YoY change"
-            }
+            "label_lt": "ONEBUILDING.ORG. Tipiniai meteorologiniai metai (TMYx 2011–2025), Lietuvos apskritys [interaktyvus, NOAA ISD pagrindu]. [žiūrėta {date}]. Prieiga per internetą: https://climate.onebuilding.org. Papildyta: EUROPOS KOMISIJA, Jungtinis tyrimų centras (JRC). PVGIS v5.3 (2005–2023). Mėnesinio energijos kainos kitimo profilis remiasi šildymo laipsnių dienomis (bazė 18 °C).",
+            "source_reference": "OneBuilding TMYx + JRC PVGIS",
+            "dynamic_fields": {}
           },
           {
             "category": "📈 Prognozės pagrindas",
-            "label_lt": "Minimalus augimo tempas: Lietuvos infliacija (Eurostat HICP, 10 metų vidurkis: {hicp_rate}%/m.)",
+            "label_lt": "EUROSTAT. Suderinti vartotojų kainų indeksai (HICP), serija „HICP CP0455 — šilumos energija“, Lietuva: metinių pokyčių dešimties metų slankusis vidurkis [interaktyvus]. Liuksemburgas: Europos Sąjungos statistikos tarnyba [žiūrėta {date}]. Prieiga per internetą: https://ec.europa.eu/eurostat",
+            "source_reference": "Eurostat HICP (per-carrier series)",
+            "dynamic_fields": {}
+          },
+          {
+            "category": "📈 Prognozės pagrindas",
+            "label_lt": "EUROSTAT. Suderinti vartotojų kainų indeksai (HICP), serija „HICP CP00 — bendrasis indeksas“, Lietuva: dešimties metų vidurkis, {hicp_rate}%/m. — taikomas kaip minimali augimo riba [interaktyvus]. Liuksemburgas: Europos Sąjungos statistikos tarnyba [žiūrėta {date}]. Prieiga per internetą: https://ec.europa.eu/eurostat",
             "source_reference": "Eurostat HICP CP00",
             "dynamic_fields": {
-              "hicp_rate": "4.76"
+              "hicp_rate": "4,76"
             }
           }
         ]
@@ -829,10 +835,10 @@ export const MOCK_EXISTING: ReportData = {
     }
   ],
   "citations": [
-    "VĮ REGISTRŲ CENTRAS. Nekilnojamojo turto registras: objekto duomenys [interaktyvus]. Vilnius: VĮ Registrų centras. Prieiga per internetą: https://www.registrucentras.lt",
-    "VĮ REGISTRŲ CENTRAS. Pastatų energinio naudingumo sertifikatų registras (PENS): energinio naudingumo sertifikatas [interaktyvus]. Vilnius: VĮ Registrų centras. Prieiga per internetą: https://www.registrucentras.lt",
-    "Lietuvos Respublikos aplinkos ministerija. Statybos techninis reglamentas STR 2.01.02:2016 „Pastatų energinio naudingumo projektavimas ir sertifikavimas“. Vilnius, 2016.",
-    "NT DUOMENYS. Vidaus klimato etalono bazė v2026.1: lyginamieji parametrai pagal pastato tipą ir statybos laikotarpį. Vilnius: NT Duomenys, 2026."
+    "VĮ REGISTRŲ CENTRAS. Nekilnojamojo turto registras: objekto duomenys [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-07-29]. Prieiga per internetą: https://www.registrucentras.lt",
+    "VĮ REGISTRŲ CENTRAS. Pastatų energinio naudingumo sertifikatų registras (PENS): energinio naudingumo sertifikatas [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-07-29]. Prieiga per internetą: https://www.registrucentras.lt",
+    "LIETUVOS RESPUBLIKOS APLINKOS MINISTERIJA. Statybos techninis reglamentas STR 2.01.02:2016 „Pastatų energinio naudingumo projektavimas ir sertifikavimas“. Vilnius: Aplinkos ministerija, 2016.",
+    "NT DUOMENYS. Pastatų energijos etalonų bazė v2026.1: pastatų faktinio šilumos poreikio medianos pagal pastato tipą ir energinę klasę, apskaičiuotos iš VĮ Registrų centro Pastatų energinio naudingumo sertifikatų registro (PENS); efektyvių pastatų (A++/A+/A klasių) sujungta mediana — atskiras atskaitos taškas. Vilnius: NT Duomenys, 2026."
   ],
   "address": "Vilnius, Žirmūnų g. 12-5",
   "ntr_unique_number": "4400-1234-5678",
@@ -890,12 +896,13 @@ export const MOCK_EXISTING: ReportData = {
     "carrier_label_lt": "centrinis šildymas",
     "newbuild_note_lt": null,
     "citations_lt": [
-      "Energinio naudingumo sertifikatas — Registrų centro energinio naudingumo sertifikatų registras (registrucentras.lt)",
-      "Šildymo sistemos tipas: Registrų centro energinio naudingumo sertifikatų registro duomenys",
-      "Centrinis šildymas: AB „Miesto gijos“, paskutinis žinomas VERT patvirtintas tarifas, galiojo nuo 2026 m. gegužės iki 2026-05-31 (šaltinis: vert.lt)",
-      "Visos kainos su PVM (21%)",
-      "Tarifų augimo prognozė (per energijos rūšį): HICP CP0455 (Heat energy), GEO=LT, 2016–2025 trailing average of December YoY change",
-      "Minimalus augimo tempas: Lietuvos infliacija (Eurostat HICP, 10 metų vidurkis: 4.76%/m.)"
+      "VALSTYBINĖ ENERGETIKOS REGULIAVIMO TARYBA. AB „Miesto gijos“ centralizuotai tiekiamos šilumos kaina: paskutinis žinomas patvirtintas tarifas, galiojęs nuo 2026-05-01 iki 2026-05-31 [interaktyvus]. Vilnius: VERT [žiūrėta 2026-07-29]. Prieiga per internetą: https://www.vert.lt",
+      "AB „Energijos skirstymo operatorius“ (ESO). Buitinės elektros energijos kaina: „Standartinis“ planas (be mėnesinio mokesčio), verslui — „Verslas“ planas; tarifus reguliuoja VERT [interaktyvus]. Vilnius: ESO [žiūrėta 2026-07-29]. Prieiga per internetą: https://www.eso.lt",
+      "LIETUVOS RESPUBLIKOS ŠILUMOS ŪKIO ĮSTATYMAS: 13 straipsnis „Šilumos tiekimo sezoniškumas“ (šildymo sezono nustatymo kriterijus pagal vidutinę paros oro temperatūrą; sezono datas skelbia savivaldybės) [interaktyvus]. Vilnius: LR Seimas [žiūrėta 2026-07-29]. Prieiga per internetą: https://e-seimas.lrs.lt. Sektoriaus kontekstas: LIETUVOS ŠILUMOS TIEKĖJŲ ASOCIACIJA (LŠTA), CŠT sektoriaus apžvalgos (https://www.lsta.lt/silumos-ukis/cst-sektoriaus-apzvalga/). Spalio–balandžio mėnesių langas yra NT Duomenų modeliavimo prielaida (vidaus metodikos sprendimas, 2026-07-23), atspindinti tipinį kriterijaus rezultatą.",
+      "LIETUVOS RESPUBLIKOS PRIDĖTINĖS VERTĖS MOKESČIO ĮSTATYMAS, 2002 m. kovo 5 d. Nr. IX-751 (aktuali redakcija): 19 straipsnis — standartinis 21 % PVM tarifas, nuo 2026 m. sausio 1 d. taikomas ir gyvenamosioms patalpoms tiekiamai šilumos energijai bei karštam vandeniui [interaktyvus]. Vilnius: LR Seimas [žiūrėta 2026-07-29]. Prieiga per internetą: https://e-seimas.lrs.lt",
+      "ONEBUILDING.ORG. Tipiniai meteorologiniai metai (TMYx 2011–2025), Lietuvos apskritys [interaktyvus, NOAA ISD pagrindu]. [žiūrėta 2026-07-29]. Prieiga per internetą: https://climate.onebuilding.org. Papildyta: EUROPOS KOMISIJA, Jungtinis tyrimų centras (JRC). PVGIS v5.3 (2005–2023). Mėnesinio energijos kainos kitimo profilis remiasi šildymo laipsnių dienomis (bazė 18 °C).",
+      "EUROSTAT. Suderinti vartotojų kainų indeksai (HICP), serija „HICP CP0455 — šilumos energija“, Lietuva: metinių pokyčių dešimties metų slankusis vidurkis [interaktyvus]. Liuksemburgas: Europos Sąjungos statistikos tarnyba [žiūrėta 2026-07-29]. Prieiga per internetą: https://ec.europa.eu/eurostat",
+      "EUROSTAT. Suderinti vartotojų kainų indeksai (HICP), serija „HICP CP00 — bendrasis indeksas“, Lietuva: dešimties metų vidurkis, 4,76%/m. — taikomas kaip minimali augimo riba [interaktyvus]. Liuksemburgas: Europos Sąjungos statistikos tarnyba [žiūrėta 2026-07-29]. Prieiga per internetą: https://ec.europa.eu/eurostat"
     ],
     "monthly_variation": [
       {
@@ -1100,8 +1107,8 @@ export const MOCK_EXISTING: ReportData = {
       "citation_lt": {
         "category_lt": "👥 Namų ūkio modeliavimas",
         "lines_lt": [
-          "Buitinės elektros vidurkis: Eurostat Lietuvos gyvenamųjų pastatų elektros suvartojimas (nrg_bal_c, 2023 m.), išskaidytas pagal namų ūkio dydį (2021 m. surašymas, Destatis struktūra)",
-          "Karšto vandens pritaikymas: tipinis gyventojų skaičius pagal naudingąjį plotą (2021 m. gyventojų ir būstų surašymas, Valstybės duomenų agentūra)"
+          "EUROSTAT. Gyvenamųjų pastatų galutinis elektros energijos suvartojimas Lietuvoje (nrg_bal_c, 2023 m.), išskaidytas pagal namų ūkio dydį [interaktyvus]. Liuksemburgas: Europos Sąjungos statistikos tarnyba [žiūrėta 2026-07-29]. Prieiga per internetą: https://ec.europa.eu/eurostat. Namų ūkio dydžio struktūra — 2021 m. gyventojų ir būstų surašymas (Valstybės duomenų agentūra); išskaidymo metodika — DESTATIS (Vokietijos federalinė statistikos tarnyba).",
+          "VALSTYBĖS DUOMENŲ AGENTŪRA. 2021 m. gyventojų ir būstų surašymas: tipinis gyventojų skaičius pagal naudingąjį plotą [interaktyvus]. Vilnius: Valstybės duomenų agentūra [žiūrėta 2026-07-29]. Prieiga per internetą: https://osp.stat.gov.lt"
         ]
       },
       "options": [

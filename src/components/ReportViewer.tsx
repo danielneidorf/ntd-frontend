@@ -580,9 +580,7 @@ export default function ReportViewer() {
 
         <AdditionalDocuments />
         <Citations
-          snapshot={block1.inputs_snapshot}
-          generatedAt={data.generated_at}
-          glazingSource={data.property_profile.glazing_source}
+          block1Citations={data.citations ?? []}
           block2CitationsLt={[
             ...(data.block2?.citations_lt ?? []),
             ...(selectedSize != null && data.block2?.household_modelling
