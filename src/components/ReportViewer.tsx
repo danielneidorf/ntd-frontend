@@ -483,26 +483,37 @@ export default function ReportViewer() {
   // the setter; there is no bare-building state to return to (Block2Section
   // no longer toggles a selection off).
   const selectedSize = householdSize ?? data.block2?.standard_occupancy ?? null;
+  // Coordinates are nullable on the wire (see the ReportData type). Gate the
+  // point-dependent visuals rather than hand them a null.
+  const hasCoords = data.lat != null && data.lng != null;
 
   return (
     <div className="min-h-screen bg-[#FAFBFC]">
       <ReportHeader data={data} token={token} householdSize={selectedSize} />
       <main className="max-w-[1100px] mx-auto px-6 py-8 space-y-6">
-        <div data-guide="street-view">
-          <PropertyPhoto
-            lat={data.lat}
-            lng={data.lng}
-            address={data.address}
-            devToken={token && token in DEV_MOCKS ? token : undefined}
-          />
-        </div>
+        {/* Coordinates are nullable on the wire — a plot resolved without them
+            serves null (surfaced 2026-07-31 when MOCK_LAND_ONLY was regenerated
+            from the backend; the hand-written mock had been supplying invented
+            values, so this shape had never reached the bench). Street View and
+            the map are meaningless without a point, so they are gated rather
+            than handed a null that would render at 0,0. */}
+        {hasCoords && (
+          <div data-guide="street-view">
+            <PropertyPhoto
+              lat={data.lat!}
+              lng={data.lng!}
+              address={data.address}
+              devToken={token && token in DEV_MOCKS ? token : undefined}
+            />
+          </div>
+        )}
 
         <div data-guide="property-identity">
           <PropertyIdentity data={data} />
         </div>
 
-        {data.property_profile.evaluation_target !== 'Žemės sklypas' && (
-          <PropertyMap lat={data.lat} lng={data.lng} address={data.address} />
+        {hasCoords && data.property_profile.evaluation_target !== 'Žemės sklypas' && (
+          <PropertyMap lat={data.lat!} lng={data.lng!} address={data.address} />
         )}
 
         <PropertyProfile
@@ -520,10 +531,10 @@ export default function ReportViewer() {
         />
 
         {/* Standalone map for land-only (PropertyProfile returns null) */}
-        {data.property_profile.evaluation_target === 'Žemės sklypas' && (
+        {hasCoords && data.property_profile.evaluation_target === 'Žemės sklypas' && (
           <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
             <h2 className="text-2xl font-semibold text-[#1E3A5F] mb-4">Sklypo vieta</h2>
-            <PropertyMap lat={data.lat} lng={data.lng} address={data.address} />
+            <PropertyMap lat={data.lat!} lng={data.lng!} address={data.address} />
           </div>
         )}
 

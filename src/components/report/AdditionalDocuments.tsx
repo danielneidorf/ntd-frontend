@@ -27,8 +27,15 @@ const OWNER_LINKS = [
     // bibliography entry keyed `rc_fee` (VĮ Registrų centras, „…įkainiai: dokumentų
     // kopijų parengimas, tvirtinimas ir pateikimas“), which the backend emits on
     // every report — this line and that entry are one claim in two places.
+    //
+    // 2026-07-31: „Pateikiama per 1 d. d.“ was DROPPED. The cited page was read
+    // at the primary and carries no delivery term at all — nine probes (darbo
+    // dien / d. d. / terminas / per 1 / skubos / vykdymo / valandos …) all
+    // negative. It states prices only, which it does confirm exactly: A4 1,45 €,
+    // A3 1,53, A2 1,63, A1 1,80, A0 2,02, skaitmeninis rinkinys 1,84 €. A
+    // turnaround promise no source supports is a promise we cannot keep.
     helper:
-      'Savininkai gali užsisakyti detalų aukštų planą, eksplikaciją ir kadastro bylą. Kaina: nuo 1,45\u00a0€/psl. (dokumento kopija; priklauso nuo formato ir puslapių skaičiaus). Pateikiama per 1\u00a0d.\u00a0d.',
+      'Savininkai gali užsisakyti detalų aukštų planą, eksplikaciją ir kadastro bylą. Kaina: nuo 1,45\u00a0€/psl. (dokumento kopija; priklauso nuo formato ir puslapių skaičiaus). Užsakoma internetu.',
     url: 'https://www.registrucentras.lt/savitarna',
   },
   {

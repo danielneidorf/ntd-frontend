@@ -265,8 +265,13 @@ export default function PropertyProfile({
   betweenSections,
 }: {
   profile: Profile;
-  lat: number;
-  lng: number;
+  // Nullable, matching the wire: a plot resolved without coordinates serves
+  // null (surfaced 2026-07-31 by regenerating the land fixture from the
+  // backend). Neither is read in this component today — kept in the signature
+  // rather than removed, since the card's location-linked fields are a live
+  // design intent, not dead weight.
+  lat: number | null;
+  lng: number | null;
   address: string;
   /**
    * Optional content rendered between the "Pastato charakteristikos" and

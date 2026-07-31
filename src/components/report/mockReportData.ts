@@ -11,6 +11,12 @@ export interface Block8Content {
   forward_note_lt: string;
   caveat_lt?: string | null;
   scope_disclaimer_lt: string;
+  // Served since 2026-07-31: the bibliography keys this card's copy rests on.
+  // Nothing renders it — Block 8 carries no „Šaltiniai" pointer — it tells the
+  // BACKEND which entries must be emitted when the card shows, so a claim can't
+  // appear on a report whose register lacks its basis. Declared here because the
+  // wire carries it and the mock is a verbatim capture.
+  source_keys?: string[];
 }
 
 export interface Block8Data {
@@ -117,7 +123,9 @@ export interface Block2Data {
   // The default merged info section (used when no size selected; each option
   // carries its own). Ruling 2026-07-25 — replaced info_box + disclosure box.
   info_section?: Block2InfoSection;
-  confidence?: string;
+  // Null on a not-applicable (land) Block 2 — the backend serves the key with
+  // no level rather than omitting it.
+  confidence?: string | null;
   confidence_text_lt?: string | null;
   carrier_warning_lt?: string | null;
   // THE carrier name for this report (2026-07-21). The property card's
@@ -145,8 +153,13 @@ export interface ReportData {
   address: string;
   ntr_unique_number: string | null;
   municipality: string;
-  lat: number;
-  lng: number;
+  // Nullable on the wire, and the land fixture proves it: a plot resolved
+  // without coordinates serves `null`, not a number. Typed non-null until
+  // 2026-07-31, when regenerating MOCK_LAND_ONLY from the backend made the
+  // served shape visible — the hand-written mock had been supplying values the
+  // real payload does not.
+  lat: number | null;
+  lng: number | null;
   bundle_items: { kind: string; address?: string }[];
   generated_at: string;
   order_reference: string;
@@ -315,8 +328,8 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 export const MOCK_EXISTING: ReportData = {
   "envelope": {
     "address": "Vilnius, Žirmūnų g. 12-5",
-    "request_id": "report-20260731082821",
-    "created_at": "2026-07-31T08:28:21.621227+00:00"
+    "request_id": "report-20260731110252",
+    "created_at": "2026-07-31T11:02:52.159113+00:00"
   },
   "blocks": [
     {
@@ -382,7 +395,7 @@ export const MOCK_EXISTING: ReportData = {
           "Vertinimas remiasi Pastatų energinio naudingumo sertifikatų duomenimis ir standartinėmis prielaidomis panašiems būstams.",
           "Šiame bloke atskirai nemodeliuojame realių vidaus drėgmės ir skersvėjų, nes jie stipriai priklauso nuo gyventojų įpročių ir konkrečios buto būklės (langų, durų, sandūrų ir pan.).",
           "Komforto modeliavimui NT Duomenys naudoja 20–22 °C prielaidą — HN 42:2009 nustatyto 18–22 °C žiemos (šaltojo periodo) temperatūros diapazono viduje.",
-          "Šaltiniai: [2], [3], [4], [5]"
+          "Šaltiniai: [2], [3], [8], [9]"
         ],
         "bundle_note_key": "block1.bundle.note.default",
         "snapshot": {
@@ -822,7 +835,13 @@ export const MOCK_EXISTING: ReportData = {
           ],
           "forward_note_lt": "Kiek konkrečiai kainuoja šildymas eurais per mėnesį, rasite 2 bloke (Energijos sąnaudos).",
           "caveat_lt": null,
-          "scope_disclaimer_lt": "Šios rekomendacijos apima tik šilumos komforto aspektą."
+          "scope_disclaimer_lt": "Šios rekomendacijos apima tik šilumos komforto aspektą.",
+          "source_keys": [
+            "ltrs",
+            "monstvilas_ma",
+            "monstvilas_sd",
+            "bliudzius"
+          ]
         }
       }
     }
@@ -847,7 +866,11 @@ export const MOCK_EXISTING: ReportData = {
     "VĮ REGISTRŲ CENTRAS. Nekilnojamojo turto registras: objekto duomenys [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.registrucentras.lt",
     "VĮ REGISTRŲ CENTRAS. Pastatų energinio naudingumo sertifikatų registras (PENS): energinio naudingumo sertifikatas [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.registrucentras.lt",
     "LIETUVOS RESPUBLIKOS APLINKOS MINISTERIJA. Statybos techninis reglamentas STR 2.01.02:2016 „Pastatų energinio naudingumo projektavimas ir sertifikavimas“. Vilnius: Aplinkos ministerija, 2016. Karšto vandens ruošimo energijos poreikio normos pagal pastato paskirtį — 2 priedo 2.4 lentelė (ψhw, kWh/m²·metai).",
-    "NT DUOMENYS. Pastatų energijos etalonų bazė v2026.1: pastatų faktinio šilumos poreikio medianos pagal pastato tipą ir energinę klasę, apskaičiuotos iš VĮ Registrų centro Pastatų energinio naudingumo sertifikatų registro (PENS); efektyvių pastatų (A++/A+/A klasių) sujungta mediana — atskiras atskaitos taškas. Vilnius: NT Duomenys, 2026.",
+    "MONSTVILAS, E. ir kt. Energinio naudingumo sertifikatų analizė: daugiabučiai gyvenamieji pastatai. Sustainability, 2023, t. 15, Nr. 3, straipsnis 2032 (N = 5 558). ISSN 2071-1050.",
+    "MONSTVILAS, E. ir kt. Energinio naudingumo sertifikatų analizė: vieno ir dviejų butų gyvenamieji namai. Journal of Physics: Conference Series, 2023, t. 2654, straipsnis 012061 (N = 56 891). ISSN 1742-6596.",
+    "BLIŪDŽIUS, R. ir kt. Energinio naudingumo sertifikatų analizė: administraciniai (biurų) pastatai. Buildings, 2024, t. 14, Nr. 9, straipsnis 2791 (N = 2 340). ISSN 2075-5309. Papildyta STR 2.01.02:2016 langų ploto normatyvais.",
+    "LIETUVOS RESPUBLIKOS APLINKOS MINISTERIJA. Lietuvos ilgalaikė pastatų renovacijos strategija [interaktyvus]. Vilnius: LR aplinkos ministerija / LR Vyriausybė, 2020 [žiūrėta 2026-07-31]. Prieiga per internetą: https://epilietis.lrv.lt. Pastatų fondo statistika pagal energinio naudingumo klasę (17–19, 25 lentelės).",
+    "NT DUOMENYS. Pastatų energijos etalonų bazė v2026.1: pastatų faktinio šilumos poreikio medianos pagal pastato tipą ir energinę klasę, apskaičiuotos iš VĮ Registrų centro Pastatų energinio naudingumo sertifikatų registro (PENS); efektyvių pastatų (A++/A+/A klasių) sujungta mediana — atskiras atskaitos taškas. Renovuoto pastato etalonas prilygintas C energinei klasei — NT Duomenų metodinis sprendimas (vidinė etalonų metodika, 3.2 sk.). Vilnius: NT Duomenys, 2026.",
     "LIETUVOS RESPUBLIKOS SVEIKATOS APSAUGOS MINISTRAS. Lietuvos higienos norma HN 42:2009 „Gyvenamųjų ir visuomeninių pastatų patalpų mikroklimatas“ [interaktyvus]. Patvirtinta 2009 m. gruodžio 29 d. įsakymu Nr. V-1081. Vilnius: Sveikatos apsaugos ministerija, 2009 [žiūrėta 2026-07-31]. Prieiga per internetą: https://e-seimas.lrs.lt/portal/legalAct/lt/TAD/TAIS.362676",
     "VĮ REGISTRŲ CENTRAS. Nekilnojamojo turto ir registro išrašų, pažymų ir duomenų įkainiai: dokumentų kopijų parengimas, tvirtinimas ir pateikimas [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.registrucentras.lt/p/nt-israsu-pazymu-duomenu-ikainiai",
     "GOOGLE. „Google Street View“ gatvės lygio vaizdas pagal objekto koordinates [interaktyvus]. Google Maps Platform. Rodoma tik interaktyvioje ataskaitos versijoje [žiūrėta 2026-07-31].",
@@ -860,7 +883,7 @@ export const MOCK_EXISTING: ReportData = {
   "lat": 54.7007624,
   "lng": 25.2993035,
   "bundle_items": [],
-  "generated_at": "2026-07-31T08:28:21.621227+00:00",
+  "generated_at": "2026-07-31T11:02:52.159113+00:00",
   "order_reference": "NTD-DEV-001",
   "block2": {
     "status": "ready",
@@ -1343,7 +1366,7 @@ export const MOCK_EXISTING: ReportData = {
               "Šis vertinimas sujungia du duomenų tipus:",
               "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
               "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių.",
-              "Šaltiniai: [10], [11], [12], [13], [14], [15], [16], [18], [19]"
+              "Šaltiniai: [14], [15], [16], [17], [18], [19], [20], [22], [23]"
             ]
           }
         },
@@ -1563,7 +1586,7 @@ export const MOCK_EXISTING: ReportData = {
               "Šis vertinimas sujungia du duomenų tipus:",
               "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
               "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių.",
-              "Šaltiniai: [10], [11], [12], [13], [14], [15], [16], [18], [19]"
+              "Šaltiniai: [14], [15], [16], [17], [18], [19], [20], [22], [23]"
             ]
           }
         },
@@ -1783,7 +1806,7 @@ export const MOCK_EXISTING: ReportData = {
               "Šis vertinimas sujungia du duomenų tipus:",
               "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
               "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių.",
-              "Šaltiniai: [10], [11], [12], [13], [14], [15], [16], [18], [19]"
+              "Šaltiniai: [14], [15], [16], [17], [18], [19], [20], [22], [23]"
             ]
           }
         },
@@ -2003,7 +2026,7 @@ export const MOCK_EXISTING: ReportData = {
               "Šis vertinimas sujungia du duomenų tipus:",
               "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
               "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių.",
-              "Šaltiniai: [10], [11], [12], [13], [14], [15], [16], [18], [19]"
+              "Šaltiniai: [14], [15], [16], [17], [18], [19], [20], [22], [23]"
             ]
           }
         },
@@ -2223,7 +2246,7 @@ export const MOCK_EXISTING: ReportData = {
               "Šis vertinimas sujungia du duomenų tipus:",
               "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
               "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių.",
-              "Šaltiniai: [10], [11], [12], [13], [14], [15], [16], [18], [19]"
+              "Šaltiniai: [14], [15], [16], [17], [18], [19], [20], [22], [23]"
             ]
           }
         }
@@ -2237,7 +2260,7 @@ export const MOCK_EXISTING: ReportData = {
         "Šis vertinimas sujungia du duomenų tipus:",
         "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
         "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių.",
-        "Šaltiniai: [10], [11], [12], [13], [14], [15], [16], [18], [19]"
+        "Šaltiniai: [14], [15], [16], [17], [18], [19], [20], [22], [23]"
       ]
     }
   },
@@ -2345,7 +2368,7 @@ export const MOCK_EXISTING: ReportData = {
         "Vertinimas remiasi Pastatų energinio naudingumo sertifikatų duomenimis ir standartinėmis prielaidomis panašiems būstams.",
         "Šiame bloke atskirai nemodeliuojame realių vidaus drėgmės ir skersvėjų, nes jie stipriai priklauso nuo gyventojų įpročių ir konkrečios buto būklės (langų, durų, sandūrų ir pan.).",
         "Komforto modeliavimui NT Duomenys naudoja 20–22 °C prielaidą — HN 42:2009 nustatyto 18–22 °C žiemos (šaltojo periodo) temperatūros diapazono viduje.",
-        "Šaltiniai: [2], [3], [4], [5]"
+        "Šaltiniai: [2], [3], [8], [9]"
       ]
     },
     "inputs_snapshot": {
@@ -2383,7 +2406,13 @@ export const MOCK_EXISTING: ReportData = {
       ],
       "forward_note_lt": "Kiek konkrečiai kainuoja šildymas eurais per mėnesį, rasite 2 bloke (Energijos sąnaudos).",
       "caveat_lt": null,
-      "scope_disclaimer_lt": "Šios rekomendacijos apima tik šilumos komforto aspektą."
+      "scope_disclaimer_lt": "Šios rekomendacijos apima tik šilumos komforto aspektą.",
+      "source_keys": [
+        "ltrs",
+        "monstvilas_ma",
+        "monstvilas_sd",
+        "bliudzius"
+      ]
     }
   }
 };
@@ -2398,8 +2427,8 @@ export const MOCK_EXISTING: ReportData = {
 export const MOCK_LAND_ONLY: ReportData = {
   "envelope": {
     "address": "Vilnius, Žemaitės g. 10 (sklypas)",
-    "request_id": "report-20260731083654",
-    "created_at": "2026-07-31T08:36:54.486510+00:00"
+    "request_id": "report-20260731110252",
+    "created_at": "2026-07-31T11:02:52.994156+00:00"
   },
   "blocks": [
     {
@@ -2638,7 +2667,8 @@ export const MOCK_LAND_ONLY: ReportData = {
           "negotiation_angles_lt": [],
           "forward_note_lt": "",
           "caveat_lt": null,
-          "scope_disclaimer_lt": ""
+          "scope_disclaimer_lt": "",
+          "source_keys": []
         }
       }
     }
@@ -2646,7 +2676,7 @@ export const MOCK_LAND_ONLY: ReportData = {
   "permits": [],
   "citations": [
     "VĮ REGISTRŲ CENTRAS. Nekilnojamojo turto registras: objekto duomenys [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.registrucentras.lt",
-    "NT DUOMENYS. Pastatų energijos etalonų bazė v2026.1: pastatų faktinio šilumos poreikio medianos pagal pastato tipą ir energinę klasę, apskaičiuotos iš VĮ Registrų centro Pastatų energinio naudingumo sertifikatų registro (PENS); efektyvių pastatų (A++/A+/A klasių) sujungta mediana — atskiras atskaitos taškas. Vilnius: NT Duomenys, 2026.",
+    "NT DUOMENYS. Pastatų energijos etalonų bazė v2026.1: pastatų faktinio šilumos poreikio medianos pagal pastato tipą ir energinę klasę, apskaičiuotos iš VĮ Registrų centro Pastatų energinio naudingumo sertifikatų registro (PENS); efektyvių pastatų (A++/A+/A klasių) sujungta mediana — atskiras atskaitos taškas. Renovuoto pastato etalonas prilygintas C energinei klasei — NT Duomenų metodinis sprendimas (vidinė etalonų metodika, 3.2 sk.). Vilnius: NT Duomenys, 2026.",
     "LIETUVOS RESPUBLIKOS SVEIKATOS APSAUGOS MINISTRAS. Lietuvos higienos norma HN 42:2009 „Gyvenamųjų ir visuomeninių pastatų patalpų mikroklimatas“ [interaktyvus]. Patvirtinta 2009 m. gruodžio 29 d. įsakymu Nr. V-1081. Vilnius: Sveikatos apsaugos ministerija, 2009 [žiūrėta 2026-07-31]. Prieiga per internetą: https://e-seimas.lrs.lt/portal/legalAct/lt/TAD/TAIS.362676",
     "VĮ REGISTRŲ CENTRAS. Nekilnojamojo turto ir registro išrašų, pažymų ir duomenų įkainiai: dokumentų kopijų parengimas, tvirtinimas ir pateikimas [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.registrucentras.lt/p/nt-israsu-pazymu-duomenu-ikainiai"
   ],
@@ -2656,7 +2686,7 @@ export const MOCK_LAND_ONLY: ReportData = {
   "lat": null,
   "lng": null,
   "bundle_items": [],
-  "generated_at": "2026-07-31T08:36:54.486510+00:00",
+  "generated_at": "2026-07-31T11:02:52.994156+00:00",
   "order_reference": "NTD-DEV-LAND",
   "block2": {
     "status": "not_applicable",
@@ -2753,7 +2783,8 @@ export const MOCK_LAND_ONLY: ReportData = {
       "negotiation_angles_lt": [],
       "forward_note_lt": "",
       "caveat_lt": null,
-      "scope_disclaimer_lt": ""
+      "scope_disclaimer_lt": "",
+      "source_keys": []
     }
   }
 };
