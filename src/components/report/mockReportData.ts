@@ -315,8 +315,8 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 export const MOCK_EXISTING: ReportData = {
   "envelope": {
     "address": "Vilnius, Žirmūnų g. 12-5",
-    "request_id": "report-20260729071357",
-    "created_at": "2026-07-29T07:13:57.318989+00:00"
+    "request_id": "report-20260731082821",
+    "created_at": "2026-07-31T08:28:21.621227+00:00"
   },
   "blocks": [
     {
@@ -380,7 +380,9 @@ export const MOCK_EXISTING: ReportData = {
         },
         "info_box": [
           "Vertinimas remiasi Pastatų energinio naudingumo sertifikatų duomenimis ir standartinėmis prielaidomis panašiems būstams.",
-          "Šiame bloke atskirai nemodeliuojame realių vidaus drėgmės ir skersvėjų, nes jie stipriai priklauso nuo gyventojų įpročių ir konkrečios buto būklės (langų, durų, sandūrų ir pan.)."
+          "Šiame bloke atskirai nemodeliuojame realių vidaus drėgmės ir skersvėjų, nes jie stipriai priklauso nuo gyventojų įpročių ir konkrečios buto būklės (langų, durų, sandūrų ir pan.).",
+          "Komforto modeliavimui NT Duomenys naudoja 20–22 °C prielaidą — HN 42:2009 nustatyto 18–22 °C žiemos (šaltojo periodo) temperatūros diapazono viduje.",
+          "Šaltiniai: [2], [3], [4], [5]"
         ],
         "bundle_note_key": "block1.bundle.note.default",
         "snapshot": {
@@ -742,37 +744,43 @@ export const MOCK_EXISTING: ReportData = {
               "supplier_name": "AB „Miesto gijos“",
               "effective_from": "2026-05-01",
               "effective_to": "2026-05-31"
-            }
+            },
+            "key": "tariff_cst"
           },
           {
             "category": "💰 Energijos tarifai",
-            "label_lt": "AB „Energijos skirstymo operatorius“ (ESO). Buitinės elektros energijos kaina: „Standartinis“ planas (be mėnesinio mokesčio), verslui — „Verslas“ planas; tarifus reguliuoja VERT [interaktyvus]. Vilnius: ESO [žiūrėta {date}]. Prieiga per internetą: https://www.eso.lt",
+            "label_lt": "AB „Energijos skirstymo operatorius“ (ESO). Buitinės elektros energijos kaina: „Standartinis“ planas (be mėnesinio mokesčio), verslui — „Verslas“ planas; tarifus reguliuoja Valstybinė energetikos reguliavimo taryba (VERT) [interaktyvus]. Vilnius: ESO [žiūrėta {date}]. Prieiga per internetą: https://www.eso.lt",
             "source_reference": "energy_tariffs.yaml (ESO)",
-            "dynamic_fields": {}
+            "dynamic_fields": {},
+            "key": "tariff_elec"
           },
           {
             "category": "💰 Energijos tarifai",
             "label_lt": "LIETUVOS RESPUBLIKOS ŠILUMOS ŪKIO ĮSTATYMAS: 13 straipsnis „Šilumos tiekimo sezoniškumas“ (šildymo sezono nustatymo kriterijus pagal vidutinę paros oro temperatūrą; sezono datas skelbia savivaldybės) [interaktyvus]. Vilnius: LR Seimas [žiūrėta {date}]. Prieiga per internetą: https://e-seimas.lrs.lt. Sektoriaus kontekstas: LIETUVOS ŠILUMOS TIEKĖJŲ ASOCIACIJA (LŠTA), CŠT sektoriaus apžvalgos (https://www.lsta.lt/silumos-ukis/cst-sektoriaus-apzvalga/). Spalio–balandžio mėnesių langas yra NT Duomenų modeliavimo prielaida (vidaus metodikos sprendimas, 2026-07-23), atspindinti tipinį kriterijaus rezultatą.",
             "source_reference": "Šilumos ūkio įstatymas 13 str. / LŠTA",
-            "dynamic_fields": {}
+            "dynamic_fields": {},
+            "key": "season"
           },
           {
             "category": "💰 Energijos tarifai",
             "label_lt": "LIETUVOS RESPUBLIKOS PRIDĖTINĖS VERTĖS MOKESČIO ĮSTATYMAS, 2002 m. kovo 5 d. Nr. IX-751 (aktuali redakcija): 19 straipsnis — standartinis 21 % PVM tarifas, nuo 2026 m. sausio 1 d. taikomas ir gyvenamosioms patalpoms tiekiamai šilumos energijai bei karštam vandeniui [interaktyvus]. Vilnius: LR Seimas [žiūrėta {date}]. Prieiga per internetą: https://e-seimas.lrs.lt",
             "source_reference": "PVMĮ 19 str.",
-            "dynamic_fields": {}
+            "dynamic_fields": {},
+            "key": "vat"
           },
           {
             "category": "📈 Prognozės pagrindas",
             "label_lt": "ONEBUILDING.ORG. Tipiniai meteorologiniai metai (TMYx 2011–2025), Lietuvos apskritys [interaktyvus, NOAA ISD pagrindu]. [žiūrėta {date}]. Prieiga per internetą: https://climate.onebuilding.org. Papildyta: EUROPOS KOMISIJA, Jungtinis tyrimų centras (JRC). PVGIS v5.3 (2005–2023). Mėnesinio energijos kainos kitimo profilis remiasi šildymo laipsnių dienomis (bazė 18 °C).",
             "source_reference": "OneBuilding TMYx + JRC PVGIS",
-            "dynamic_fields": {}
+            "dynamic_fields": {},
+            "key": "climate"
           },
           {
             "category": "📈 Prognozės pagrindas",
             "label_lt": "EUROSTAT. Suderinti vartotojų kainų indeksai (HICP), serija „HICP CP0455 — šilumos energija“, Lietuva: metinių pokyčių dešimties metų slankusis vidurkis [interaktyvus]. Liuksemburgas: Europos Sąjungos statistikos tarnyba [žiūrėta {date}]. Prieiga per internetą: https://ec.europa.eu/eurostat",
             "source_reference": "Eurostat HICP (per-carrier series)",
-            "dynamic_fields": {}
+            "dynamic_fields": {},
+            "key": "forecast_cp0455"
           },
           {
             "category": "📈 Prognozės pagrindas",
@@ -780,7 +788,8 @@ export const MOCK_EXISTING: ReportData = {
             "source_reference": "Eurostat HICP CP00",
             "dynamic_fields": {
               "hicp_rate": "4,76"
-            }
+            },
+            "key": "forecast_floor"
           }
         ]
       }
@@ -835,10 +844,15 @@ export const MOCK_EXISTING: ReportData = {
     }
   ],
   "citations": [
-    "VĮ REGISTRŲ CENTRAS. Nekilnojamojo turto registras: objekto duomenys [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-07-29]. Prieiga per internetą: https://www.registrucentras.lt",
-    "VĮ REGISTRŲ CENTRAS. Pastatų energinio naudingumo sertifikatų registras (PENS): energinio naudingumo sertifikatas [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-07-29]. Prieiga per internetą: https://www.registrucentras.lt",
-    "LIETUVOS RESPUBLIKOS APLINKOS MINISTERIJA. Statybos techninis reglamentas STR 2.01.02:2016 „Pastatų energinio naudingumo projektavimas ir sertifikavimas“. Vilnius: Aplinkos ministerija, 2016.",
-    "NT DUOMENYS. Pastatų energijos etalonų bazė v2026.1: pastatų faktinio šilumos poreikio medianos pagal pastato tipą ir energinę klasę, apskaičiuotos iš VĮ Registrų centro Pastatų energinio naudingumo sertifikatų registro (PENS); efektyvių pastatų (A++/A+/A klasių) sujungta mediana — atskiras atskaitos taškas. Vilnius: NT Duomenys, 2026."
+    "VĮ REGISTRŲ CENTRAS. Nekilnojamojo turto registras: objekto duomenys [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.registrucentras.lt",
+    "VĮ REGISTRŲ CENTRAS. Pastatų energinio naudingumo sertifikatų registras (PENS): energinio naudingumo sertifikatas [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.registrucentras.lt",
+    "LIETUVOS RESPUBLIKOS APLINKOS MINISTERIJA. Statybos techninis reglamentas STR 2.01.02:2016 „Pastatų energinio naudingumo projektavimas ir sertifikavimas“. Vilnius: Aplinkos ministerija, 2016. Karšto vandens ruošimo energijos poreikio normos pagal pastato paskirtį — 2 priedo 2.4 lentelė (ψhw, kWh/m²·metai).",
+    "NT DUOMENYS. Pastatų energijos etalonų bazė v2026.1: pastatų faktinio šilumos poreikio medianos pagal pastato tipą ir energinę klasę, apskaičiuotos iš VĮ Registrų centro Pastatų energinio naudingumo sertifikatų registro (PENS); efektyvių pastatų (A++/A+/A klasių) sujungta mediana — atskiras atskaitos taškas. Vilnius: NT Duomenys, 2026.",
+    "LIETUVOS RESPUBLIKOS SVEIKATOS APSAUGOS MINISTRAS. Lietuvos higienos norma HN 42:2009 „Gyvenamųjų ir visuomeninių pastatų patalpų mikroklimatas“ [interaktyvus]. Patvirtinta 2009 m. gruodžio 29 d. įsakymu Nr. V-1081. Vilnius: Sveikatos apsaugos ministerija, 2009 [žiūrėta 2026-07-31]. Prieiga per internetą: https://e-seimas.lrs.lt/portal/legalAct/lt/TAD/TAIS.362676",
+    "VĮ REGISTRŲ CENTRAS. Nekilnojamojo turto ir registro išrašų, pažymų ir duomenų įkainiai: dokumentų kopijų parengimas, tvirtinimas ir pateikimas [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.registrucentras.lt/p/nt-israsu-pazymu-duomenu-ikainiai",
+    "GOOGLE. „Google Street View“ gatvės lygio vaizdas pagal objekto koordinates [interaktyvus]. Google Maps Platform. Rodoma tik interaktyvioje ataskaitos versijoje [žiūrėta 2026-07-31].",
+    "GOOGLE. „Google Maps“ palydovinis / hibridinis vaizdas pagal objekto koordinates [interaktyvus]. Google Maps Platform (vaizdai: Airbus, CNES / Airbus, Maxar Technologies ir kt.). Rodoma tik interaktyvioje ataskaitos versijoje [žiūrėta 2026-07-31].",
+    "Pastato kontūras — © OpenStreetMap contributors, ODbL. Duomenys iš „OpenStreetMap“ (per Overpass API) [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.openstreetmap.org/copyright. Rodoma tik interaktyvioje ataskaitos versijoje."
   ],
   "address": "Vilnius, Žirmūnų g. 12-5",
   "ntr_unique_number": "4400-1234-5678",
@@ -846,7 +860,7 @@ export const MOCK_EXISTING: ReportData = {
   "lat": 54.7007624,
   "lng": 25.2993035,
   "bundle_items": [],
-  "generated_at": "2026-07-29T07:13:57.318989+00:00",
+  "generated_at": "2026-07-31T08:28:21.621227+00:00",
   "order_reference": "NTD-DEV-001",
   "block2": {
     "status": "ready",
@@ -896,13 +910,13 @@ export const MOCK_EXISTING: ReportData = {
     "carrier_label_lt": "centrinis šildymas",
     "newbuild_note_lt": null,
     "citations_lt": [
-      "VALSTYBINĖ ENERGETIKOS REGULIAVIMO TARYBA. AB „Miesto gijos“ centralizuotai tiekiamos šilumos kaina: paskutinis žinomas patvirtintas tarifas, galiojęs nuo 2026-05-01 iki 2026-05-31 [interaktyvus]. Vilnius: VERT [žiūrėta 2026-07-29]. Prieiga per internetą: https://www.vert.lt",
-      "AB „Energijos skirstymo operatorius“ (ESO). Buitinės elektros energijos kaina: „Standartinis“ planas (be mėnesinio mokesčio), verslui — „Verslas“ planas; tarifus reguliuoja VERT [interaktyvus]. Vilnius: ESO [žiūrėta 2026-07-29]. Prieiga per internetą: https://www.eso.lt",
-      "LIETUVOS RESPUBLIKOS ŠILUMOS ŪKIO ĮSTATYMAS: 13 straipsnis „Šilumos tiekimo sezoniškumas“ (šildymo sezono nustatymo kriterijus pagal vidutinę paros oro temperatūrą; sezono datas skelbia savivaldybės) [interaktyvus]. Vilnius: LR Seimas [žiūrėta 2026-07-29]. Prieiga per internetą: https://e-seimas.lrs.lt. Sektoriaus kontekstas: LIETUVOS ŠILUMOS TIEKĖJŲ ASOCIACIJA (LŠTA), CŠT sektoriaus apžvalgos (https://www.lsta.lt/silumos-ukis/cst-sektoriaus-apzvalga/). Spalio–balandžio mėnesių langas yra NT Duomenų modeliavimo prielaida (vidaus metodikos sprendimas, 2026-07-23), atspindinti tipinį kriterijaus rezultatą.",
-      "LIETUVOS RESPUBLIKOS PRIDĖTINĖS VERTĖS MOKESČIO ĮSTATYMAS, 2002 m. kovo 5 d. Nr. IX-751 (aktuali redakcija): 19 straipsnis — standartinis 21 % PVM tarifas, nuo 2026 m. sausio 1 d. taikomas ir gyvenamosioms patalpoms tiekiamai šilumos energijai bei karštam vandeniui [interaktyvus]. Vilnius: LR Seimas [žiūrėta 2026-07-29]. Prieiga per internetą: https://e-seimas.lrs.lt",
-      "ONEBUILDING.ORG. Tipiniai meteorologiniai metai (TMYx 2011–2025), Lietuvos apskritys [interaktyvus, NOAA ISD pagrindu]. [žiūrėta 2026-07-29]. Prieiga per internetą: https://climate.onebuilding.org. Papildyta: EUROPOS KOMISIJA, Jungtinis tyrimų centras (JRC). PVGIS v5.3 (2005–2023). Mėnesinio energijos kainos kitimo profilis remiasi šildymo laipsnių dienomis (bazė 18 °C).",
-      "EUROSTAT. Suderinti vartotojų kainų indeksai (HICP), serija „HICP CP0455 — šilumos energija“, Lietuva: metinių pokyčių dešimties metų slankusis vidurkis [interaktyvus]. Liuksemburgas: Europos Sąjungos statistikos tarnyba [žiūrėta 2026-07-29]. Prieiga per internetą: https://ec.europa.eu/eurostat",
-      "EUROSTAT. Suderinti vartotojų kainų indeksai (HICP), serija „HICP CP00 — bendrasis indeksas“, Lietuva: dešimties metų vidurkis, 4,76%/m. — taikomas kaip minimali augimo riba [interaktyvus]. Liuksemburgas: Europos Sąjungos statistikos tarnyba [žiūrėta 2026-07-29]. Prieiga per internetą: https://ec.europa.eu/eurostat"
+      "VALSTYBINĖ ENERGETIKOS REGULIAVIMO TARYBA. AB „Miesto gijos“ centralizuotai tiekiamos šilumos kaina: paskutinis žinomas patvirtintas tarifas, galiojęs nuo 2026-05-01 iki 2026-05-31 [interaktyvus]. Vilnius: VERT [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.vert.lt",
+      "AB „Energijos skirstymo operatorius“ (ESO). Buitinės elektros energijos kaina: „Standartinis“ planas (be mėnesinio mokesčio), verslui — „Verslas“ planas; tarifus reguliuoja Valstybinė energetikos reguliavimo taryba (VERT) [interaktyvus]. Vilnius: ESO [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.eso.lt",
+      "LIETUVOS RESPUBLIKOS ŠILUMOS ŪKIO ĮSTATYMAS: 13 straipsnis „Šilumos tiekimo sezoniškumas“ (šildymo sezono nustatymo kriterijus pagal vidutinę paros oro temperatūrą; sezono datas skelbia savivaldybės) [interaktyvus]. Vilnius: LR Seimas [žiūrėta 2026-07-31]. Prieiga per internetą: https://e-seimas.lrs.lt. Sektoriaus kontekstas: LIETUVOS ŠILUMOS TIEKĖJŲ ASOCIACIJA (LŠTA), CŠT sektoriaus apžvalgos (https://www.lsta.lt/silumos-ukis/cst-sektoriaus-apzvalga/). Spalio–balandžio mėnesių langas yra NT Duomenų modeliavimo prielaida (vidaus metodikos sprendimas, 2026-07-23), atspindinti tipinį kriterijaus rezultatą.",
+      "LIETUVOS RESPUBLIKOS PRIDĖTINĖS VERTĖS MOKESČIO ĮSTATYMAS, 2002 m. kovo 5 d. Nr. IX-751 (aktuali redakcija): 19 straipsnis — standartinis 21 % PVM tarifas, nuo 2026 m. sausio 1 d. taikomas ir gyvenamosioms patalpoms tiekiamai šilumos energijai bei karštam vandeniui [interaktyvus]. Vilnius: LR Seimas [žiūrėta 2026-07-31]. Prieiga per internetą: https://e-seimas.lrs.lt",
+      "ONEBUILDING.ORG. Tipiniai meteorologiniai metai (TMYx 2011–2025), Lietuvos apskritys [interaktyvus, NOAA ISD pagrindu]. [žiūrėta 2026-07-31]. Prieiga per internetą: https://climate.onebuilding.org. Papildyta: EUROPOS KOMISIJA, Jungtinis tyrimų centras (JRC). PVGIS v5.3 (2005–2023). Mėnesinio energijos kainos kitimo profilis remiasi šildymo laipsnių dienomis (bazė 18 °C).",
+      "EUROSTAT. Suderinti vartotojų kainų indeksai (HICP), serija „HICP CP0455 — šilumos energija“, Lietuva: metinių pokyčių dešimties metų slankusis vidurkis [interaktyvus]. Liuksemburgas: Europos Sąjungos statistikos tarnyba [žiūrėta 2026-07-31]. Prieiga per internetą: https://ec.europa.eu/eurostat",
+      "EUROSTAT. Suderinti vartotojų kainų indeksai (HICP), serija „HICP CP00 — bendrasis indeksas“, Lietuva: dešimties metų vidurkis, 4,76%/m. — taikomas kaip minimali augimo riba [interaktyvus]. Liuksemburgas: Europos Sąjungos statistikos tarnyba [žiūrėta 2026-07-31]. Prieiga per internetą: https://ec.europa.eu/eurostat"
     ],
     "monthly_variation": [
       {
@@ -1107,8 +1121,9 @@ export const MOCK_EXISTING: ReportData = {
       "citation_lt": {
         "category_lt": "👥 Namų ūkio modeliavimas",
         "lines_lt": [
-          "EUROSTAT. Gyvenamųjų pastatų galutinis elektros energijos suvartojimas Lietuvoje (nrg_bal_c, 2023 m.), išskaidytas pagal namų ūkio dydį [interaktyvus]. Liuksemburgas: Europos Sąjungos statistikos tarnyba [žiūrėta 2026-07-29]. Prieiga per internetą: https://ec.europa.eu/eurostat. Namų ūkio dydžio struktūra — 2021 m. gyventojų ir būstų surašymas (Valstybės duomenų agentūra); išskaidymo metodika — DESTATIS (Vokietijos federalinė statistikos tarnyba).",
-          "VALSTYBĖS DUOMENŲ AGENTŪRA. 2021 m. gyventojų ir būstų surašymas: tipinis gyventojų skaičius pagal naudingąjį plotą [interaktyvus]. Vilnius: Valstybės duomenų agentūra [žiūrėta 2026-07-29]. Prieiga per internetą: https://osp.stat.gov.lt"
+          "EUROSTAT. Gyvenamųjų pastatų galutinis elektros energijos suvartojimas Lietuvoje (nrg_bal_c, 2023 m.), išskaidytas pagal namų ūkio dydį [interaktyvus]. Liuksemburgas: Europos Sąjungos statistikos tarnyba [žiūrėta 2026-07-31]. Prieiga per internetą: https://ec.europa.eu/eurostat. Namų ūkio dydžio struktūra — 2021 m. gyventojų ir būstų surašymas (Valstybės duomenų agentūra); išskaidymo metodika — DESTATIS (Vokietijos federalinė statistikos tarnyba).",
+          "VALSTYBĖS DUOMENŲ AGENTŪRA. 2021 m. gyventojų ir būstų surašymas: vidutinis namų ūkio dydis (2,29 asmens) ir vidutinis naudingasis plotas vienam gyventojui (35,5 m²) [interaktyvus]. Vilnius: Valstybės duomenų agentūra [žiūrėta 2026-07-31]. Prieiga per internetą: https://osp.stat.gov.lt. Tipinis gyventojų skaičius pagal buto plotą — NT Duomenų įvertis, išvestas iš šių surašymo suvestinių rodiklių (ne atskira surašymo lentelė).",
+          "MIKUČIONIENĖ, R., MOTUZIENĖ, V., DŽIUGAITĖ-TUMĖNIENĖ, R. 15 % ir 30 % energetiškai efektyviausių pastatų Lietuvoje nustatymo metodika. Vilnius: Vilniaus Gedimino technikos universitetas; užsakė Lietuvos bankų asociacija (ES taksonomijos 7.7 str. įgyvendinimui), 2023 (atnaujinta 2024) [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.lba.lt. Priede pakartotos STR 2.01.02:2016 2 priedo 2.4 lentelės ψhw reikšmės (nepriklausomas patikrinimas)."
         ]
       },
       "options": [
@@ -1327,7 +1342,8 @@ export const MOCK_EXISTING: ReportData = {
               "Kainos apskaičiuotos pagal paskutinį žinomą AB „Miesto gijos“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
               "Šis vertinimas sujungia du duomenų tipus:",
               "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
-              "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių."
+              "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių.",
+              "Šaltiniai: [10], [11], [12], [13], [14], [15], [16], [18], [19]"
             ]
           }
         },
@@ -1546,7 +1562,8 @@ export const MOCK_EXISTING: ReportData = {
               "Kainos apskaičiuotos pagal paskutinį žinomą AB „Miesto gijos“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
               "Šis vertinimas sujungia du duomenų tipus:",
               "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
-              "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių."
+              "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių.",
+              "Šaltiniai: [10], [11], [12], [13], [14], [15], [16], [18], [19]"
             ]
           }
         },
@@ -1765,7 +1782,8 @@ export const MOCK_EXISTING: ReportData = {
               "Kainos apskaičiuotos pagal paskutinį žinomą AB „Miesto gijos“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
               "Šis vertinimas sujungia du duomenų tipus:",
               "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
-              "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių."
+              "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių.",
+              "Šaltiniai: [10], [11], [12], [13], [14], [15], [16], [18], [19]"
             ]
           }
         },
@@ -1984,7 +2002,8 @@ export const MOCK_EXISTING: ReportData = {
               "Kainos apskaičiuotos pagal paskutinį žinomą AB „Miesto gijos“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
               "Šis vertinimas sujungia du duomenų tipus:",
               "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
-              "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių."
+              "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių.",
+              "Šaltiniai: [10], [11], [12], [13], [14], [15], [16], [18], [19]"
             ]
           }
         },
@@ -2203,7 +2222,8 @@ export const MOCK_EXISTING: ReportData = {
               "Kainos apskaičiuotos pagal paskutinį žinomą AB „Miesto gijos“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
               "Šis vertinimas sujungia du duomenų tipus:",
               "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
-              "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių."
+              "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių.",
+              "Šaltiniai: [10], [11], [12], [13], [14], [15], [16], [18], [19]"
             ]
           }
         }
@@ -2216,7 +2236,8 @@ export const MOCK_EXISTING: ReportData = {
         "Kainos apskaičiuotos pagal paskutinį žinomą AB „Miesto gijos“ tarifą (galiojo iki 2026-05-31). VERT patvirtinus naujus tarifus, sumos gali keistis.",
         "Šis vertinimas sujungia du duomenų tipus:",
         "📊 Pastato duomenys — šildymo ir karšto vandens sąnaudos apskaičiuotos pagal šio konkretaus pastato energinio naudingumo sertifikatą, šildymo sistemos tipą ir dabartinius energijos tarifus. Šie skaičiai yra specifiniai šiam pastatui. Šildymo sąnaudos nepriklauso nuo gyventojų skaičiaus — jas lemia pastato konstrukcija.",
-        "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių."
+        "👥 Namų ūkio modeliavimas — karšto vandens sąnaudos pritaikytos pagal jūsų namų ūkio dydį (tipinis gyventojų skaičius pagal naudingąjį plotą, 2021 m. gyventojų ir būstų surašymas). Karšto vandens sąnaudos rodomos atskirai nuo šildymo, nes jos labiau priklauso nuo gyventojų skaičiaus ir suvartojimo įpročių. Buitinės elektros sąnaudos yra statistinis Lietuvos namų ūkių vidurkis pagal Eurostat duomenis. Faktinės sąnaudos gali skirtis priklausomai nuo prietaisų ir įpročių.",
+        "Šaltiniai: [10], [11], [12], [13], [14], [15], [16], [18], [19]"
       ]
     }
   },
@@ -2322,7 +2343,9 @@ export const MOCK_EXISTING: ReportData = {
     "info_box": {
       "items_lt": [
         "Vertinimas remiasi Pastatų energinio naudingumo sertifikatų duomenimis ir standartinėmis prielaidomis panašiems būstams.",
-        "Šiame bloke atskirai nemodeliuojame realių vidaus drėgmės ir skersvėjų, nes jie stipriai priklauso nuo gyventojų įpročių ir konkrečios buto būklės (langų, durų, sandūrų ir pan.)."
+        "Šiame bloke atskirai nemodeliuojame realių vidaus drėgmės ir skersvėjų, nes jie stipriai priklauso nuo gyventojų įpročių ir konkrečios buto būklės (langų, durų, sandūrų ir pan.).",
+        "Komforto modeliavimui NT Duomenys naudoja 20–22 °C prielaidą — HN 42:2009 nustatyto 18–22 °C žiemos (šaltojo periodo) temperatūros diapazono viduje.",
+        "Šaltiniai: [2], [3], [4], [5]"
       ]
     },
     "inputs_snapshot": {
@@ -2365,67 +2388,374 @@ export const MOCK_EXISTING: ReportData = {
   }
 };
 
+// --- MOCK_LAND_ONLY — regenerated from the backend dev fixture (2026-07-31) ---
+// Same recipe as MOCK_EXISTING above, `_DEV_MOCKS["dev-land"]` instead. It had
+// been hand-written and drifted: it carried NO `citations` key at all, so the dev
+// land report rendered an empty „Šaltiniai" section while the real one serves
+// four entries. It is also the fixture that proves the not-applicable path stays
+// SILENT — a land report is never calculated, so its info box states no basis and
+// carries no „Šaltiniai" pointer. Do NOT hand-edit; REGENERATE.
 export const MOCK_LAND_ONLY: ReportData = {
-  address: 'Vilniaus r. sav., Sklypas prie kelio',
-  ntr_unique_number: '4400-9999-0001',
-  municipality: 'Vilniaus r. sav.',
-  lat: 54.7520,
-  lng: 25.3380,
-  bundle_items: [{ kind: 'land_plot', address: 'Sklypas prie kelio' }],
-  generated_at: '2026-04-01T15:00:00Z',
-  order_reference: 'NTD-2026-0043',
-  block2: {
-    status: 'not_applicable',
-    message_lt:
-      'Energijos sąnaudų vertinimas taikomas tik šildomiems pastatams; šiam objektui šis vertinimas neskaičiuojamas.',
+  "envelope": {
+    "address": "Vilnius, Žemaitės g. 10 (sklypas)",
+    "request_id": "report-20260731083654",
+    "created_at": "2026-07-31T08:36:54.486510+00:00"
   },
-  block8: {
-    id: 'recommendations',
-    title_lt: '8) Rekomendacijos ir sprendimai',
-    status: 'not_applicable',
-    data: null,
-  },
-  block1: {
-    applicable: false,
-    neutral_message_lt:
-      'Vidaus klimato komforto blokas taikomas tik šildomiems pastatams; šiam objektui šis vertinimas neskaičiuojamas.',
-    winter: null,
-    summer: null,
-    summary_lt: '',
-    drivers: [],
-    winter_factors: [],
-    info_box: { items_lt: [] },
-    inputs_snapshot: {
-      effective_energy_class: null,
-      effective_epc_kwhm2_year: null,
-      effective_year_built: null,
-      glazing_share_percent: null,
-      ventilation_type: null,
-      epc_source_class: 'none',
-      epc_confidence_level: 'NONE',
-      evaluation_target: 'land_only',
+  "blocks": [
+    {
+      "id": "thermal_comfort_proxy",
+      "label_lt": "1) Vidaus patalpų klimato komfortas",
+      "status": "ready",
+      "summary_lt": "Vidaus klimato komforto blokas taikomas tik šildomiems pastatams; šiam objektui šis vertinimas neskaičiuojamas.",
+      "required_inputs": [],
+      "data": {
+        "winter": {
+          "level": "GOOD",
+          "label_key": "block1.winter.not_applicable.label",
+          "description_key": "block1.winter.not_applicable.description",
+          "not_assessed_reason": null,
+          "provenance_label_key": null,
+          "segment": "B",
+          "description_lt": "Aukšta pastato energinė klasė (A ar aukštesnė) rodo mažus šilumos poreikius: 20–22 °C palaikoma nesunkiai, o šildymo poreikis — vienas mažiausių tarp esamų pastatų (tikslesnę šildymo kainą rasite 2 bloke).",
+          "comparison_lines_lt": []
+        },
+        "summer": {
+          "level": "LOW",
+          "label_key": "block1.summer.not_applicable.label",
+          "description_key": "block1.summer.not_applicable.description",
+          "segment": "B",
+          "description_lt": "Net ir per karštas dienas patalpos linkusios išlikti pakankamai vėsios; dažniausiai pakanka natūralaus vėdinimo ir paprastų saulės kontrolės priemonių (užuolaidos, žaliuzės). Papildomo vėsinimo (pavyzdžiui, kondicionavimo) poreikis tikėtinas retai, todėl papildomos elektros sąnaudos dėl vėsinimo turėtų būti nedidelės."
+        },
+        "overrides": {
+          "pattern": "no_metric_possible",
+          "hero_kind": "none",
+          "hero_metric_kind": "delivered_heat",
+          "used_official_epc": false,
+          "used_user_epc": false,
+          "used_user_kwh": false,
+          "low_confidence_epc": false,
+          "no_official_epc_reason": "none",
+          "upload_not_used_reason": "none",
+          "message_key": "block1.block1_energy.story.no_metric_possible",
+          "story_key": "block1.block1_energy.story.no_metric_possible"
+        },
+        "drivers": {
+          "good_epc": false,
+          "new_or_renovated": false,
+          "risky_glazing": false
+        },
+        "technical": {
+          "usage_group_id": "unknown",
+          "epc_class": "",
+          "hero_heat_kwhm2_year": 0,
+          "baseline_heat_kwhm2_year": 0,
+          "relative_vs_class_peers": 0,
+          "relative_vs_newbuild": null,
+          "relative_vs_renovated": null,
+          "diff_vs_newbuild_kwhm2_year": null,
+          "diff_vs_renovated_kwhm2_year": null,
+          "etalon_class": null,
+          "a_band_anchor_kwhm2_year": null
+        },
+        "info_box": [
+          "Šiame bloke atskirai nemodeliuojame realių vidaus drėgmės ir skersvėjų, nes jie stipriai priklauso nuo gyventojų įpročių ir konkrečios buto būklės (langų, durų, sandūrų ir pan.)."
+        ],
+        "bundle_note_key": "block1.bundle.note.default",
+        "snapshot": {
+          "order_id": "ord-dev-land",
+          "bundle_id": "bdl-dev-land",
+          "bundle_primary_object_type": null,
+          "evaluation_target": "land_only",
+          "lat": null,
+          "lng": null,
+          "address_text": "Vilnius, Žemaitės g. 10 (sklypas)",
+          "municipality": "Vilniaus m. sav.",
+          "address_source": "user",
+          "purpose": null,
+          "premises_type": null,
+          "rc_paskirtis_code": null,
+          "rc_paskirtis_level": null,
+          "usage_group": null,
+          "heated_flag": false,
+          "building_year_built": null,
+          "renovation_year": null,
+          "total_area_m2": null,
+          "heated_area_m2": null,
+          "floors": null,
+          "heating_system_type": null,
+          "glazing_share_percent": null,
+          "glazing_band": null,
+          "glazing_source": null,
+          "registry_energy_class": null,
+          "registry_epc_kwhm2_year": null,
+          "registry_epc_kwhm2_year_source": null,
+          "official_lookup_status": "not_requested",
+          "no_official_epc_reason": "none",
+          "user_energy_class": null,
+          "user_epc_kwhm2_year": null,
+          "bill_unit": null,
+          "bill_value": null,
+          "bill_period": null,
+          "bill_month": null,
+          "bill_scope": null,
+          "bill_source_tag": null,
+          "effective_energy_class": null,
+          "effective_epc_kwhm2_year": null,
+          "epc_source_class": null,
+          "epc_confidence_level": null,
+          "epc_sources": [],
+          "energy_class_overridden": false,
+          "epc_kwhm2_year_overridden": false,
+          "ventilation_type": null,
+          "project_website_url": null,
+          "project_website_url_auto": null,
+          "has_project_docs": null,
+          "doc_energy_class": null,
+          "doc_epc_kwhm2_year": null,
+          "doc_epc_issue_year": null,
+          "doc_heating_description": null,
+          "doc_ventilation_description": null,
+          "doc_glazing_hint": null,
+          "doc_source_label": null,
+          "doc_website_url_hint": null,
+          "url_user_energy_class": null,
+          "url_user_epc_kwhm2_year": null,
+          "url_user_heating_description": null,
+          "url_user_ventilation_description": null,
+          "url_user_glazing_hint": null,
+          "url_auto_energy_class": null,
+          "url_auto_epc_kwhm2_year": null,
+          "url_auto_heating_description": null,
+          "url_auto_ventilation_description": null,
+          "url_auto_glazing_hint": null,
+          "project_hint_name": null,
+          "project_hint_developer": null,
+          "project_url_auto_confidence": null,
+          "project_url_auto_reason": null,
+          "epc_resolution": null,
+          "epc_plausibility": null,
+          "epc_plausibility_note_lt": null,
+          "prior_building_energy_class": null,
+          "prior_building_kwhm2": null,
+          "source_system": null,
+          "resolver_context": null,
+          "pens_cert_number": null,
+          "pens_cert_issued_date": null,
+          "unikalus_nr": "5500-0000-0001",
+          "unikalus_nr_source": null,
+          "heated_area_m2_source": null,
+          "byproduct_coverage_fraction": null,
+          "customer_type_override": null
+        },
+        "winter_factors": [
+          {
+            "key": "new_or_renovated",
+            "label_lt": "Naujesnės statybos pastatas",
+            "explanation_lt": "Naujesnės statybos pastatai paprastai geriau apšiltinti ir sandaresni, todėl žiemą šiluma išlaikoma efektyviau ir jaučiama mažiau šaltų vietų ties sienomis ar kampuose.",
+            "active": false,
+            "direction": "decrease"
+          },
+          {
+            "key": "risky_glazing",
+            "label_lt": "Didelė langų dalis",
+            "explanation_lt": "Langai šilumą praleidžia lengviau nei sienos, todėl kai jų plotas didelis, žiemą pro juos prarandama daugiau šilumos — ties langais gali būti vėsiau, o šildymo poreikis šiek tiek didesnis.",
+            "active": false,
+            "direction": "increase"
+          }
+        ],
+        "summer_drivers": [
+          {
+            "key": "high_energy_class_driver",
+            "label_lt": "Aukšta energinė klasė",
+            "explanation_lt": "Aukštesnės energinės klasės pastatai paprastai sandaresni ir geriau apšiltinti — žiemą tai taupo šilumą, bet vasarą pro langus ir iš vidaus patekusi šiluma patalpose išlieka ilgiau, todėl be tinkamo šešėliavimo ir vėdinimo perkaitimo rizika būna šiek tiek didesnė.",
+            "active": false,
+            "direction": "increase"
+          },
+          {
+            "key": "newer_building_driver",
+            "label_lt": "Naujesnės statybos pastatas",
+            "explanation_lt": "Naujesni pastatai paprastai sandaresni ir geriau apšiltinti, todėl be tinkamo šešėliavimo ir vėdinimo vasarą sukaupta šiluma patalpose išlieka ilgiau ir perkaitimo rizika būna šiek tiek didesnė.",
+            "active": false,
+            "direction": "increase"
+          },
+          {
+            "key": "high_glazing_driver",
+            "label_lt": "Didelė langų dalis",
+            "explanation_lt": "Kai langų plotas didelis, saulėtomis dienomis pro stiklą patenka daug šilumos, todėl patalpos vasarą greičiau ir labiau įšyla.",
+            "active": false,
+            "direction": "increase"
+          }
+        ]
+      }
     },
+    {
+      "id": "energy_costs",
+      "label_lt": "2) Energijos sąnaudos",
+      "status": "ready",
+      "summary_lt": null,
+      "required_inputs": [],
+      "data": {
+        "status": "not_applicable",
+        "message_lt": "Energijos sąnaudų vertinimas taikomas tik šildomiems pastatams. Šiam sklypui energijos sąnaudos nevertinamos.",
+        "energy_month_eur": null,
+        "energy_year_eur": null,
+        "breakdown": [],
+        "components": [],
+        "monthly_variation": [],
+        "forecast_5yr": [],
+        "confidence": null,
+        "confidence_cause": null,
+        "tariff_is_stale": false,
+        "stale_operator": null,
+        "stale_until": null,
+        "carrier_source": null,
+        "household_modelling": null,
+        "bill_override_active": null,
+        "bill_dhw_measured": null,
+        "modelled_dhw_eur_year": null,
+        "bill_unit_eur": null,
+        "bill_heating_thermal_kwh_year": null,
+        "solar_thermal_present": null,
+        "citations_lt": []
+      }
+    },
+    {
+      "id": "recommendations",
+      "label_lt": "8) Rekomendacijos ir sprendimai",
+      "status": "ready",
+      "summary_lt": null,
+      "required_inputs": [],
+      "data": {
+        "id": "recommendations",
+        "title_lt": "8) Rekomendacijos ir sprendimai",
+        "status": "not_applicable",
+        "data": {
+          "pattern": "land_only",
+          "pattern_title_lt": "",
+          "scope_prefix": "",
+          "intro_lt": "Rekomendacijos dėl šilumos komforto taikomos tik šildomiems pastatams. Šiam sklypui šilumos komforto vertinimas netaikomas.",
+          "viewing_questions_lt": [],
+          "negotiation_angles_lt": [],
+          "forward_note_lt": "",
+          "caveat_lt": null,
+          "scope_disclaimer_lt": ""
+        }
+      }
+    }
+  ],
+  "permits": [],
+  "citations": [
+    "VĮ REGISTRŲ CENTRAS. Nekilnojamojo turto registras: objekto duomenys [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.registrucentras.lt",
+    "NT DUOMENYS. Pastatų energijos etalonų bazė v2026.1: pastatų faktinio šilumos poreikio medianos pagal pastato tipą ir energinę klasę, apskaičiuotos iš VĮ Registrų centro Pastatų energinio naudingumo sertifikatų registro (PENS); efektyvių pastatų (A++/A+/A klasių) sujungta mediana — atskiras atskaitos taškas. Vilnius: NT Duomenys, 2026.",
+    "LIETUVOS RESPUBLIKOS SVEIKATOS APSAUGOS MINISTRAS. Lietuvos higienos norma HN 42:2009 „Gyvenamųjų ir visuomeninių pastatų patalpų mikroklimatas“ [interaktyvus]. Patvirtinta 2009 m. gruodžio 29 d. įsakymu Nr. V-1081. Vilnius: Sveikatos apsaugos ministerija, 2009 [žiūrėta 2026-07-31]. Prieiga per internetą: https://e-seimas.lrs.lt/portal/legalAct/lt/TAD/TAIS.362676",
+    "VĮ REGISTRŲ CENTRAS. Nekilnojamojo turto ir registro išrašų, pažymų ir duomenų įkainiai: dokumentų kopijų parengimas, tvirtinimas ir pateikimas [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.registrucentras.lt/p/nt-israsu-pazymu-duomenu-ikainiai"
+  ],
+  "address": "Vilnius, Žemaitės g. 10 (sklypas)",
+  "ntr_unique_number": "5500-0000-0001",
+  "municipality": "Vilniaus m. sav.",
+  "lat": null,
+  "lng": null,
+  "bundle_items": [],
+  "generated_at": "2026-07-31T08:36:54.486510+00:00",
+  "order_reference": "NTD-DEV-LAND",
+  "block2": {
+    "status": "not_applicable",
+    "message_lt": "Energijos sąnaudų vertinimas taikomas tik šildomiems pastatams. Šiam sklypui energijos sąnaudos nevertinamos.",
+    "confidence": null,
+    "confidence_text_lt": null,
+    "citations_lt": []
   },
-  property_profile: {
-    purpose: null,
-    premises_type: null,
-    usage_group_label: null,
-    year_built: null,
-    floors: 5,
-    total_area_m2: null,
-    heated_area_m2: null,
-    wall_material: null,
-    heating_type: null,
-    ventilation_type: null,
-    energy_class: null,
-    epc_kwhm2_year: null,
-    epc_source: null,
-    epc_confidence: null,
-    glazing_percent: null,
-    glazing_source: null,
-    cadastral_ref: null,
-    evaluation_target: 'Žemės sklypas',
+  "property_profile": {
+    "purpose": null,
+    "paskirtis_label_lt": null,
+    "paskirtis_row_label_lt": null,
+    "premises_type": null,
+    "usage_group_label": null,
+    "year_built": null,
+    "floors": null,
+    "total_area_m2": null,
+    "heated_area_m2": null,
+    "heated_area_m2_source_lt": null,
+    "heated_area_m2_source": null,
+    "heated_area_m2_is_genuine": false,
+    "wall_material": null,
+    "heating_type": null,
+    "ventilation_type": null,
+    "energy_class": null,
+    "energy_class_provenance": null,
+    "energy_class_provenance_lt": null,
+    "epc_kwhm2_year": null,
+    "epc_source": null,
+    "epc_confidence": null,
+    "glazing_percent": null,
+    "glazing_source": null,
+    "cadastral_ref": "5500-0000-0001",
+    "evaluation_target": "Žemės sklypas"
   },
+  "block1": {
+    "applicable": false,
+    "neutral_message_lt": "Vidaus klimato komforto blokas taikomas tik šildomiems pastatams; šiam objektui šis vertinimas neskaičiuojamas.",
+    "winter": null,
+    "summer": null,
+    "summary_lt": "Vidaus klimato komforto blokas taikomas tik šildomiems pastatams; šiam objektui šis vertinimas neskaičiuojamas.",
+    "drivers": [
+      {
+        "key": "high_energy_class_driver",
+        "label_lt": "Aukšta energinė klasė",
+        "explanation_lt": "Aukštesnės energinės klasės pastatai paprastai sandaresni ir geriau apšiltinti — žiemą tai taupo šilumą, bet vasarą pro langus ir iš vidaus patekusi šiluma patalpose išlieka ilgiau, todėl be tinkamo šešėliavimo ir vėdinimo perkaitimo rizika būna šiek tiek didesnė.",
+        "active": false,
+        "direction": "increase"
+      },
+      {
+        "key": "newer_building_driver",
+        "label_lt": "Naujesnės statybos pastatas",
+        "explanation_lt": "Naujesni pastatai paprastai sandaresni ir geriau apšiltinti, todėl be tinkamo šešėliavimo ir vėdinimo vasarą sukaupta šiluma patalpose išlieka ilgiau ir perkaitimo rizika būna šiek tiek didesnė.",
+        "active": false,
+        "direction": "increase"
+      },
+      {
+        "key": "high_glazing_driver",
+        "label_lt": "Didelė langų dalis",
+        "explanation_lt": "Kai langų plotas didelis, saulėtomis dienomis pro stiklą patenka daug šilumos, todėl patalpos vasarą greičiau ir labiau įšyla.",
+        "active": false,
+        "direction": "increase"
+      }
+    ],
+    "winter_factors": [],
+    "info_box": {
+      "items_lt": [
+        "Šiame bloke atskirai nemodeliuojame realių vidaus drėgmės ir skersvėjų, nes jie stipriai priklauso nuo gyventojų įpročių ir konkrečios buto būklės (langų, durų, sandūrų ir pan.)."
+      ]
+    },
+    "inputs_snapshot": {
+      "effective_energy_class": null,
+      "effective_epc_kwhm2_year": null,
+      "effective_year_built": null,
+      "glazing_share_percent": null,
+      "ventilation_type": null,
+      "epc_source_class": "none",
+      "epc_confidence_level": "NONE",
+      "evaluation_target": "land_only",
+      "epc_plausibility": null,
+      "epc_plausibility_note_lt": null
+    }
+  },
+  "block8": {
+    "id": "recommendations",
+    "title_lt": "8) Rekomendacijos ir sprendimai",
+    "status": "not_applicable",
+    "data": {
+      "pattern": "land_only",
+      "pattern_title_lt": "",
+      "scope_prefix": "",
+      "intro_lt": "Rekomendacijos dėl šilumos komforto taikomos tik šildomiems pastatams. Šiam sklypui šilumos komforto vertinimas netaikomas.",
+      "viewing_questions_lt": [],
+      "negotiation_angles_lt": [],
+      "forward_note_lt": "",
+      "caveat_lt": null,
+      "scope_disclaimer_lt": ""
+    }
+  }
 };
 
 // B2-13: carrier-inference variant — same report, Block 2 shows the fallback

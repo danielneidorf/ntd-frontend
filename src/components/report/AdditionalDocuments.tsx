@@ -21,8 +21,14 @@ const PUBLIC_LINKS = [
 const OWNER_LINKS = [
   {
     label: 'Kadastro duomenų byla ir aukštų planai',
+    // Wave-2 A2: „0,58–9,27 €“ was stale. RC prices document-copy preparation
+    // PER PAGE by format (1,45 €/psl. A4 … 2,02 €/psl. A0), so the honest form is a
+    // FLOOR — the old range implied a ceiling that does not exist. Sourced by the
+    // bibliography entry keyed `rc_fee` (VĮ Registrų centras, „…įkainiai: dokumentų
+    // kopijų parengimas, tvirtinimas ir pateikimas“), which the backend emits on
+    // every report — this line and that entry are one claim in two places.
     helper:
-      'Savininkai gali užsisakyti detalų aukštų planą, eksplikaciją ir kadastro bylą. Kaina: 0,58–9,27\u00a0€. Pristatoma per 1\u00a0d.\u00a0d.',
+      'Savininkai gali užsisakyti detalų aukštų planą, eksplikaciją ir kadastro bylą. Kaina: nuo 1,45\u00a0€/psl. (dokumento kopija; priklauso nuo formato ir puslapių skaičiaus). Pateikiama per 1\u00a0d.\u00a0d.',
     url: 'https://www.registrucentras.lt/savitarna',
   },
   {
