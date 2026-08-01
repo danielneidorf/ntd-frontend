@@ -16,6 +16,7 @@ import type { ScreenName } from './toolDefinitions';
 import { findContentByTopic, getPagePath } from './contentMap';
 import type { CrossPageDetour } from './contentMap';
 import { analytics } from '../../lib/guideAnalytics';
+import { VOICE_DISCLOSURE_SPOKEN } from '../../lib/disclosure';
 
 const API_BASE = import.meta.env.PUBLIC_API_BASE ?? 'http://127.0.0.1:8100';
 
@@ -138,6 +139,9 @@ export default function AIGuide({
   const [voiceConciergeActive, setVoiceConciergeActive] = useState(false);
   const [userTranscript, setUserTranscript] = useState('');
   const [aiResponseText, setAiResponseText] = useState('');
+  // A4.3 — on-screen carrier for the voice disclosure, for users with audio off.
+  // Independent of the clip: it must render even if the audio never plays.
+  const [voiceDisclosureVisible, setVoiceDisclosureVisible] = useState(false);
   // P7-B9: OpenAI Realtime API WebRTC session
   const realtimeRef = useRef<RealtimeVoice | null>(null);
 
@@ -152,6 +156,13 @@ export default function AIGuide({
 
       const rt = new RealtimeVoice();
       realtimeRef.current = rt;
+
+      // A4.2 — put the Art. 50 disclosure on screen BEFORE connect(), then
+      // release the gate. The model's first turn cannot fire until this has
+      // happened, so the person is informed at the latest at first interaction
+      // rather than racing it.
+      setVoiceDisclosureVisible(true);
+      rt.markDisclosureShown();
 
       let aiResponseAccum = '';
 
@@ -251,6 +262,7 @@ export default function AIGuide({
     setIsSpeaking(false);
     setUserTranscript('');
     setAiResponseText('');
+    setVoiceDisclosureVisible(false);
   }, []);
 
   // Auto-start voice concierge when voice mode activates
@@ -757,6 +769,20 @@ export default function AIGuide({
 
   return (
     <>
+      {/* A4.3 — visual carrier for the voice disclosure. Deliberately NOT
+          conditional on the clip having played: if the audio is blocked by
+          autoplay policy or the asset is missing, this is what still discloses.
+          `role="status"` so assistive tech announces it on session open. */}
+      {voiceDisclosureVisible && (
+        <div
+          role="status"
+          data-testid="di-voice-disclosure"
+          className="fixed bottom-2 left-1/2 z-[60] -translate-x-1/2 rounded-full bg-[#1E3A5F] px-3.5 py-1.5 text-[12px] font-medium text-white shadow-md md:bottom-4"
+        >
+          {VOICE_DISCLOSURE_SPOKEN}
+        </div>
+      )}
+
       <AIGuideToggle
         mode={mode}
         onModeChange={handleModeChange}

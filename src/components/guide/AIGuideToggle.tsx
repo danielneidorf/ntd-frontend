@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import type { GuideMode, ChatMessage } from './types';
 import RiveAvatar from './RiveAvatar';
 import ChatInputCard from './ChatInputCard';
+import { AVATAR_BADGE_LABEL, GUIDE_CARD_TITLE, GUIDE_DISCLOSURE_SENTENCE } from '../../lib/disclosure';
 
 export default function AIGuideToggle({
   mode,
@@ -116,8 +117,16 @@ export default function AIGuideToggle({
         >
           {/* P7-B10: unified guide selection card with voice toggle */}
           <div className="bg-white rounded-xl shadow-xl p-5">
-            <p className="text-sm font-semibold text-[#1E3A5F] mb-3">
-              Naršyti su gido pagalba
+            {/* A0 — the disclosure sits in the first line of the reading order,
+                at the moment the user decides whether to press „Pradėti". */}
+            <p className="text-sm font-semibold text-[#1E3A5F] mb-1">
+              {GUIDE_CARD_TITLE}
+            </p>
+
+            {/* A2 — the gloss that licenses „DI" above. Both appear on this one
+                surface, before a mode is chosen. See disclosure.ts before moving. */}
+            <p className="text-xs text-slate-500 leading-relaxed mb-3">
+              {GUIDE_DISCLOSURE_SENTENCE}
             </p>
 
             {/* Segmented toggle: Be balso / Su balsu */}
@@ -194,6 +203,19 @@ export default function AIGuideToggle({
           active={active}
           isSpeaking={isSpeaking}
         />
+
+        {/* A1 — persistent disclosure badge. A visible text node rendered at all
+            times, NOT a `title`, a `:hover` rule or a timed fade: sighted touch
+            users have no hover event, so a hover-only label reaches them never.
+            Rendered outside the `open`/`active` conditionals deliberately — it
+            must survive the card being collapsed. `pointer-events-none` keeps the
+            avatar's own click target intact. */}
+        <span
+          data-testid="di-disclosure-badge"
+          className="pointer-events-none absolute -bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#1E3A5F] px-2.5 py-1 text-[11px] font-semibold leading-none text-white shadow-sm"
+        >
+          {AVATAR_BADGE_LABEL}
+        </span>
 
         {active && (
           <button

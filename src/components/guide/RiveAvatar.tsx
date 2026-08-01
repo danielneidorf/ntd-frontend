@@ -1,6 +1,7 @@
 // P7-B1.1: Rive avatar — "Robocat" with global cursor-following head tracking
 import { useCallback, useEffect, useRef } from 'react';
 import { useRive, useStateMachineInput } from '@rive-app/react-canvas';
+import { AVATAR_BADGE_LABEL } from '../../lib/disclosure';
 
 const STATE_MACHINE = 'State Machine';
 const ARTBOARD = 'Catbot';
@@ -81,8 +82,11 @@ export default function RiveAvatar({
       onMouseEnter={handleHover}
       onMouseLeave={handleHoverEnd}
       className="cursor-pointer"
-      title="AI asistentas"
-      aria-label="AI asistentas"
+      // A1: the native `title` tooltip is gone — it was hover-only, so it
+      // reached sighted touch users never. The visible badge in AIGuideToggle
+      // replaces it. `aria-label` STAYS: screen-reader users already received
+      // the disclosure and that must not regress.
+      aria-label={AVATAR_BADGE_LABEL}
     >
       <div className="w-[96px] h-[96px] md:w-[128px] md:h-[128px] overflow-hidden rounded-full">
         <RiveComponent className="w-[96px] h-[96px] md:w-[128px] md:h-[128px]" />

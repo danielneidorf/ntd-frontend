@@ -40,12 +40,40 @@ export class RealtimeVoice {
   /** Resolves when the data channel is open and ready for sendTextPrompt(). */
   private _readyResolve: (() => void) | null = null;
   private _readyPromise: Promise<void>;
+  /** A4.2 — resolves once the Art. 50 disclosure is on screen. Every path that
+   *  can trigger the model's first turn awaits this. */
+  private _disclosureResolve: (() => void) | null = null;
+  private _disclosurePromise: Promise<void>;
 
   constructor() {
     // Create an in-memory audio element for WebRTC playback — no JSX ref needed.
     this.audioEl = document.createElement('audio');
     this.audioEl.autoplay = true;
     this._readyPromise = new Promise((resolve) => { this._readyResolve = resolve; });
+    this._disclosurePromise = new Promise((resolve) => { this._disclosureResolve = resolve; });
+  }
+
+  /** A4.2 — declare that the Art. 50 disclosure is on screen, releasing the
+   *  model's first turn. Call as soon as the on-screen line renders, before
+   *  connect() has a chance to produce a turn.
+   *
+   *  Why a gate at all, when the line renders immediately? Because Art. 50(1)
+   *  wants the person informed *at the latest at first interaction*, and this is
+   *  what makes that an ordering guarantee rather than a race. There is no
+   *  automatic first turn — the model speaks only on `response.create` — so
+   *  gating every sender is sufficient, and it is done HERE rather than in the
+   *  caller because a user who types the moment the card opens would otherwise
+   *  reach the model through sendTextPrompt() first.
+   *
+   *  A4.1 history: this originally awaited a pre-rendered spoken clip, and the
+   *  gate existed to stop the model talking over it. The clip was deferred to
+   *  backlog on 2026-07-31 — reaching voice already passes three always-visible
+   *  disclosures, and the session then carries this line plus live subtitles. It
+   *  reopens only if voice activation ever gains a path that bypasses the avatar
+   *  surface. See `docs/deferred_backlog.md` in bustodnr. */
+  markDisclosureShown(): void {
+    this._disclosureResolve?.();
+    this._disclosureResolve = null;
   }
 
   /**
@@ -256,6 +284,10 @@ export class RealtimeVoice {
       this.micStream = null;
     }
     this.audioEl.srcObject = null;
+    // Release the gate on teardown so nothing is left awaiting a promise that
+    // can no longer resolve — e.g. a queued narration when the user aborts
+    // before the disclosure rendered.
+    this.markDisclosureShown();
     if (this._connected) {
       analytics.track('voice_disconnect', { duration_ms: this._connectedAt ? Date.now() - this._connectedAt : undefined });
     }
@@ -288,7 +320,9 @@ export class RealtimeVoice {
    *  Sends two data channel events: `conversation.item.create` (adds a text
    *  message to the conversation) + `response.create` (tells the model to
    *  generate and speak a response). */
-  sendTextPrompt(text: string): void {
+  async sendTextPrompt(text: string): Promise<void> {
+    // A4.2 — never let the model's first turn land on top of the disclosure.
+    await this._disclosurePromise;
     if (!this.dc || this.dc.readyState !== 'open') {
       console.warn('[RealtimeVoice] sendTextPrompt — data channel not open');
       return;
@@ -309,7 +343,10 @@ export class RealtimeVoice {
    *
    *  Uses per-response instructions to override the session-level prompt
    *  for this turn only — the model reads the text and stays silent after. */
-  sendNarration(text: string): void {
+  async sendNarration(text: string): Promise<void> {
+    // A4.2 — in tour voice mode this is the first turn, fired by the narration
+    // effect the moment the session connects. It must queue behind the clip.
+    await this._disclosurePromise;
     if (!this.dc || this.dc.readyState !== 'open') {
       console.warn('[RealtimeVoice] sendNarration — data channel not open');
       return;

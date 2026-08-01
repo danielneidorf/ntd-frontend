@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import type { ChatMessage } from './types';
 import { sttService, transcribeAudio } from '../../lib/sttService';
 import { analytics } from '../../lib/guideAnalytics';
+import { CHAT_DISCLOSURE_LINE } from '../../lib/disclosure';
 
 const MAX_EXPANDED = '400px';
 
@@ -239,6 +240,16 @@ export default function ChatInputCard({
           </>
         )}
       </div>
+
+      {/* A3 — the chat box is a separate entry point: it can be typed into
+          without ever opening the guide card or hovering the avatar, so it
+          discloses on its own. Rendered in every state, voice included. */}
+      <p
+        data-testid="di-chat-disclosure"
+        className="px-4 pb-2.5 -mt-1 text-[11px] leading-snug text-slate-400"
+      >
+        {CHAT_DISCLOSURE_LINE}
+      </p>
 
       {/* Triangle pointer */}
       {showTriangle && triangleDirection === 'right' && (
