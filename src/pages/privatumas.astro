@@ -66,17 +66,22 @@ import Footer from '../components/Footer.astro';
               the Commission's SCCs — Anthropic's DPA incorporates Module Two/Three and does not
               mention the Data Privacy Framework; OpenAI relies on SCCs under Art. 46(2)(c). If
               either vendor moves to DPF certification, this paragraph changes.
-           4. RETENTION SILENCE ↔ the Anthropic covered-models check. This section deliberately
-              states NO retention period, and that omission is PROVISIONAL, not a decision.
-              OpenAI's side is already verifiable (30 days abuse-monitoring on /v1/realtime, 1 hour
-              audio state). Anthropic's API does not retain conversation content by default EXCEPT
-              for „Covered Models", which carry mandatory ~30-day retention — and whether
-              claude-haiku-4-5 is in that class was not confirmed. When it is, symmetric retention
-              sentences go into both function paragraphs below and this line comes out. -->
+           4. The retention sentences ↔ both vendors' retention policies. Verified 2026-08-01:
+              claude-haiku-4-5 is NOT a covered model — Anthropic's covered-models policy is
+              list-based and applies to Mythos-class models only, so standard API traffic runs
+              under the general commercial policy
+              (support.claude.com/en/articles/15425695-covered-models ·
+              platform.claude.com/docs/en/manage-claude/api-and-data-retention). The stated 30 days
+              is that policy's automatic-deletion CEILING, deliberately conservative: non-covered
+              content is not retained by default, but that stronger claim depends on account
+              configuration nobody has inspected, so the ceiling is what ships — do not revise it
+              upward. OpenAI: 30 days abuse-monitoring, 1 hour audio state, per its API data docs.
+              RE-VERIFY if either vendor's retention page changes, or if NTD's account gains a
+              zero-data-retention arrangement (which would make both sentences understate). -->
       <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">5. DI gido ir pokalbio funkcijos duomenų tvarkymas</h2>
       <p class="mb-3 text-[15px] leading-relaxed text-[#333]">Svetainėje veikiantis DI gidas ir pokalbio funkcija yra pagalbinė priemonė, padedanti naršyti Ataskaitą. Naudojantis šiomis funkcijomis tvarkomi šie duomenys:</p>
-      <p class="mb-3 text-[15px] leading-relaxed text-[#333]"><strong>Pokalbio (teksto) funkcija.</strong> Jūsų įvesti klausimai ir su Ataskaita susijęs turinio kontekstas (objekto charakteristikos, reikalingos atsakymui parengti) perduodami duomenų tvarkytojui <strong>Anthropic PBC</strong> (JAV), kurio dirbtinio intelekto modelis parengia atsakymą. Pokalbio turinys naudojamas tik atsakymui parengti ir nėra naudojamas dirbtinio intelekto modeliams mokyti.</p>
-      <p class="mb-3 text-[15px] leading-relaxed text-[#333]"><strong>Balso funkcija.</strong> Pasirinkus balso režimą, jūsų balso įrašas realiuoju laiku perduodamas duomenų tvarkytojui <strong>OpenAI, LLC</strong> (JAV), kurio sistema atpažįsta kalbą ir parengia balso atsakymą. Balso srautas apdorojamas realiuoju laiku.</p>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]"><strong>Pokalbio (teksto) funkcija.</strong> Jūsų įvesti klausimai ir su Ataskaita susijęs turinio kontekstas (objekto charakteristikos, reikalingos atsakymui parengti) perduodami duomenų tvarkytojui <strong>Anthropic PBC</strong> (JAV), kurio dirbtinio intelekto modelis parengia atsakymą. Pokalbio turinys naudojamas tik atsakymui parengti ir nėra naudojamas dirbtinio intelekto modeliams mokyti. Pokalbio turinys Anthropic sistemose saugomas ne ilgiau kaip 30 dienų ir po to automatiškai ištrinamas.</p>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]"><strong>Balso funkcija.</strong> Pasirinkus balso režimą, jūsų balso įrašas realiuoju laiku perduodamas duomenų tvarkytojui <strong>OpenAI, LLC</strong> (JAV), kurio sistema atpažįsta kalbą ir parengia balso atsakymą. Balso srautas apdorojamas realiuoju laiku. Balso duomenys OpenAI sistemose saugumo stebėsenos tikslais saugomi ne ilgiau kaip 30 dienų ir po to automatiškai ištrinami.</p>
       <p class="mb-3 text-[15px] leading-relaxed text-[#333]"><strong>Duomenų perdavimas už EEE ribų.</strong> Abu tvarkytojai yra Jungtinėse Amerikos Valstijose. Duomenys perduodami vadovaujantis BDAR 46 straipsnio 2 dalies c punktu — pagal Europos Komisijos patvirtintas standartines sutarčių sąlygas (SCC), įtvirtintas su tvarkytojais sudarytose duomenų tvarkymo sutartyse.</p>
       <p class="mb-3 text-[15px] leading-relaxed text-[#333]"><strong>Jūsų pasirinkimas.</strong> DI gido ir pokalbio funkcijų naudojimas nėra privalomas — Ataskaita visa apimtimi prieinama jų nenaudojant.</p>
 
