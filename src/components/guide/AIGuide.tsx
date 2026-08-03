@@ -224,6 +224,11 @@ export default function AIGuide({
           },
         },
         propertyContext,
+        // P7-VOICE-FIX: the whole tour is composed before the session opens, so
+        // every narration string is known now. Sending them here gets them
+        // expanded for speech in the call that already happens, instead of a
+        // round trip per utterance inside the speech path.
+        tourSteps.map((s) => s.narration).filter(Boolean),
       );
 
       // P7-B8.1: send initial session.update with tools + screen instructions.

@@ -44,6 +44,8 @@ export class RealtimeVoice {
    *  can trigger the model's first turn awaits this. */
   private _disclosureResolve: (() => void) | null = null;
   private _disclosurePromise: Promise<void>;
+  /** raw narration → backend-expanded form. Empty means speak raw. */
+  private _prepared = new Map<string, string>();
 
   constructor() {
     // Create an in-memory audio element for WebRTC playback — no JSX ref needed.
@@ -91,6 +93,7 @@ export class RealtimeVoice {
   async connect(
     callbacks: RealtimeCallbacks,
     propertyContext?: string,
+    narrations: string[] = [],
   ): Promise<void> {
     this.callbacks = callbacks;
     this.callbacks.onStateChange?.('connecting');
@@ -100,7 +103,14 @@ export class RealtimeVoice {
       const tokenRes = await fetch(`${API_BASE}/v1/ai-guide/voice-session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ property_context: propertyContext ?? null }),
+        // P7-VOICE-FIX: the tour's narration strings ride along so the backend
+        // can expand Lithuanian abbreviations („g." → „gatvė") before the model
+        // speaks them. Batched onto a call that already happens, so nothing is
+        // added to the speech path itself.
+        body: JSON.stringify({
+          property_context: propertyContext ?? null,
+          narrations,
+        }),
       });
 
       if (!tokenRes.ok) {
@@ -108,8 +118,17 @@ export class RealtimeVoice {
         throw new Error(`Token request failed: ${tokenRes.status} ${detail}`);
       }
 
-      const { client_secret, model } = await tokenRes.json();
+      const { client_secret, model, prepared_narrations } = await tokenRes.json();
       console.log('[RealtimeVoice] ephemeral token obtained, model:', model);
+      // FAIL-OPEN, deliberately: if the backend returned nothing usable, the map
+      // stays empty and every narration is spoken raw. Less well pronounced is a
+      // far better failure than silence.
+      if (Array.isArray(prepared_narrations)
+          && prepared_narrations.length === narrations.length) {
+        narrations.forEach((raw, i) => this._prepared.set(raw, prepared_narrations[i]));
+      } else if (prepared_narrations !== undefined) {
+        console.warn('[RealtimeVoice] prepared narrations unusable — speaking raw');
+      }
 
       // 2. Create WebRTC peer connection
       this.pc = new RTCPeerConnection();
@@ -156,8 +175,20 @@ export class RealtimeVoice {
       const offer = await this.pc.createOffer();
       await this.pc.setLocalDescription(offer);
 
+      // GA SDP exchange. The beta shape — `/v1/realtime?model=…`, model in the
+      // query string — was disabled by OpenAI and returns 400
+      // `beta_api_shape_disabled`. Under GA the model comes from the session the
+      // ephemeral key was minted against, so it is NOT sent here.
+      //
+      // Verified 2026-08-03 with a real audio offer against all three candidates:
+      //   /v1/realtime?model=…  -> 400 beta_api_shape_disabled
+      //   /v1/realtime          -> 400 beta_api_shape_disabled
+      //   /v1/realtime/calls    -> 201 + SDP answer  ✓
+      // Note the middle one: OpenAI's own error text says "Please use /v1/realtime
+      // for the GA API", and that advice is wrong — it fails identically. Trust
+      // the probe, not the message.
       const sdpRes = await fetch(
-        `https://api.openai.com/v1/realtime?model=${encodeURIComponent(model)}`,
+        'https://api.openai.com/v1/realtime/calls',
         {
           method: 'POST',
           headers: {
@@ -356,7 +387,9 @@ export class RealtimeVoice {
       item: {
         type: 'message',
         role: 'user',
-        content: [{ type: 'input_text', text: `[NARACIJA]\n${text}` }],
+        // Speak the backend-expanded form when we have it („Žirmūnų g. 12-5" →
+        // „Žirmūnų gatvė dvylika penki"); fall back to raw, never to silence.
+        content: [{ type: 'input_text', text: `[NARACIJA]\n${this._prepared.get(text) ?? text}` }],
       },
     }));
     this.dc.send(JSON.stringify({

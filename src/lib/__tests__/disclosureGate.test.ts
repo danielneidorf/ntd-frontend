@@ -11,6 +11,8 @@
 // (This gate originally waited on a spoken clip; the clip was deferred to
 // backlog 2026-07-31 and the gate was repointed at the on-screen line. The
 // ordering guarantee is what survived, and it is what these tests pin.)
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 
 import { RealtimeVoice } from '../realtimeVoice';
@@ -77,5 +79,42 @@ describe('A4.2 — first-turn gate', () => {
     // disconnect() nulls the channel, so nothing is sent — the point is that the
     // await returns at all rather than hanging forever.
     expect(sentTypes(ch)).toEqual([]);
+  });
+});
+
+// ─── Realtime GA endpoints (2026-08-03) ─────────────────────────────────────
+//
+// Source-level guards, and the limitation is stated rather than hidden: these
+// assert what our code CALLS, not that the vendor still answers it. Only
+// `scripts/smoke_voice_session.py` (bustodnr) crosses that boundary. This pair
+// exists because both halves of the voice handshake were silently retired by
+// OpenAI on the same day, and a mocked suite cannot see that.
+describe('Realtime GA endpoints', () => {
+  const src = readFileSync(
+    join(process.cwd(), 'src/lib/realtimeVoice.ts'),
+    'utf8',
+  );
+  // Strip comments — the beta URLs are quoted there deliberately, as the record
+  // of what was probed, and must not trip the guard.
+  const code = src
+    .split('\n')
+    .filter((l) => !l.trim().startsWith('//') && !l.trim().startsWith('*'))
+    .join('\n');
+
+  it('exchanges SDP against the GA calls endpoint', () => {
+    expect(code).toContain('https://api.openai.com/v1/realtime/calls');
+  });
+
+  it('does not send the model in the SDP URL (the disabled beta shape)', () => {
+    // `/v1/realtime?model=…` returns 400 beta_api_shape_disabled. Under GA the
+    // model comes from the session the ephemeral key was minted against.
+    expect(code).not.toMatch(/v1\/realtime\?model=/);
+  });
+
+  it('mints the token through our own backend, never OpenAI directly', () => {
+    // The ephemeral key must be minted server-side; a browser holding the real
+    // API key would be a credential leak, not just an architecture slip.
+    expect(code).toContain('/v1/ai-guide/voice-session');
+    expect(code).not.toMatch(/api\.openai\.com\/v1\/realtime\/client_secrets/);
   });
 });
