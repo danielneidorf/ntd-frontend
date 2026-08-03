@@ -7,14 +7,12 @@ import Footer from '../components/Footer.astro';
   <Header />
   <main class="max-w-3xl mx-auto px-4 md:px-6 py-12">
     <h1 class="text-[36px] font-semibold text-[#1E3A5F] mb-2">Privatumo politika</h1>
-    <!-- TODO: Fill after MB registration -->
-    <p class="text-sm text-slate-500 mb-10">Galioja nuo: 2026 m. [month] [day] d.</p>
+    <p class="text-sm text-slate-500 mb-10">Galioja nuo: 2026 m. rugpjūčio 1 d.</p>
 
     <section class="prose prose-slate max-w-none">
 
       <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">1. Duomenų valdytojas</h2>
-      <!-- TODO: Fill after MB registration -->
-      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">Jūsų asmens duomenų valdytojas yra [NTD įmonės pavadinimas], juridinio asmens kodas [kodas], adresas [adresas], el. paštas — nurodytas svetainėje ntd.lt (toliau — NTD arba Mes).</p>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">Jūsų asmens duomenų valdytojas yra Mažoji bendrija NTD, juridinio asmens kodas 307659223, adresas Saulėtekio al. 15-1, LT-10224 Vilnius, el. paštas ntd@ntd.lt (toliau — NTD arba Mes).</p>
 
       <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">2. Kokie duomenys renkami</h2>
       <p class="mb-3 text-[15px] leading-relaxed text-[#333]">Naudojantis Platforma, renkami šie duomenys:</p>
@@ -23,7 +21,7 @@ import Footer from '../components/Footer.astro';
         <li><strong>Turto adresas ir/arba NTR numeris</strong> — ataskaitos generavimui. Tai nėra Jūsų asmeniniai duomenys, o analizuojamo turto identifikatoriai.</li>
         <li><strong>Mokėjimo duomenys</strong> — apdorojami mokėjimų paslaugų teikėjo ir NTD jų nemato bei nesaugo.</li>
         <li><strong>IP adresas ir naršyklės tipas</strong> — techniniams tikslams ir platformos saugumui.</li>
-        <li><strong>Balso duomenys</strong> — jei naudojatės balso gidu, garso duomenys apdorojami realiu laiku trečiosios šalies paslaugų teikėjo serveriuose ir nėra saugomi NTD serveriuose.</li>
+        <li><strong>DI gido ir pokalbio funkcijos duomenys</strong> — jei naudojatės pokalbio funkcija, tvarkomi Jūsų įvesti klausimai ir su Ataskaita susijęs turinio kontekstas; jei naudojatės balso režimu — Jūsų balso įrašas. Šie duomenys apdorojami duomenų tvarkytojų serveriuose ir nėra saugomi NTD serveriuose. Išsamiau — 5 skyriuje.</li>
       </ul>
 
       <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">3. Duomenų tvarkymo tikslai ir pagrindas</h2>
@@ -50,13 +48,39 @@ import Footer from '../components/Footer.astro';
       <ul class="list-disc pl-6 space-y-2 mb-3 text-[15px] leading-relaxed text-[#333]">
         <li><strong>Mokėjimų paslaugų teikėjas</strong> — mokėjimų apdorojimui.</li>
         <li><strong>VĮ Registrų centras</strong> — turto duomenų užklausoms (Lietuva).</li>
-        <li><strong>Balso atpažinimo paslaugų teikėjas</strong> — balso gido veikimui, jei jį naudojate. Garso duomenys apdorojami realiu laiku ir neišsaugomi.</li>
+        <li><strong>Anthropic PBC</strong> (JAV) ir <strong>OpenAI, LLC</strong> (JAV) — DI gido ir pokalbio funkcijos veikimui, jei jomis naudojatės. Išsamiau — 5 skyriuje.</li>
         <li><strong>Žemėlapių paslaugų teikėjas</strong> — žemėlapių atvaizdavimui.</li>
       </ul>
       <p class="mb-3 text-[15px] leading-relaxed text-[#333]">Duomenų perdavimas trečiosioms šalims, esančioms už EEE ribų, vykdomas pagal ES standartines sutarčių sąlygas arba kitas BDAR numatytas apsaugos priemones.</p>
       <p class="mb-3 text-[15px] leading-relaxed text-[#333]">Jūsų duomenys nėra parduodami trečiosioms šalims.</p>
 
-      <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">5. Duomenų saugojimo terminai</h2>
+      <!-- COUPLED CLAIMS — this section rests on four external facts. Each changes IN THE SAME
+           COMMIT as the fact it describes; none of them fails loudly if it goes stale.
+           1. Processor names ↔ the shipped vendor wiring in bustodnr `ai_guide.py`. Swap the chat
+              model or the voice provider and these names are wrong the same day.
+           2. The no-training sentence ↔ vendor API terms. Verified 2026-08-01: Anthropic
+              Commercial Terms §B („Anthropic may not train models on Customer Content from
+              Services") and OpenAI's API data docs („data sent to the OpenAI API is not used to
+              train or improve OpenAI models").
+           3. The transfer mechanism ↔ what the DPAs actually say. Verified 2026-08-01: BOTH rest on
+              the Commission's SCCs — Anthropic's DPA incorporates Module Two/Three and does not
+              mention the Data Privacy Framework; OpenAI relies on SCCs under Art. 46(2)(c). If
+              either vendor moves to DPF certification, this paragraph changes.
+           4. RETENTION SILENCE ↔ the Anthropic covered-models check. This section deliberately
+              states NO retention period, and that omission is PROVISIONAL, not a decision.
+              OpenAI's side is already verifiable (30 days abuse-monitoring on /v1/realtime, 1 hour
+              audio state). Anthropic's API does not retain conversation content by default EXCEPT
+              for „Covered Models", which carry mandatory ~30-day retention — and whether
+              claude-haiku-4-5 is in that class was not confirmed. When it is, symmetric retention
+              sentences go into both function paragraphs below and this line comes out. -->
+      <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">5. DI gido ir pokalbio funkcijos duomenų tvarkymas</h2>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">Svetainėje veikiantis DI gidas ir pokalbio funkcija yra pagalbinė priemonė, padedanti naršyti Ataskaitą. Naudojantis šiomis funkcijomis tvarkomi šie duomenys:</p>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]"><strong>Pokalbio (teksto) funkcija.</strong> Jūsų įvesti klausimai ir su Ataskaita susijęs turinio kontekstas (objekto charakteristikos, reikalingos atsakymui parengti) perduodami duomenų tvarkytojui <strong>Anthropic PBC</strong> (JAV), kurio dirbtinio intelekto modelis parengia atsakymą. Pokalbio turinys naudojamas tik atsakymui parengti ir nėra naudojamas dirbtinio intelekto modeliams mokyti.</p>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]"><strong>Balso funkcija.</strong> Pasirinkus balso režimą, jūsų balso įrašas realiuoju laiku perduodamas duomenų tvarkytojui <strong>OpenAI, LLC</strong> (JAV), kurio sistema atpažįsta kalbą ir parengia balso atsakymą. Balso srautas apdorojamas realiuoju laiku.</p>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]"><strong>Duomenų perdavimas už EEE ribų.</strong> Abu tvarkytojai yra Jungtinėse Amerikos Valstijose. Duomenys perduodami vadovaujantis BDAR 46 straipsnio 2 dalies c punktu — pagal Europos Komisijos patvirtintas standartines sutarčių sąlygas (SCC), įtvirtintas su tvarkytojais sudarytose duomenų tvarkymo sutartyse.</p>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]"><strong>Jūsų pasirinkimas.</strong> DI gido ir pokalbio funkcijų naudojimas nėra privalomas — Ataskaita visa apimtimi prieinama jų nenaudojant.</p>
+
+      <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">6. Duomenų saugojimo terminai</h2>
       <ul class="list-disc pl-6 space-y-2 mb-3 text-[15px] leading-relaxed text-[#333]">
         <li><strong>Ataskaitos duomenys</strong> — saugomi 2 metus nuo sugeneravimo datos. Po to ištrinami.</li>
         <li><strong>El. pašto adresas</strong> — saugomas tiek, kiek reikia ataskaitos pristatymui ir galimam pakartotiniam siuntimui. Ištrinamas per 30 dienų nuo prašymo.</li>
@@ -64,7 +88,7 @@ import Footer from '../components/Footer.astro';
         <li><strong>Techniniai žurnalai (logs)</strong> — saugomi tiek, kiek reikalinga platformos saugumui ir veikimui užtikrinti.</li>
       </ul>
 
-      <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">6. Jūsų teisės</h2>
+      <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">7. Jūsų teisės</h2>
       <p class="mb-3 text-[15px] leading-relaxed text-[#333]">Pagal BDAR Jūs turite teisę:</p>
       <ul class="list-disc pl-6 space-y-2 mb-3 text-[15px] leading-relaxed text-[#333]">
         <li><strong>Žinoti</strong> (gauti informaciją apie duomenų tvarkymą);</li>
@@ -76,16 +100,16 @@ import Footer from '../components/Footer.astro';
         <li><strong>Nesutikti</strong> su duomenų tvarkymu;</li>
         <li><strong>Pateikti skundą</strong> Valstybinei duomenų apsaugos inspekcijai (L. Sapiegos g. 17, Vilnius, ada.lt).</li>
       </ul>
-      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">Kreipkitės dėl bet kurios teisės el. paštu, nurodytu svetainėje ntd.lt. Atsakome per 30 kalendorinių dienų.</p>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">Kreipkitės dėl bet kurios teisės el. paštu ntd@ntd.lt. Atsakome per 30 kalendorinių dienų.</p>
 
-      <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">7. Slapukai</h2>
+      <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">8. Slapukai</h2>
       <p class="mb-3 text-[15px] leading-relaxed text-[#333]">Platforma naudoja tik būtinuosius slapukus (session cookies), reikalingus užsakymo procesui. Analitikos slapukai naudojami tik su Jūsų sutikimu.</p>
 
-      <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">8. Pakeitimai</h2>
+      <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">9. Pakeitimai</h2>
       <p class="mb-3 text-[15px] leading-relaxed text-[#333]">NTD pasilieka teisę keisti šią Privatumo politiką. Pakeitimai skelbiami Platformoje.</p>
 
-      <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">9. Kontaktai</h2>
-      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">El. paštas: nurodytas svetainėje ntd.lt<br>Svetainė: ntd.lt</p>
+      <h2 class="text-[22px] font-semibold text-[#1E3A5F] mt-8 mb-4">10. Kontaktai</h2>
+      <p class="mb-3 text-[15px] leading-relaxed text-[#333]">El. paštas: ntd@ntd.lt<br>Svetainė: ntd.lt</p>
 
     </section>
   </main>
