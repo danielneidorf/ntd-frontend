@@ -173,6 +173,20 @@ export interface ReportData {
   permits?: unknown[];
   block2?: Block2Data;
   block8?: Block8Data;
+  // The free rebuild we owe when the certificate register was unreachable.
+  // BACKEND-DECIDED, computed when the report is read (not when it was built):
+  // whether there is recourse, what it says, and whether it is still an offer
+  // or has already become a rebuilt report. The page renders it or renders
+  // nothing — it never inspects a failure reason itself.
+  recourse?: {
+    kind: string;
+    state: 'offer' | 'rebuilt';
+    sentence_lt: string;
+    action_label_lt: string;
+    mint_path?: string;
+    report_url?: string;
+    printed_lt?: string;
+  } | null;
   block1: {
     applicable: boolean;
     neutral_message_lt?: string | null;
@@ -182,6 +196,9 @@ export interface ReportData {
       // axis; the web must not fall back to 'C'/medium).
       level: 'GOOD' | 'INTERMEDIATE' | 'WEAK' | 'NOT_ASSESSED';
       not_assessed_reason?: string | null;
+      // The sentence itself, served. Defaulted: a stored report built before
+      // this field existed simply omits it and the local map still answers.
+      not_assessed_message_lt?: string | null;
       // Phase 2: when the band is an era→class ESTIMATE (no certificate), the
       // backend sets this so the UI shows an honest "estimate + basis" caption.
       provenance_label_key?: string | null;

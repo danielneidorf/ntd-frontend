@@ -114,12 +114,70 @@ function PropertyIdentity({ data }: { data: ReportData }) {
 
 // ─── EPC-style comfort bars (winter/summer) ──────────────────────
 
+// The free rebuild, when the backend says there is one. Two states and only
+// two: an offer (a button that mints the invitation and walks the customer
+// back into the journey) or a report that has already been rebuilt (a link to
+// it). The page never decides which — it renders what it is handed, or nothing.
+function WinterRecourse({ recourse }: { recourse: NonNullable<ReportData['recourse']> }) {
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  if (recourse.state === 'rebuilt' && recourse.report_url) {
+    return (
+      <p className="text-sm text-slate-600 leading-relaxed mt-3" data-winter-recourse="rebuilt">
+        {recourse.sentence_lt}{' '}
+        <a href={recourse.report_url} className="text-[#0D7377] underline font-medium">
+          {recourse.action_label_lt}
+        </a>
+      </p>
+    );
+  }
+
+  if (!recourse.mint_path) return null;
+
+  const order = async () => {
+    setBusy(true);
+    setFailed(false);
+    try {
+      const response = await fetch(`${API_BASE}${recourse.mint_path}`, { method: 'POST' });
+      const json = await response.json();
+      const next = json?.data?.invite_url ?? json?.data?.report_url;
+      if (!next) throw new Error('no destination');
+      window.location.href = next;
+    } catch {
+      setBusy(false);
+      setFailed(true);
+    }
+  };
+
+  return (
+    <div className="mt-3" data-winter-recourse="offer">
+      <p className="text-sm text-slate-600 leading-relaxed">{recourse.sentence_lt}</p>
+      <button
+        onClick={order}
+        disabled={busy}
+        className="mt-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors disabled:opacity-60"
+        style={{ backgroundColor: '#0D7377' }}
+      >
+        {busy ? 'Ruošiama...' : recourse.action_label_lt}
+      </button>
+      {failed && (
+        <p className="text-xs text-[#DC3545] mt-2">
+          Nepavyko. Bandykite dar kartą arba parašykite ntd@ntd.lt.
+        </p>
+      )}
+    </div>
+  );
+}
+
 function WinterSummerBars({
   winter,
   summer,
+  recourse,
 }: {
   winter: NonNullable<ReportData['block1']['winter']>;
   summer: NonNullable<ReportData['block1']['summer']>;
+  recourse?: ReportData['recourse'];
 }) {
   const winterActive = mapWinterLevel(winter.level);
   const winterNotAssessed = winterActive === WINTER_NOT_ASSESSED;
@@ -139,8 +197,13 @@ function WinterSummerBars({
               <span className="text-white text-sm font-semibold">Neįvertinta</span>
             </div>
             <p className="text-sm text-slate-600 leading-relaxed mt-3">
-              {winterNotAssessedMessage(winter.not_assessed_reason)}
+              {/* Served by the backend when it has the sentence, so the web
+                  report and the PDF cannot drift apart. Defaulted: a report
+                  stored before the field existed still renders. */}
+              {winter.not_assessed_message_lt
+                ?? winterNotAssessedMessage(winter.not_assessed_reason)}
             </p>
+            {recourse && <WinterRecourse recourse={recourse} />}
           </div>
         ) : (
           <div>
@@ -559,7 +622,11 @@ export default function ReportViewer() {
                   žiemą ir kokia yra perkaitimo rizika vasarą.
                 </p>
                 {block1.winter && block1.summer && (
-                  <WinterSummerBars winter={block1.winter} summer={block1.summer} />
+                  <WinterSummerBars
+                    winter={block1.winter}
+                    summer={block1.summer}
+                    recourse={data.recourse}
+                  />
                 )}
                 {/* Driver merge: winter-comfort factors under the winter bar
                     (Option A, two-way). Summer tags stay in their own section
