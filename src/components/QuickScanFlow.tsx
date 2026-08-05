@@ -93,6 +93,10 @@ export interface QuickScanState {
   geo: { lat: number; lng: number } | null;
   project_website_url: string | null;
   project_doc_id: string | null;
+  // The number printed on a paper certificate. A LOOKUP KEY, not a value:
+  // the figures arrive from the register, so this does not reinstate the
+  // typed-values card Phase 6 removed.
+  certificate_key: string | null;
   resolver_result: ResolveResponse | null;
   selected_candidate_id: string | null;
   // B2-16: one card, three units — kWh/m² → intensity channel,
@@ -230,6 +234,7 @@ const initialState = (): QuickScanState => {
   geo: null,
   project_website_url: null,
   project_doc_id: null,
+  certificate_key: null,
   resolver_result,
   selected_candidate_id: resolver_result ? resolver_result.candidates[0]?.candidate_id ?? null : null,
   user_energy_input: null,
@@ -353,6 +358,12 @@ import {
 } from '../utils/userEnergyInput';
 // NB-CONF FE stitch: evidence keys for /confirm (pure helper, unit-tested)
 import { buildEvidencePayload } from '../utils/evidencePayload';
+import {
+  buildCertificateKeyPayload,
+  formatCertificateKeyAsTyped,
+  isCertificateKeyError,
+  normaliseCertificateKey,
+} from '../utils/certificateKey';
 
 const NTR_REGEX = /^\d{4}-\d{4}-\d{4}(:\d{1,6})?$/;
 
@@ -396,6 +407,11 @@ function Screen1({
 }) {
   const selected = state.case_type;
   const [ntrInput, setNtrInput] = useState('');
+  // The typed certificate identifier keeps a local mirror for the same reason
+  // the NTR field does: the formatter owns the raw text as it is typed.
+  const [certKeyInput, setCertKeyInput] = useState('');
+  const [certKeyTouched, setCertKeyTouched] = useState(false);
+  const [uploadAdvisory, setUploadAdvisory] = useState<string | null>(null);
   const [ntrTouched, setNtrTouched] = useState(false);
   const [ntrExpanded, setNtrExpanded] = useState(false);
   const [addressInput, setAddressInput] = useState('');
@@ -490,6 +506,7 @@ function Screen1({
   }, [mapExpanded]);
 
   const ntrValid = NTR_REGEX.test(ntrInput.trim());
+  const certKeyValid = normaliseCertificateKey(certKeyInput) !== null;
   const addressValid = addressInput.trim().length > 5;
   const geoValid = state.geo !== null;
   const mapPinActive = geoValid && geoSource === 'map';
@@ -1067,6 +1084,10 @@ function Screen1({
                       const json = await r.json();
                       if (json.ok) {
                         setState((s) => ({ ...s, project_doc_id: json.data.project_doc_id }));
+                        // The backend reads the file on upload and tells us
+                        // straight away when it is a scan — so the customer
+                        // learns it here, not in the finished paid report.
+                        setUploadAdvisory(json.data.advisory_lt ?? null);
                       }
                     } catch {
                       // silent fail — doc upload is optional
@@ -1077,6 +1098,52 @@ function Screen1({
               <p className={`text-[14px] mt-2 transition-all duration-200 ${state.case_type === 'new_build_project' ? 'text-[#0D7377] font-medium' : 'text-[#64748B]'}`}>
                 {PDF_HELPERS[state.case_type ?? '']}
               </p>
+              {uploadAdvisory && (
+                <p className="text-[13px] text-[#F59E0B] mt-2" data-upload-advisory>
+                  {uploadAdvisory}
+                </p>
+              )}
+              {/* The typed identifier — the answer to a scanned certificate.
+                  A LOOKUP KEY, not a value: the figures arrive from the
+                  register, so this does not reinstate the typed-values card
+                  Phase 6 removed. Existing buildings only. */}
+              {state.case_type === 'existing_object' && (
+                <div className="mt-4 pt-4 border-t border-[#F1F5F9]">
+                  <label className="block text-[15px] font-medium text-[#1A1A2E] mb-1">
+                    Sertifikato numeris (pasirinktinai)
+                  </label>
+                  <p className="text-[14px] text-[#64748B] mb-2">
+                    Jei sertifikatas nuskenuotas, įveskite jo numerį — duomenis paimsime iš registro.
+                  </p>
+                  <input
+                    type="text"
+                    value={certKeyInput}
+                    onChange={(e) => {
+                      const formatted = formatCertificateKeyAsTyped(e.target.value);
+                      setCertKeyInput(formatted);
+                      setState((s) => ({ ...s, certificate_key: formatted || null }));
+                    }}
+                    onBlur={() => setCertKeyTouched(true)}
+                    placeholder="pvz., AD-0119-03384 arba 1095-8025-2026"
+                    maxLength={21}
+                    aria-label="Sertifikato numeris"
+                    className={[
+                      'w-full px-4 rounded-lg border text-[16px] outline-none transition-all',
+                      certKeyValid
+                        ? 'border-[#059669] bg-white'
+                        : certKeyTouched && certKeyInput
+                        ? 'border-[#DC3545] bg-white'
+                        : 'border-[#E2E8F0] bg-white focus:border-[#0D7377]',
+                    ].join(' ')}
+                    style={{ height: '48px' }}
+                  />
+                  {certKeyTouched && certKeyInput && !certKeyValid && (
+                    <p className="text-[14px] text-[#DC3545] mt-1">
+                      Formatas: AD-0119-03384 arba 1095-8025-2026
+                    </p>
+                  )}
+                </div>
+              )}
           </div>
 
           {/* B2-16 energy card — one card, three units, existing_object only */}
@@ -1623,6 +1690,7 @@ function Screen2({
           // freeze (keys absent when not provided — the wire-format
           // fragment is the tested builder, not a hand-built object).
           ...buildEvidencePayload(state),
+          ...buildCertificateKeyPayload(state),
           discount_token: state.discount_token ?? null,
         }),
       });
@@ -1632,7 +1700,7 @@ function Screen2({
         // keep the user on the proof card with the removal affordance.
         const code: string | undefined = confirmJson?.error_code;
         const message: string | undefined = confirmJson?.message;
-        if (code && message && (code.startsWith('bill_') || code === 'user_inputs_conflict')) {
+        if (code && message && (code.startsWith('bill_') || code === 'user_inputs_conflict' || isCertificateKeyError(code))) {
           setEnergyErrorNotice(message);
           setObjectConfirmed(false);
           return;
