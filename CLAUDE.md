@@ -113,6 +113,33 @@ A claim is worth only its contact with the thing it describes. A convenient mark
 
 **A claim that cannot be traced to the artifact it describes is not made.**
 
+# The connection-test rule (standing, 2026-08-05)
+
+**Origin:** five seam defects in one project — a label emitted under one name and consumed under another (never rendered in six months); a translator speaking a dialect its tables don't recognize; a reason field wired and branched-on but set by nothing; a provider code written into a column another feature reads as identity; a loader returning raw text where the code expects structure. Each side individually correct, individually tested, green for months — because each side's fixtures were written by the hand that wrote its code. **Drift happens at the moment of connection; the test must stand at the connection, at that moment.**
+
+**The rule:** after each piece of code written to a single brief/instruction, and **before the next piece connects**, an isolated end-to-end test runs across the seam that piece creates or touches — the new code talking to the real upstream and downstream, producing the brief's required result.
+
+1. **The test asserts the brief's required OUTPUT, not the absence of a crash.** A run that only proves "nothing exploded" is the vacuous guard in a new coat — the label mismatch never crashed; it rendered the wrong words successfully. The brief names the artifact (this sentence rendered, this value in this field, this row in this table); the test quotes it.
+2. **The test drives the STATE the new code serves — including degraded and conditional states.** Happy-path walks miss corner-state seams (the hybrid cap, the €0-area report). When a brief's code serves a rare state, the connection test builds that state honestly — wire-true, per the standing fixture rule.
+3. **The crossing is REAL:** the real writer, the real reader, the real boundary between (database, HTTP, serialized payload — whatever the seam is). Hand-built intermediate shapes are what made five defects invisible; they don't count as a crossing.
+4. **Green gates the next piece.** No subsequent piece connects until the current seam's test is green. Red means the seam is wrong *now*, while it costs five minutes — not in five months, found by a probe.
+5. **Mutation checks still apply** to the connection test itself (it must be able to fail; the standing determinism and fake-the-component rules govern).
+
+**For brief authors (both lanes):** every brief/instruction gains a mandatory **"Connection test"** section — the path, the state(s), the asserted output(s). A brief without one is incomplete. For multi-commit arcs, each commit names its seam(s); the arc's closing walk remains as the whole-road proof, but it supplements the per-piece tests, never substitutes for them.
+
+# The autonomous-piece rule (standing, 2026-08-05 — the connection-test rule's planning twin)
+
+**Origin:** the five seam defects all lived where a responsibility was split across pieces without its interface being stated anywhere — the label's producer and consumer built from separate briefs with the name written in neither; the loader's write-shape and read-shape specified once each, agreeing by luck until they didn't. Hidden seams are interfaces that exist in the code but nowhere on paper. **The connection test guards the seams we make; this rule minimizes the seams we make at all — and makes the survivors impossible to miss.**
+
+**The rule:** when a feature is planned, it is broken into the smallest pieces that are **maximally autonomous and complete** — cut at the natural joints, never through the middle of a responsibility.
+
+1. **Cut at joints, not through organs.** Each piece owns one whole responsibility. If a brief cannot state its piece's purpose without referring to another piece's *internals*, the cut is wrong — recut before writing another line of the brief.
+2. **The brief declares the full boundary.** Every input the piece consumes and every output it produces, by **exact name and exact shape** — field names, types, enum values, serialization. Anything crossing the boundary undeclared is a defect *of the brief*, not merely of the code. The declared boundary is the seam, on paper, before it exists in code.
+3. **Complete means testable alone.** The piece produces its declared outputs from its declared inputs with nothing half-stubbed inside. "The next brief will finish this" is the forbidden sentence — a half-finished inside is where a seam hides from both briefs. (Dark-first delivery is fine and encouraged: complete machinery, not yet reachable, is autonomous; half machinery, reachable, is not.)
+4. **The loop the two rules form:** cut autonomous → declare the boundary → build the piece → connection-test the *declared* boundary (the brief's declaration IS the test's assertion list) → green → next piece. Nothing exists between briefs that neither brief owns.
+
+**For brief authors (both lanes):** every brief's "Connection test" section is preceded by a **"Boundary"** section — inputs and outputs, exact names, exact shapes. A brief whose boundary can't be written in full is a brief for a piece that was cut wrong.
+
 # RULE — Assertion discipline
 
 Any claim about an artifact not in this working tree — the other repo, NTD docs, remote state, a plan/gate sketch as opposed to shipped code — must carry either an in-hand citation or the explicit tag "unverified — adjudicator: X". A directional verdict without one is a violation regardless of confidence. When two documents contradict, the shipped artifact adjudicates: report the contradiction as a question for whoever holds it, never as a verdict about which side is stale.
