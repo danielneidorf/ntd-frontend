@@ -1446,6 +1446,10 @@ function Screen2({
   const resolver = state.resolver_result;
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email);
   const canPay = objectConfirmed && state.quote && emailValid && state.consent_accepted && !paying;
+  // A recalculation pass takes the total to zero. Nothing else in the product
+  // is free, and the backend refuses a zero total that no pass paid for — so
+  // this is a safe read of "the customer owes nothing".
+  const isFreeOrder = !!state.quote && Number(state.quote.final_price_eur) === 0;
 
   // P7-B8.3: Register Screen 2 form actions for the AI voice concierge.
   useEffect(() => {
@@ -1803,8 +1807,16 @@ function Screen2({
         }
         return;
       }
-      const { client_secret, order_id } = json.data;
+      const { client_secret, order_id, zero_total } = json.data;
       setState(s => ({ ...s, order_id }));
+
+      // A recalculation pass: there is no card step at all. The backend has
+      // already settled the order and started the rebuild, so the only thing
+      // left is to show the customer that it happened.
+      if (zero_total) {
+        setState(s => ({ ...s, order_id, payment_complete: true, step: 'success' as const }));
+        return;
+      }
 
       // Stub mode — skip Stripe, go to success
       if (client_secret.startsWith('pi_stub') || client_secret === 'stub') {
@@ -2354,11 +2366,22 @@ function Screen2({
                         </button>
                       </div>
                     ) : (
-                      /* Initial pay button — opens method selector */
+                      /* Initial pay button. A FREE REBUILD HAS NO PAYMENT METHOD
+                         to choose (2026-08-05): asking someone to pick a bank for
+                         a €0 order would be theatre, so the button orders it
+                         directly. Copy pending the red pen with the road's other
+                         strings. */
+                      isFreeOrder ? (
+                        <button onClick={() => { if (canPay) handlePayment(); }} disabled={!canPay}
+                          className={`w-full py-3 rounded-lg text-[16px] font-semibold transition-all flex items-center justify-center gap-2 ${canPay ? 'bg-[#1E3A5F] text-white hover:bg-[#0D7377] cursor-pointer' : 'bg-[#CBD5E1] text-white cursor-not-allowed'}`}>
+                          {paying ? 'Ruošiama...' : 'Gauti nemokamą perskaičiavimą'}
+                        </button>
+                      ) : (
                       <button onClick={() => { if (canPay) { setShowMethodSelector(true); setTimeout(() => document.querySelector('[data-guide="qs-pay-methods"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100); } }} disabled={!canPay}
                         className={`w-full py-3 rounded-lg text-[16px] font-semibold transition-all flex items-center justify-center gap-2 ${canPay ? 'bg-[#1E3A5F] text-white hover:bg-[#0D7377] cursor-pointer' : 'bg-[#CBD5E1] text-white cursor-not-allowed'}`}>
                         Mokėti ir gauti ataskaitą
                       </button>
+                      )
                     )}
                     <p className="text-[12px] text-[#94A3B8] text-center mt-3">Kortelės duomenys NTD sistemoje nesaugomi.</p>
                   </div>
