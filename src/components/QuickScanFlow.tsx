@@ -99,6 +99,14 @@ export interface QuickScanState {
   certificate_key: string | null;
   resolver_result: ResolveResponse | null;
   selected_candidate_id: string | null;
+  // THE IDENTIFIER /confirm HANDS BACK, echoed at /payment-intent (2026-08-05).
+  // It is what ties the payment to the frozen property choice: the server reads
+  // that row for the property key AND for the inputs the report is built from.
+  // The backend has expected this echo since the freeze-at-confirm rollout; the
+  // browser never sent it, so every card order was stored under the browser's
+  // own candidate id and reached the report builder with nothing frozen to
+  // build from.
+  confirmed_bundle_id: string | null;
   // B2-16: one card, three units — kWh/m² → intensity channel,
   // €/kWh → Channel-2 bill (see utils/userEnergyInput.ts).
   user_energy_input: UserEnergyInput | null;
@@ -237,6 +245,7 @@ const initialState = (): QuickScanState => {
   certificate_key: null,
   resolver_result,
   selected_candidate_id: resolver_result ? resolver_result.candidates[0]?.candidate_id ?? null : null,
+  confirmed_bundle_id: null,
   user_energy_input: null,
   quote,
   email,
@@ -1529,6 +1538,7 @@ function Screen2({
         address_text: null,
         ntr_unique_number: null,
         selected_candidate_id: null,
+        confirmed_bundle_id: null,
       }));
       return JSON.stringify({ success: true });
     });
@@ -1712,7 +1722,11 @@ function Screen2({
         rejected: confirmJson.data.rejected ?? [],
         questions: confirmJson.data.questions ?? [],
       });
-      const { bundle_signature, bundle_id, bundle_size, has_new_build_project } = confirmJson.data;
+      const {
+        bundle_signature, bundle_id, bundle_size, has_new_build_project,
+        // The frozen choice's identifier — carried to /payment-intent below.
+        confirmed_bundle_id,
+      } = confirmJson.data;
       const quoteBody: Record<string, unknown> = { bundle_signature, bundle_id, bundle_size, has_new_build_project };
       if (state.discount_token) quoteBody.promo = state.discount_token;
       const quoteRes = await fetch(`${API_BASE}/v1/quickscan-lite/quote`, {
@@ -1722,7 +1736,12 @@ function Screen2({
       });
       const json = await quoteRes.json();
       if (!json.ok) throw new Error('Quote error');
-      setState(s => ({ ...s, selected_candidate_id: candidate.candidate_id, quote: json.data as QuoteData }));
+      setState(s => ({
+        ...s,
+        selected_candidate_id: candidate.candidate_id,
+        confirmed_bundle_id: confirmed_bundle_id ?? null,
+        quote: json.data as QuoteData,
+      }));
     } catch {
       setQuoteError('Klaida gaunant kainą. Bandykite dar kartą.');
       setObjectConfirmed(false);
@@ -1750,6 +1769,13 @@ function Screen2({
             timestamp: new Date().toISOString(),
           },
           bundle_signature: state.selected_candidate_id ?? state.quote.bundle_id ?? '',
+          // THE ECHO THE SERVER HAS BEEN WAITING FOR (2026-08-05). It ties this
+          // payment to the property choice frozen at /confirm: the server reads
+          // that row for the property's stable key and for the inputs the
+          // report is built from. Without it the order was keyed by the
+          // browser's own candidate id and the report had nothing to build
+          // from — the field above is now only a fallback for a stale tab.
+          confirmed_bundle_id: state.confirmed_bundle_id ?? undefined,
           // P7-F4.1: juridinis (company) buyer fields. Omit when fizinis so backend stores NULL.
           buyer_type: state.invoice_is_company ? 'juridinis' : 'fizinis',
           company_name: state.invoice_is_company ? state.company_name : undefined,
