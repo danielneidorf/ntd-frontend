@@ -1,5 +1,5 @@
 // P7-A1: Interactive report page — ReportViewer shell
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import { DEV_MOCKS, type ReportData } from './report/mockReportData';
 import { InfoSection, INFO_SECTION_BODY } from './report/InfoSection';
 import PropertyProfile from './report/PropertyProfile';
@@ -18,8 +18,6 @@ import ComfortBarComponent, {
   mapWinterLevel,
   mapSummerLevel,
   WINTER_NOT_ASSESSED,
-  winterNotAssessedMessage,
-  winterProvenanceMessage,
 } from './report/ComfortBar';
 
 const API_BASE = import.meta.env.PUBLIC_API_BASE ?? 'http://127.0.0.1:8100';
@@ -187,7 +185,9 @@ function WinterSummerBars({
 }) {
   const winterActive = mapWinterLevel(winter.level);
   const winterNotAssessed = winterActive === WINTER_NOT_ASSESSED;
-  const winterEstimateNote = winterProvenanceMessage(winter.provenance_label_key);
+  // №14 — served. The frontend twin that composed this from a local Lithuanian
+  // map is deleted: one sentence, one origin, both surfaces.
+  const winterEstimateNote = winter.provenance_message_lt;
   const summerActive = mapSummerLevel(summer.risk_level);
   return (
     <div className="bg-slate-50 rounded-xl p-5 md:p-6 mb-6">
@@ -195,7 +195,9 @@ function WinterSummerBars({
         {winterNotAssessed ? (
           // No band — say we couldn't assess, and why. Never an A–E bar / colour.
           <div data-winter-not-assessed>
-            <h3 className="text-lg font-semibold text-[#1E3A5F] mb-3">Žiemos komfortas</h3>
+            {/* №8 — served, and now also the accessible name of the region
+                below (see the assessed branch). */}
+            <h3 className="text-lg font-semibold text-[#1E3A5F] mb-3">{winter.title_lt}</h3>
             <div
               className="rounded-md flex items-center px-3"
               style={{ height: '34px', backgroundColor: '#94A3B8', width: '100%' }}
@@ -203,18 +205,18 @@ function WinterSummerBars({
               <span className="text-white text-sm font-semibold">Neįvertinta</span>
             </div>
             <p className="text-sm text-slate-600 leading-relaxed mt-3">
-              {/* Served by the backend when it has the sentence, so the web
-                  report and the PDF cannot drift apart. Defaulted: a report
-                  stored before the field existed still renders. */}
-              {winter.not_assessed_message_lt
-                ?? winterNotAssessedMessage(winter.not_assessed_reason)}
+              {/* №11–14, served — the frontend map that held a second copy of
+                  these sentences is deleted. `technical_error` is deliberately
+                  not ours: the recalculation road serves that one together with
+                  the recourse it points at, just below. */}
+              {winter.not_assessed_message_lt}
             </p>
             {recourse && <WinterRecourse recourse={recourse} />}
           </div>
         ) : (
           <div>
             <ComfortBarComponent
-              title="Žiemos komfortas"
+              title={winter.title_lt}
               activeLevel={winterActive}
               levels={WINTER_LEVELS}
             />
@@ -323,11 +325,16 @@ export function DriversSection({
   sectionAttr = 'summer-drivers',
 }: {
   drivers: ReportData['block1']['drivers'];
-  title?: string;
+  // №9 when the winter-factors caller passes the served heading. Nullable
+  // because the wire is; the summer caller keeps the default, which is NOT in
+  // the ruled eighteen and rides the extinction pin's allowlist with that
+  // reason.
+  title?: string | null;
   sectionAttr?: string;
 }) {
   const active = drivers.filter((d) => d.active);
   const [closedKeys, setClosedKeys] = useState<Set<string>>(new Set());
+  const headingId = useId();
   if (active.length === 0) return null;
 
   const toggle = (key: string) => {
@@ -340,8 +347,10 @@ export function DriversSection({
   };
 
   return (
-    <div className="mb-6" data-block1={sectionAttr}>
-      <h3 className="text-lg font-semibold text-[#1E3A5F] mb-3">{title}</h3>
+    // Named by its own heading, so the factor tiles are announced as one group
+    // and not as a loose run of cards (the №9 half of the accessibility work).
+    <div className="mb-6" data-block1={sectionAttr} role="group" aria-labelledby={headingId}>
+      <h3 id={headingId} className="text-lg font-semibold text-[#1E3A5F] mb-3">{title}</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
         {active.map((d) => {
           const isOpen = !closedKeys.has(d.key);
@@ -637,9 +646,11 @@ export default function ReportViewer() {
                 {/* Driver merge: winter-comfort factors under the winter bar
                     (Option A, two-way). Summer tags stay in their own section
                     below. Hidden when none active (render-safe). */}
+                {/* №9 — served heading, and the accessible name of the region
+                    it introduces. */}
                 <DriversSection
                   drivers={block1.winter_factors}
-                  title="Žiemos komforto veiksniai"
+                  title={block1.winter_factors_title_lt}
                   sectionAttr="winter-factors"
                 />
                 {block1.winter && block1.summer && (
@@ -662,8 +673,9 @@ export default function ReportViewer() {
 
         <Block8Section block8={data.block8} />
 
-        <AdditionalDocuments />
+        <AdditionalDocuments documentsLt={data.documents_lt} />
         <Citations
+          titleLt={data.citations_title_lt}
           block1Citations={data.citations ?? []}
           block2CitationsLt={[
             ...(data.block2?.citations_lt ?? []),

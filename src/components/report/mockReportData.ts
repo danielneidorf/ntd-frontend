@@ -84,6 +84,13 @@ export interface Block2HouseholdOption {
   // Optional — legacy captures predate it and fall back to the building-only
   // top-level forecast.
   forecast_5yr?: Block2ForecastPoint[];
+  // №6/№7 for THIS household size — the spoken description of each chart,
+  // composed by the backend from this option's own arrays so the words a
+  // screen reader hears describe the bars actually on screen. Optional: a
+  // report stored before the fields existed has its copy refreshed at read
+  // time, so this is belt-and-braces rather than a live fallback.
+  monthly_chart_description_lt?: string | null;
+  forecast_chart_description_lt?: string | null;
   // (The explanation's ¶2 family note (explanation_lt) was retired 2026-07-27.)
   // The option's own merged info section (ruling 2026-07-25) — its scope line is
   // size-specific, the rest identical across sizes. Optional: legacy captures
@@ -408,8 +415,8 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 export const MOCK_EXISTING: ReportData = {
   "envelope": {
     "address": "Vilnius, Žirmūnų g. 12-5",
-    "request_id": "report-20260806114735",
-    "created_at": "2026-08-06T11:47:35.703693+00:00"
+    "request_id": "report-20260806122434",
+    "created_at": "2026-08-06T12:24:34.112649+00:00"
   },
   "blocks": [
     {
@@ -971,7 +978,7 @@ export const MOCK_EXISTING: ReportData = {
   "lat": 54.7007624,
   "lng": 25.2993035,
   "bundle_items": [],
-  "generated_at": "2026-08-06T11:47:35.703693+00:00",
+  "generated_at": "2026-08-06T12:24:34.112649+00:00",
   "order_reference": "NTD-DEV-001",
   "block2": {
     "status": "ready",
@@ -1456,6 +1463,8 @@ export const MOCK_EXISTING: ReportData = {
               }
             }
           ],
+          "monthly_chart_description_lt": "Mėnesinės energijos sąnaudos: vidutiniškai €84 per mėnesį, nuo €23 (Gegužė) iki €164 (Sausis)",
+          "forecast_chart_description_lt": "Prognozuojama mėnesinė energijos kaina: nuo €84 (2026) iki €105 (2030)",
           "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 1 asmens namų ūkiui sudarys apie €84 per mėnesį arba €1000 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €105. Visos sumos nurodytos su PVM.",
           "info_section": {
             "title_lt": "Kokia informacija remiamės?",
@@ -1676,6 +1685,8 @@ export const MOCK_EXISTING: ReportData = {
               }
             }
           ],
+          "monthly_chart_description_lt": "Mėnesinės energijos sąnaudos: vidutiniškai €101 per mėnesį, nuo €41 (Gegužė) iki €182 (Sausis)",
+          "forecast_chart_description_lt": "Prognozuojama mėnesinė energijos kaina: nuo €101 (2026) iki €127 (2030)",
           "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 2 asmenų namų ūkiui sudarys apie €101 per mėnesį arba €1214 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €127. Visos sumos nurodytos su PVM.",
           "info_section": {
             "title_lt": "Kokia informacija remiamės?",
@@ -1896,6 +1907,8 @@ export const MOCK_EXISTING: ReportData = {
               }
             }
           ],
+          "monthly_chart_description_lt": "Mėnesinės energijos sąnaudos: vidutiniškai €117 per mėnesį, nuo €56 (Gegužė) iki €198 (Sausis)",
+          "forecast_chart_description_lt": "Prognozuojama mėnesinė energijos kaina: nuo €117 (2026) iki €147 (2030)",
           "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 3 asmenų namų ūkiui sudarys apie €117 per mėnesį arba €1411 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €147. Visos sumos nurodytos su PVM.",
           "info_section": {
             "title_lt": "Kokia informacija remiamės?",
@@ -2116,6 +2129,8 @@ export const MOCK_EXISTING: ReportData = {
               }
             }
           ],
+          "monthly_chart_description_lt": "Mėnesinės energijos sąnaudos: vidutiniškai €132 per mėnesį, nuo €71 (Gegužė) iki €213 (Sausis)",
+          "forecast_chart_description_lt": "Prognozuojama mėnesinė energijos kaina: nuo €132 (2026) iki €165 (2030)",
           "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 4 asmenų namų ūkiui sudarys apie €132 per mėnesį arba €1585 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €165. Visos sumos nurodytos su PVM.",
           "info_section": {
             "title_lt": "Kokia informacija remiamės?",
@@ -2336,6 +2351,8 @@ export const MOCK_EXISTING: ReportData = {
               }
             }
           ],
+          "monthly_chart_description_lt": "Mėnesinės energijos sąnaudos: vidutiniškai €147 per mėnesį, nuo €86 (Gegužė) iki €228 (Sausis)",
+          "forecast_chart_description_lt": "Prognozuojama mėnesinė energijos kaina: nuo €147 (2026) iki €183 (2030)",
           "body_lt": "Pagal pastato energinę klasę (D) ir naudojamą šildymo sistemą (centrinis šildymas), tikėtina, kad šio būsto energijos sąnaudos kartu su buitine elektra 5 asmenų namų ūkiui sudarys apie €147 per mėnesį arba €1763 per metus. Per 5 metus, jei kainos kils pagal dabartines prognozes, mėnesinė kaina gali pasiekti apie €183. Visos sumos nurodytos su PVM.",
           "info_section": {
             "title_lt": "Kokia informacija remiamės?",
@@ -2540,8 +2557,8 @@ export const MOCK_EXISTING: ReportData = {
 export const MOCK_LAND_ONLY: ReportData = {
   "envelope": {
     "address": "Vilnius, Žemaitės g. 10 (sklypas)",
-    "request_id": "report-20260731110252",
-    "created_at": "2026-07-31T11:02:52.994156+00:00"
+    "request_id": "report-20260806122435",
+    "created_at": "2026-08-06T12:24:35.073234+00:00"
   },
   "blocks": [
     {
@@ -2633,6 +2650,7 @@ export const MOCK_LAND_ONLY: ReportData = {
           "registry_epc_kwhm2_year_source": null,
           "official_lookup_status": "not_requested",
           "no_official_epc_reason": "none",
+          "upload_not_used_reason": "none",
           "user_energy_class": null,
           "user_epc_kwhm2_year": null,
           "bill_unit": null,
@@ -2683,12 +2701,16 @@ export const MOCK_LAND_ONLY: ReportData = {
           "resolver_context": null,
           "pens_cert_number": null,
           "pens_cert_issued_date": null,
+          "registry_energy_class_superseded": null,
+          "secondary_certificate": null,
+          "register_record": null,
           "unikalus_nr": "5500-0000-0001",
           "unikalus_nr_source": null,
           "heated_area_m2_source": null,
           "byproduct_coverage_fraction": null,
           "customer_type_override": null
         },
+        "secondary_certificate": null,
         "winter_factors": [
           {
             "key": "new_or_renovated",
@@ -2758,6 +2780,8 @@ export const MOCK_LAND_ONLY: ReportData = {
         "bill_unit_eur": null,
         "bill_heating_thermal_kwh_year": null,
         "solar_thermal_present": null,
+        "split_is_modelled": null,
+        "per_m2_mode": null,
         "citations_lt": []
       }
     },
@@ -2788,10 +2812,10 @@ export const MOCK_LAND_ONLY: ReportData = {
   ],
   "permits": [],
   "citations": [
-    "VĮ REGISTRŲ CENTRAS. Nekilnojamojo turto registras: objekto duomenys [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.registrucentras.lt",
+    "VĮ REGISTRŲ CENTRAS. Nekilnojamojo turto registras: objekto duomenys [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-08-06]. Prieiga per internetą: https://www.registrucentras.lt",
     "NT DUOMENYS. Pastatų energijos etalonų bazė v2026.1: pastatų faktinio šilumos poreikio medianos pagal pastato tipą ir energinę klasę, apskaičiuotos iš VĮ Registrų centro Pastatų energinio naudingumo sertifikatų registro (PENS); efektyvių pastatų (A++/A+/A klasių) sujungta mediana — atskiras atskaitos taškas. Renovuoto pastato etalonas prilygintas C energinei klasei — NT Duomenų metodinis sprendimas (vidinė etalonų metodika, 3.2 sk.). Vilnius: NT Duomenys, 2026.",
-    "LIETUVOS RESPUBLIKOS SVEIKATOS APSAUGOS MINISTRAS. Lietuvos higienos norma HN 42:2009 „Gyvenamųjų ir visuomeninių pastatų patalpų mikroklimatas“ [interaktyvus]. Patvirtinta 2009 m. gruodžio 29 d. įsakymu Nr. V-1081. Vilnius: Sveikatos apsaugos ministerija, 2009 [žiūrėta 2026-07-31]. Prieiga per internetą: https://e-seimas.lrs.lt/portal/legalAct/lt/TAD/TAIS.362676",
-    "VĮ REGISTRŲ CENTRAS. Nekilnojamojo turto ir registro išrašų, pažymų ir duomenų įkainiai: dokumentų kopijų parengimas, tvirtinimas ir pateikimas [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.registrucentras.lt/p/nt-israsu-pazymu-duomenu-ikainiai"
+    "LIETUVOS RESPUBLIKOS SVEIKATOS APSAUGOS MINISTRAS. Lietuvos higienos norma HN 42:2009 „Gyvenamųjų ir visuomeninių pastatų patalpų mikroklimatas“ [interaktyvus]. Patvirtinta 2009 m. gruodžio 29 d. įsakymu Nr. V-1081. Vilnius: Sveikatos apsaugos ministerija, 2009 [žiūrėta 2026-08-06]. Prieiga per internetą: https://e-seimas.lrs.lt/portal/legalAct/lt/TAD/TAIS.362676",
+    "VĮ REGISTRŲ CENTRAS. Nekilnojamojo turto ir registro išrašų, pažymų ir duomenų įkainiai: dokumentų kopijų parengimas, tvirtinimas ir pateikimas [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-08-06]. Prieiga per internetą: https://www.registrucentras.lt/p/nt-israsu-pazymu-duomenu-ikainiai"
   ],
   "address": "Vilnius, Žemaitės g. 10 (sklypas)",
   "ntr_unique_number": "5500-0000-0001",
@@ -2799,7 +2823,7 @@ export const MOCK_LAND_ONLY: ReportData = {
   "lat": null,
   "lng": null,
   "bundle_items": [],
-  "generated_at": "2026-07-31T11:02:52.994156+00:00",
+  "generated_at": "2026-08-06T12:24:35.073234+00:00",
   "order_reference": "NTD-DEV-LAND",
   "block2": {
     "status": "not_applicable",
@@ -2807,6 +2831,13 @@ export const MOCK_LAND_ONLY: ReportData = {
     "confidence": null,
     "confidence_text_lt": null,
     "citations_lt": []
+  },
+  "citations_title_lt": "Šaltiniai",
+  "documents_lt": {
+    "regia": "Žemės sklypų ribos, pastatų kontūrai ir adresai interaktyviame žemėlapyje.",
+    "infostatyba": "Statybos leidimai, projektiniai pasiūlymai ir statybos dokumentacija šiuo adresu.",
+    "tpdr": "Detalieji ir bendrieji planai, specialieji planai, žemėtvarkos projektai.",
+    "registru_centras": "Išsamūs registro duomenys: savininkai, suvaržymai, sandorių istorija ir kita teisinė informacija."
   },
   "property_profile": {
     "purpose": null,
@@ -2828,6 +2859,7 @@ export const MOCK_LAND_ONLY: ReportData = {
     "energy_class_provenance": null,
     "energy_class_provenance_lt": null,
     "epc_kwhm2_year": null,
+    "hero_source_caption_lt": null,
     "epc_source": null,
     "epc_confidence": null,
     "glazing_percent": null,
@@ -2865,11 +2897,14 @@ export const MOCK_LAND_ONLY: ReportData = {
       }
     ],
     "winter_factors": [],
+    "winter_factors_title_lt": "Žiemos komforto veiksniai",
     "info_box": {
       "items_lt": [
         "Šiame bloke atskirai nemodeliuojame realių vidaus drėgmės ir skersvėjų, nes jie stipriai priklauso nuo gyventojų įpročių ir konkrečios buto būklės (langų, durų, sandūrų ir pan.)."
       ]
     },
+    "upload_not_used_message_lt": null,
+    "secondary_certificate": null,
     "inputs_snapshot": {
       "effective_energy_class": null,
       "effective_epc_kwhm2_year": null,

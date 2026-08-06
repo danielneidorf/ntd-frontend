@@ -1,4 +1,5 @@
 // P7-A3.4: EPC-style comfort rating bars — 5-level stacked colored bars with arrow marker
+import { useId } from 'react';
 
 interface Level {
   key: string;
@@ -47,38 +48,23 @@ const SUMMER_MAP: Record<string, string> = {
 // rendered as a band. Callers branch on it explicitly (never highlight a bar).
 export const WINTER_NOT_ASSESSED = 'NOT_ASSESSED';
 
-const WINTER_NOT_ASSESSED_REASON_LT: Record<string, string> = {
-  not_in_registry:
-    'Šiam pastatui nepavyko rasti energinio naudingumo sertifikato, o turimų duomenų nepakanka patikimam įvertinimui.',
-  technical_error:
-    'Žiemos komforto įvertinti nepavyko dėl laikinos duomenų paieškos klaidos. Bandykite vėliau.',
-  new_build_no_epc_yet:
-    'Naujam pastatui dar nėra energinio naudingumo sertifikato, todėl žiemos komforto kol kas neįvertinome.',
-  unknown:
-    'Žiemos komforto šiam pastatui įvertinti nepavyko — trūksta duomenų.',
-};
-
-export function winterNotAssessedMessage(reason?: string | null): string {
-  return WINTER_NOT_ASSESSED_REASON_LT[reason ?? 'unknown']
-    ?? WINTER_NOT_ASSESSED_REASON_LT.unknown;
-}
-
-// Phase 2: era→class estimate provenance. The band is a REAL rating (GOOD/etc.)
-// but derived from the building's construction era + type (no certificate) — it
-// must be labelled as an estimate, never presented as certificate-grade.
+// ── THE TWO TWINS THAT LIVED HERE ARE GONE (copy-parity gate, 2026-08-06) ──
+//
+// `winterNotAssessedMessage` (№11–14) and `winterProvenanceMessage` (№14) each
+// held a Lithuanian map that also existed in the PDF's Jinja — one sentence,
+// two hand-maintained copies, and they had already begun to disagree. Both are
+// now produced once in `reports/report_copy_lt.py` and served as
+// `winter.not_assessed_message_lt` / `winter.provenance_message_lt`; the
+// component reads the served value and composes nothing.
+//
+// `technical_error` never belonged to either map: that sentence is the
+// recalculation road's (№20), served with the recourse it points at, so the
+// backend map has no entry for it by design.
+//
+// `WINTER_PROVENANCE_ERA_ESTIMATED` stays — it is a KEY, not copy. The card
+// still branches on it in places; keys may live here, the customer's words may
+// not.
 export const WINTER_PROVENANCE_ERA_ESTIMATED = 'block1.winter.provenance.era_estimated';
-
-const WINTER_PROVENANCE_LT: Record<string, string> = {
-  [WINTER_PROVENANCE_ERA_ESTIMATED]:
-    'Apytikslis įvertinimas. Energinio naudingumo sertifikatas nerastas, todėl žiemos komfortas įvertintas pagal pastato statybos metus ir tipą.',
-};
-
-// Returns the LT estimate caption for a provenance label key, or null when the
-// band is from a certificate / typology (no estimate caption needed).
-export function winterProvenanceMessage(provenanceLabelKey?: string | null): string | null {
-  if (!provenanceLabelKey) return null;
-  return WINTER_PROVENANCE_LT[provenanceLabelKey] ?? null;
-}
 
 export function mapWinterLevel(backend: string): string {
   if (backend === WINTER_NOT_ASSESSED) return WINTER_NOT_ASSESSED;
@@ -94,13 +80,21 @@ export default function ComfortBar({
   activeLevel,
   levels,
 }: {
-  title: string;
+  // №8 — SERVED. Typed nullable because the wire is: a report stored before
+  // the field existed omits it, and a heading is better absent than invented.
+  title?: string | null;
   activeLevel: string;
   levels: Level[];
 }) {
+  // The bar is five bare <div>s: to a screen reader it was five loose colour
+  // labels with nothing tying them together or saying what they measured. It
+  // is now a group NAMED BY ITS OWN HEADING (№8) — the ruled words become the
+  // accessible name rather than a second sentence written for assistive tech,
+  // which no ruling covers and the extinction pin would refuse.
+  const headingId = useId();
   return (
-    <div>
-      <h3 className="text-lg font-semibold text-[#1E3A5F] mb-3">{title}</h3>
+    <div role="group" aria-labelledby={headingId}>
+      <h3 id={headingId} className="text-lg font-semibold text-[#1E3A5F] mb-3">{title}</h3>
       <div className="space-y-1">
         {levels.map((level) => {
           const isActive = level.key === activeLevel;

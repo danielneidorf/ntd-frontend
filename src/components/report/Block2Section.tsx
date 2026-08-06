@@ -61,14 +61,12 @@ const AVG_LINE_COLOR = '#2C3E50';
 // The PDF's exact wording, reused — no new copy. The PDF legend already names
 // this line; the web did not, which made it a web/PDF content-parity gap.
 const AVERAGE_LABEL_LT = 'Vidutinė mėnesinė kaina';
-// The forecast chart's heading. Corrected 2026-07-24 from „Prognozinė mėnesinė
-// energijos kaina per 5 metus" — the chart plots how the monthly cost *changes*
-// across five years, not one forecast price. Exported because the PDF holds the
-// same string in its own literal (forecast.py FORECAST_CHART_TITLE_LT) and a
-// backend test asserts the two are character-identical; without that pin a
-// correction to one surface leaves the other silently stale.
-export const FORECAST_CHART_TITLE_LT =
-  'Prognozuojamas mėnesio energijos kainos kitimas (per 5 metus)';
+// (The forecast chart's heading used to be a literal here, exported so a
+// backend disk-read test could pin it character-equal to the PDF's own copy.
+// Both copies are retired: the title is SERVED as
+// `block2.forecast_chart_title_lt`, from the one origin both surfaces read. A
+// cross-repo pin is what you build when two copies must exist; when one origin
+// serves both, the pin has nothing left to guard.)
 
 // Caption for the household-electricity reference table (§7.7), now the last
 // element of the merged „Kokia informacija remiamės?" section (ruling
@@ -300,9 +298,12 @@ const yearNumeral = (count: number) =>
 function MonthlyChart({
   data,
   tableByBand,
+  descriptionLt,
 }: {
   data: NonNullable<Block2Data['monthly_variation']>;
   tableByBand: Record<string, number>;
+  // №6 — the chart's spoken answer, SERVED for the household size on screen.
+  descriptionLt?: string | null;
 }) {
   // Only stack bands that are non-zero somewhere (cooling / household electricity
   // are €0 in the building-only v1, so they drop out of the legend).
@@ -326,18 +327,21 @@ function MonthlyChart({
     [DISPLAY_KEY]: display,
   }));
   const monthTotals = rows.map((r) => bands.reduce((t, b) => t + ((r as Record<string, number>)[b.monthlyKey] ?? 0), 0));
+  // Still computed — the average REFERENCE LINE is drawn from it. Only the
+  // sentence that used to be composed alongside it is gone.
   const avg = monthTotals.reduce((s, v) => s + v, 0) / (rows.length || 1);
   const scale = axisScale(Math.max(...monthTotals, 0));
-  // The chart's ANSWER, for a screen reader — the average and the range, from
-  // the same totals the bars draw (no new claim). The chart is announced as one
-  // named image; the legend below stays real text, so band names are still
-  // read. Exact wording → B8-4.
-  const minIdx = monthTotals.indexOf(Math.min(...monthTotals));
-  const maxIdx = monthTotals.indexOf(Math.max(...monthTotals));
-  const ariaLabel =
-    `Mėnesinės energijos sąnaudos: vidutiniškai ${eur(avg)} per mėnesį, ` +
-    `nuo ${eur(monthTotals[minIdx])} (${rows[minIdx]?.name}) iki ` +
-    `${eur(monthTotals[maxIdx])} (${rows[maxIdx]?.name})`;
+  // The chart's ANSWER, for a screen reader — SERVED (№6). The chart is
+  // announced as one named image; the legend below stays real text, so band
+  // names are still read.
+  //
+  // THE TWIN THAT STOOD HERE IS DELETED. It recomposed this sentence in
+  // TypeScript from the same arrays, and it had already drifted from print's
+  // version in two ways: print dropped the month names entirely, and this one
+  // named them with the AXIS ABBREVIATIONS („Lie", „Sau") — so a listener was
+  // told „nuo €36 (Lie)", which tells them nothing. The gate ruled the full
+  // month names, and the backend composes them once for both surfaces.
+  const ariaLabel = descriptionLt ?? undefined;
 
   return (
     <div data-block2="monthly-chart">
@@ -391,7 +395,14 @@ function MonthlyChart({
   );
 }
 
-function ForecastChart({ data }: { data: NonNullable<Block2Data['forecast_5yr']> }) {
+function ForecastChart({
+  data,
+  descriptionLt,
+}: {
+  data: NonNullable<Block2Data['forecast_5yr']>;
+  // №7 — the chart's spoken answer, SERVED for the household size on screen.
+  descriptionLt?: string | null;
+}) {
   // per_component is annual € per COMPONENT band; the chart shows €/month, so
   // divide by 12. Stacked bands sum back to total_eur_month. Same band list,
   // colours and labels as the monthly chart above — one origin. Bands that are
@@ -413,13 +424,10 @@ function ForecastChart({ data }: { data: NonNullable<Block2Data['forecast_5yr']>
     Math.max(...data.map((p) => p.total_eur_month), 0),
     { headroom: true },
   );
-  // The trajectory in one sentence for a screen reader — first year to last,
-  // from the served endpoints. Same img/label model as the monthly chart.
-  const first = data[0];
-  const last = data[data.length - 1];
-  const ariaLabel =
-    `Prognozuojama mėnesinė energijos kaina: nuo ${eur(first?.total_eur_month)} ` +
-    `(${first?.year}) iki ${eur(last?.total_eur_month)} (${last?.year})`;
+  // The trajectory in one sentence for a screen reader — SERVED (№7), for the
+  // household size on screen. Its TypeScript twin is deleted; same img/label
+  // model as the monthly chart.
+  const ariaLabel = descriptionLt ?? undefined;
 
   return (
     <div data-block2="forecast-chart">
@@ -525,6 +533,17 @@ export function Block2Section({
   const shownForecast = selected
     ? selected.forecast_5yr ?? block2.forecast_5yr
     : block2.forecast_5yr;
+  // №6/№7 follow the SAME selection the charts do (Daniel's rider, 2026-08-06).
+  // The backend composes one sentence per household option from that option's
+  // own arrays, so a listener who picks size 4 hears size 4's numbers instead
+  // of the default household's — which is what the deleted twins used to get
+  // right on the web and print got wrong.
+  const shownMonthlyDescription = selected
+    ? selected.monthly_chart_description_lt ?? block2.monthly_chart_description_lt
+    : block2.monthly_chart_description_lt;
+  const shownForecastDescription = selected
+    ? selected.forecast_chart_description_lt ?? block2.forecast_chart_description_lt
+    : block2.forecast_chart_description_lt;
   // (The explanation's ¶2 family note was retired 2026-07-27 — cross-section
   // dedup; the explanation is now ¶1 only, the selected option's body_lt.)
   // The ONE merged info section (ruling 2026-07-25) — assumptions + data-sources
@@ -539,11 +558,13 @@ export function Block2Section({
       className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 md:p-8"
     >
       <h2 className="text-2xl font-semibold text-[#1E3A5F] mb-2">2) Energijos sąnaudos</h2>
-      {block2.intro_lt && (
-        <p data-block2="intro" className="text-base text-slate-600 mb-6 leading-relaxed">
-          {block2.intro_lt}
-        </p>
-      )}
+
+      {/* C4 (ruled 2026-08-06): NUMBER FIRST, then the intro. The web used to
+          open with the explanatory paragraph and put the €-figure below it,
+          while print already opened on the figure — so the two surfaces led
+          with different things. The basis is on the record in the ruling
+          (F-pattern eye-tracking, visual hierarchy, overview-before-detail);
+          the intro reads as the answer's context, which is what it is. */}
 
       {/* 1 — Metric bar: headline €/month + subtext on the LEFT, and the
           B2-14 household-size selector on the RIGHT, inside the same band —
@@ -591,7 +612,15 @@ export function Block2Section({
               <p className="text-xs text-slate-500 mb-2 leading-relaxed">
                 {hm.selector_caption_lt}
               </p>
-              <div className="flex flex-wrap gap-2" role="group" aria-label="Namų ūkio dydis">
+              {/* The selector group's accessible name was the ruled №3 words
+                  („Namų ūkio dydis") typed by hand here — the same string the
+                  table header renders, in a second copy that no gate could see.
+                  Served now, from the same header the table reads. */}
+              <div
+                className="flex flex-wrap gap-2"
+                role="group"
+                aria-label={block2.household_table_headers_lt?.size}
+              >
                 {hm.options.map((o) => {
                   const isActive = householdSize === o.household_size;
                   return (
@@ -627,6 +656,12 @@ export function Block2Section({
             </div>
           )}
         </div>
+      )}
+
+      {block2.intro_lt && (
+        <p data-block2="intro" className="text-base text-slate-600 mb-6 leading-relaxed">
+          {block2.intro_lt}
+        </p>
       )}
 
       {/* 2 — Breakdown table (backend-rounded numbers rendered verbatim;
@@ -694,16 +729,26 @@ export function Block2Section({
           filter). */}
       {shownMonthly && shownMonthly.length > 0 && (
         <div className="mb-8">
-          <h3 className="text-base font-semibold text-slate-800 mb-3">Mėnesinė energijos kaina per metus</h3>
-          <MonthlyChart data={shownMonthly} tableByBand={tableByBand} />
+          {/* №1 — served. Print titled this same chart „Mėnesinė energijos
+              kaina pagal komponentus"; one origin now heads both. */}
+          <h3 className="text-base font-semibold text-slate-800 mb-3">
+            {block2.monthly_chart_title_lt}
+          </h3>
+          <MonthlyChart
+            data={shownMonthly}
+            tableByBand={tableByBand}
+            descriptionLt={shownMonthlyDescription}
+          />
         </div>
       )}
 
       {/* 5 — 5-year forecast chart. */}
       {shownForecast && shownForecast.length > 0 && (
         <div className="mb-8">
-          <h3 className="text-base font-semibold text-slate-800 mb-3">{FORECAST_CHART_TITLE_LT}</h3>
-          <ForecastChart data={shownForecast} />
+          <h3 className="text-base font-semibold text-slate-800 mb-3">
+            {block2.forecast_chart_title_lt}
+          </h3>
+          <ForecastChart data={shownForecast} descriptionLt={shownForecastDescription} />
         </div>
       )}
 
@@ -750,10 +795,18 @@ export function Block2Section({
               <p className={`${INFO_SECTION_LABEL} mb-2`}>{HOUSEHOLD_REFERENCE_CAPTION}</p>
               <table data-block2="household-reference" className="text-xs border-collapse">
                 <thead>
+                  {/* №3–5 — served, so the same three headers stand over the
+                      same three columns on both surfaces. */}
                   <tr className="text-left text-slate-500 border-b border-slate-200">
-                    <th className="py-1 pr-3 font-medium">Namų ūkio dydis</th>
-                    <th className="py-1 pr-3 font-medium text-right">Tipinis suvartojimas (kWh/mėn.)</th>
-                    <th className="py-1 font-medium text-right">~€ per mėnesį</th>
+                    <th className="py-1 pr-3 font-medium">
+                      {block2.household_table_headers_lt?.size}
+                    </th>
+                    <th className="py-1 pr-3 font-medium text-right">
+                      {block2.household_table_headers_lt?.consumption}
+                    </th>
+                    <th className="py-1 font-medium text-right">
+                      {block2.household_table_headers_lt?.cost}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>

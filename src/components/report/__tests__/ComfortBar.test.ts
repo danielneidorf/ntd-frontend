@@ -3,9 +3,6 @@ import {
   mapSummerLevel,
   mapWinterLevel,
   WINTER_NOT_ASSESSED,
-  WINTER_PROVENANCE_ERA_ESTIMATED,
-  winterNotAssessedMessage,
-  winterProvenanceMessage,
 } from '../ComfortBar';
 
 describe('mapWinterLevel', () => {
@@ -46,29 +43,16 @@ describe('mapSummerLevel', () => {
   });
 });
 
-describe('winterNotAssessedMessage', () => {
-  it('returns a reason-specific Lithuanian message', () => {
-    expect(winterNotAssessedMessage('not_in_registry')).toContain('sertifikato');
-    expect(winterNotAssessedMessage('technical_error')).toContain('klaidos');
-  });
-
-  it('falls back to a generic message for a missing/unknown reason', () => {
-    expect(winterNotAssessedMessage(undefined)).toContain('trūksta duomenų');
-    expect(winterNotAssessedMessage('weird')).toContain('trūksta duomenų');
-  });
-});
-
-describe('winterProvenanceMessage', () => {
-  it('returns the honest estimate caption for the era_estimated key', () => {
-    const msg = winterProvenanceMessage(WINTER_PROVENANCE_ERA_ESTIMATED);
-    expect(msg).toContain('Apytikslis');
-    expect(msg).toContain('statybos metus'); // by construction era + type
-  });
-
-  it('returns null when there is no estimate provenance (real cert → no caption)', () => {
-    // A real band carries no estimate label.
-    expect(winterProvenanceMessage(undefined)).toBeNull();
-    expect(winterProvenanceMessage(null)).toBeNull();
-    expect(winterProvenanceMessage('block1.winter.provenance.from_certificate')).toBeNull();
-  });
-});
+// The `winterNotAssessedMessage` and `winterProvenanceMessage` suites that
+// stood here are GONE WITH THE FUNCTIONS THEY TESTED (copy-parity, 2026-08-06).
+// Both composed Lithuanian from a local map that also existed in the PDF's
+// Jinja; the sentences (№11–14) are now produced once in the backend and served
+// as `winter.not_assessed_message_lt` / `winter.provenance_message_lt`.
+//
+// What replaced them is not a unit test of a map — it is the pair of guards
+// that cross the boundary the map used to hide: the backend asserts the
+// sentences on BOTH served surfaces
+// (bustodnr/tests/reports/test_ruled_copy_on_both_surfaces.py), and the
+// failure-state render asserts them off the rendered page
+// (__tests__/WinterRecourse.test.tsx). A test whose fixture is a local map can
+// only ever prove the map equals itself.

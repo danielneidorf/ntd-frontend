@@ -95,7 +95,23 @@ describe('the free-rebuild offer on a failed report', () => {
     expect(document.querySelector('[data-winter-recourse]')).toBeNull();
   });
 
-  it('falls back to the local sentence for a report stored before the field existed', async () => {
+  it('★ composes NO sentence of its own when the backend served none', async () => {
+    // THIS TEST USED TO ASSERT THE OPPOSITE — that the page fell back to a
+    // local Lithuanian map for a report stored before the served field existed.
+    // That map is deleted (copy-parity, 2026-08-06): it was a second copy of
+    // sentences the PDF also held, and the two had begun to disagree.
+    //
+    // The case it protected is real and did not go away — a report stored
+    // before the field existed WOULD have rendered blank — so the protection
+    // moved to the boundary that can actually fix it: the backend now refreshes
+    // the ruled copy when it loads a stored report, and print (which re-renders
+    // every time) and the web therefore read the same words. That guarantee is
+    // asserted in bustodnr/tests/reports/test_stored_report_gets_todays_copy.py.
+    //
+    // What is left to pin HERE is the frontend's half of the contract: when the
+    // served sentence is genuinely absent, the page says nothing rather than
+    // inventing something. A surface that composes its own copy is how the two
+    // versions drifted apart in the first place.
     const data = reportWith({});
     delete data.block1.winter.not_assessed_message_lt;
     data.block1.winter.not_assessed_reason = 'new_build_no_epc_yet';
@@ -104,7 +120,8 @@ describe('the free-rebuild offer on a failed report', () => {
     render(<ReportViewer />);
 
     await waitFor(() =>
-      expect(screen.getByText(/Naujam pastatui dar nėra/)).toBeInTheDocument(),
+      expect(screen.getByText('Neįvertinta')).toBeInTheDocument(),
     );
+    expect(screen.queryByText(/Naujam pastatui dar nėra/)).toBeNull();
   });
 });

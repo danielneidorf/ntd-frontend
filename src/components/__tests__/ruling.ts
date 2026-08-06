@@ -23,6 +23,12 @@ export const RULING = resolve(
   '../../../../bustodnr/docs/tasks/Recalc_gate_ruled_34.md',
 );
 
+/** The copy-parity gate's eighteen (a separate sitting, its own numbering). */
+export const RULING_18 = resolve(
+  HERE,
+  '../../../../bustodnr/docs/tasks/Copy_parity_gate_ruled_18.md',
+);
+
 /** The ruled strings, keyed by number — the same parse the backend guard makes. */
 export function parseRuling(text: string): Map<number, string> {
   const ruled = new Map<number, string>();
@@ -51,15 +57,20 @@ export function parseRuling(text: string): Map<number, string> {
  * gated copy is the disease wearing a green coat — the suite would look healthy
  * while nothing was checked.
  */
-export function ruled(number: number): string {
-  if (!existsSync(RULING)) {
+export function ruled(number: number, document: string = RULING): string {
+  if (!existsSync(document)) {
     throw new Error(
-      `the ruling was not found at ${RULING}. The repos are expected to be ` +
+      `the ruling was not found at ${document}. The repos are expected to be ` +
         'siblings; if that has changed, the fallback is a hash-pinned derived ' +
         'copy — never a pasted one.',
     );
   }
-  const value = parseRuling(readFileSync(RULING, 'utf8')).get(number);
+  const value = parseRuling(readFileSync(document, 'utf8')).get(number);
   if (!value) throw new Error(`the ruling has no №${number}`);
   return value;
+}
+
+/** One string from the copy-parity gate's eighteen. */
+export function ruled18(number: number): string {
+  return ruled(number, RULING_18);
 }

@@ -9,6 +9,7 @@
 export default function Citations({
   block1Citations,
   block2CitationsLt,
+  titleLt,
 }: {
   // The served Block-1 bibliography ([1]–[4]+): NTR, PENS/EPC (or customer-
   // supplied), STR, the glazing-typology works, the NTD PENS-derivation, and —
@@ -19,12 +20,17 @@ export default function Citations({
   // basis, the VAT legal act and, while a household size is selected, the 👥
   // household-modelling lines — appended to the same numbered list.
   block2CitationsLt?: string[];
+  // №2 — the heading, served. It was the last authored Lithuanian left in this
+  // file, and it was already a divergence: print headed the same list
+  // „Šaltiniai ir nuorodos". Defaulted, so a report stored before the field
+  // existed still renders the ruled word.
+  titleLt?: string | null;
 }) {
   const citations = [...(block1Citations ?? []), ...(block2CitationsLt ?? [])];
 
   return (
     <section className="mt-10 border-t border-gray-200 pt-6">
-      <h2 className="text-xl font-semibold text-[#1E3A5F] mb-4">Šaltiniai</h2>
+      <h2 className="text-xl font-semibold text-[#1E3A5F] mb-4">{titleLt}</h2>
       <ol className="list-none space-y-3 m-0 p-0">
         {citations.map((text, i) => (
           <li key={i} className="text-sm text-slate-600 leading-relaxed pl-8 -indent-8">
