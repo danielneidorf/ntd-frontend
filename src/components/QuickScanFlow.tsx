@@ -83,6 +83,12 @@ export interface QuoteData {
   expires_at: string;
   has_active_discount: boolean;
   discount_context: unknown;
+  // The free-rebuild copy, served (gate sitting two: №26–28). Present only on a
+  // quote a recalculation pass took to zero; the checkout renders what it is
+  // given and authors no Lithuanian of its own.
+  recalc_price_line_lt?: string | null;
+  recalc_explanation_lt?: string | null;
+  recalc_skip_certificate_lt?: string | null;
 }
 
 export interface QuickScanState {
@@ -107,6 +113,8 @@ export interface QuickScanState {
   // own candidate id and reached the report builder with nothing frozen to
   // build from.
   confirmed_bundle_id: string | null;
+  // №29, served with the free checkout's response.
+  recalc_reassurance_lt: string | null;
   // B2-16: one card, three units — kWh/m² → intensity channel,
   // €/kWh → Channel-2 bill (see utils/userEnergyInput.ts).
   user_energy_input: UserEnergyInput | null;
@@ -246,6 +254,7 @@ const initialState = (): QuickScanState => {
   resolver_result,
   selected_candidate_id: resolver_result ? resolver_result.candidates[0]?.candidate_id ?? null : null,
   confirmed_bundle_id: null,
+  recalc_reassurance_lt: null,
   user_energy_input: null,
   quote,
   email,
@@ -1573,7 +1582,7 @@ function Screen2({
           </div>
           <h1 className="text-2xl font-bold text-[#1E3A5F] mb-4">Patvirtinome jūsų užsakymą.</h1>
           <p className="text-sm text-[#64748B] max-w-md leading-relaxed">
-            Pradėjome informacijos paiešką registruose, duomenų tikrinimą ir visų blokų skaičiavimus. Ataskaitą el. paštu paprastai išsiunčiame greitai, bet gali užtrukti iki 1 valandos.
+            {state.recalc_reassurance_lt ?? 'Pradėjome informacijos paiešką registruose, duomenų tikrinimą ir visų blokų skaičiavimus. Ataskaitą el. paštu paprastai išsiunčiame greitai, bet gali užtrukti iki 1 valandos.'}
           </p>
         </div>
       </div>
@@ -1814,7 +1823,13 @@ function Screen2({
       // already settled the order and started the rebuild, so the only thing
       // left is to show the customer that it happened.
       if (zero_total) {
-        setState(s => ({ ...s, order_id, payment_complete: true, step: 'success' as const }));
+        setState(s => ({
+          ...s, order_id, payment_complete: true,
+          // №29 — served: a rebuild's screen says it is a recalculation, not a
+          // fresh search of the registers.
+          recalc_reassurance_lt: json.data.reassurance_lt ?? null,
+          step: 'success' as const,
+        }));
         return;
       }
 
@@ -2372,10 +2387,24 @@ function Screen2({
                          directly. Copy pending the red pen with the road's other
                          strings. */
                       isFreeOrder ? (
-                        <button onClick={() => { if (canPay) handlePayment(); }} disabled={!canPay}
-                          className={`w-full py-3 rounded-lg text-[16px] font-semibold transition-all flex items-center justify-center gap-2 ${canPay ? 'bg-[#1E3A5F] text-white hover:bg-[#0D7377] cursor-pointer' : 'bg-[#CBD5E1] text-white cursor-not-allowed'}`}>
-                          {paying ? 'Ruošiama...' : 'Gauti nemokamą perskaičiavimą'}
-                        </button>
+                        <div>
+                          {/* №26/№27/№28 — served, not authored here. What is
+                              charged, why it is nothing, and what proceeding
+                              without a certificate means. */}
+                          <p className="text-[16px] font-semibold text-[#1E3A5F] mb-1" data-recalc="price-line">
+                            {quote.recalc_price_line_lt}
+                          </p>
+                          <p className="text-[14px] text-[#64748B] mb-2" data-recalc="explanation">
+                            {quote.recalc_explanation_lt}
+                          </p>
+                          <p className="text-[13px] text-[#92400E] mb-3" data-recalc="skip-warning">
+                            {quote.recalc_skip_certificate_lt}
+                          </p>
+                          <button onClick={() => { if (canPay) handlePayment(); }} disabled={!canPay}
+                            className={`w-full py-3 rounded-lg text-[16px] font-semibold transition-all flex items-center justify-center gap-2 ${canPay ? 'bg-[#1E3A5F] text-white hover:bg-[#0D7377] cursor-pointer' : 'bg-[#CBD5E1] text-white cursor-not-allowed'}`}>
+                            {paying ? 'Ruošiama...' : 'Gauti nemokamą perskaičiavimą'}
+                          </button>
+                        </div>
                       ) : (
                       <button onClick={() => { if (canPay) { setShowMethodSelector(true); setTimeout(() => document.querySelector('[data-guide="qs-pay-methods"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100); } }} disabled={!canPay}
                         className={`w-full py-3 rounded-lg text-[16px] font-semibold transition-all flex items-center justify-center gap-2 ${canPay ? 'bg-[#1E3A5F] text-white hover:bg-[#0D7377] cursor-pointer' : 'bg-[#CBD5E1] text-white cursor-not-allowed'}`}>
@@ -2431,7 +2460,7 @@ function SuccessScreen({ state }: { state: QuickScanState }) {
           <span className="text-[20px] font-semibold text-[#1A1A2E]">Užsakymas priimtas.</span>
         </div>
         <p className="text-[15px] text-[#1A1A2E] leading-relaxed">
-          Pradėjome informacijos paiešką registruose, duomenų tikrinimą ir visų blokų skaičiavimus. Ataskaitą el. paštu paprastai išsiunčiame greitai, bet gali užtrukti iki 1 valandos.
+          {state.recalc_reassurance_lt ?? 'Pradėjome informacijos paiešką registruose, duomenų tikrinimą ir visų blokų skaičiavimus. Ataskaitą el. paštu paprastai išsiunčiame greitai, bet gali užtrukti iki 1 valandos.'}
         </p>
       </div>
 
