@@ -1127,11 +1127,15 @@ function Screen1({
                   Phase 6 removed. Existing buildings only. */}
               {state.case_type === 'existing_object' && (
                 <div className="mt-4 pt-4 border-t border-[#F1F5F9]">
+                  {/* №1–3, ruled at the recalc gate (sitting two). Authored
+                      here deliberately: the backend-origin rule governs REPORT
+                      surfaces, and the order flow's Lithuanian is parked for
+                      its own sitting. These are wired, not relocated. */}
                   <label className="block text-[15px] font-medium text-[#1A1A2E] mb-1">
-                    Sertifikato numeris (pasirinktinai)
+                    Energinio naudingumo sertifikato numeris
                   </label>
                   <p className="text-[14px] text-[#64748B] mb-2">
-                    Jei sertifikatas nuskenuotas, įveskite jo numerį — duomenis paimsime iš registro.
+                    Įveskite numerį iš sertifikato — duomenis gausime tiesiai iš registro.
                   </p>
                   <input
                     type="text"
@@ -1142,7 +1146,7 @@ function Screen1({
                       setState((s) => ({ ...s, certificate_key: formatted || null }));
                     }}
                     onBlur={() => setCertKeyTouched(true)}
-                    placeholder="pvz., AD-0119-03384 arba 1095-8025-2026"
+                    placeholder="Pvz.: AD-0119-03384 arba unikalus pastato numeris"
                     maxLength={21}
                     aria-label="Sertifikato numeris"
                     className={[
@@ -1155,9 +1159,20 @@ function Screen1({
                     ].join(' ')}
                     style={{ height: '48px' }}
                   />
+                  {/* №19 — the „gali" softening, ruled. Proceeding without a
+                      certificate is allowed by design; this says plainly that
+                      it may change nothing, because the rebuild re-asks the
+                      same register. Shown only when the customer has given us
+                      neither a document nor a number — with either in hand the
+                      warning would be false. */}
+                  {!state.project_doc_id && !certKeyInput && (
+                    <p className="text-[13px] text-[#64748B] mt-2" data-cert-skip-warning>
+                      Be sertifikato ataskaita gali likti tokia pati — registro duomenis bandysime gauti pakartotinai.
+                    </p>
+                  )}
                   {certKeyTouched && certKeyInput && !certKeyValid && (
                     <p className="text-[14px] text-[#DC3545] mt-1">
-                      Formatas: AD-0119-03384 arba 1095-8025-2026
+                      Pvz.: AD-0119-03384 arba unikalus pastato numeris
                     </p>
                   )}
                 </div>
