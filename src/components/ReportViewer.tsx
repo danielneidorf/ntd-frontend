@@ -152,7 +152,9 @@ function WinterRecourse({ recourse }: { recourse: NonNullable<ReportData['recour
 
   return (
     <div className="mt-3" data-winter-recourse="offer">
-      <p className="text-sm text-slate-600 leading-relaxed">{recourse.sentence_lt}</p>
+      {/* No sentence here: the gate ruled №20 as ONE sentence carrying both the
+          cause and the offer, so it is already rendered above as the failure
+          message. A second line would repeat it. */}
       <button
         onClick={order}
         disabled={busy}
@@ -163,7 +165,11 @@ function WinterRecourse({ recourse }: { recourse: NonNullable<ReportData['recour
       </button>
       {failed && (
         <p className="text-xs text-[#DC3545] mt-2">
-          Nepavyko. Bandykite dar kartą arba parašykite ntd@ntd.lt.
+          {/* №35, ruled at the gate's sitting-two addendum. The build's draft
+              („Nepavyko. Bandykite dar kartą…") was reworded: the ruled line
+              names what failed and keeps the address as the second resort. */}
+          Užsakyti perskaičiavimo nepavyko. Bandykite dar kartą — jei nepavyks,
+          parašykite mums adresu ntd@ntd.lt.
         </p>
       )}
     </div>
