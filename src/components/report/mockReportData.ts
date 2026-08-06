@@ -111,7 +111,21 @@ export interface Block2HouseholdModelling {
 export interface Block2Data {
   status: 'ready' | 'not_applicable';
   message_lt: string | null;
-  metric?: { eur_month: number; eur_month_raw: number; subtext_lt: string };
+  // D2-1 §6.3: the served flag saying this report priced per m² because the
+  // registry had no usable area. Served (null on the ordinary road), read by
+  // nothing on the web yet — declared so the type matches the wire.
+  per_m2_mode?: boolean | null;
+  // `unit_lt` is the metric's served unit („/ mėn."). The PDF has read it since
+  // B2-13 (`block2.metric_unit_lt or "/ mėn."`); the web still hardcodes its
+  // own — a divergence the copy-parity piece closes. Declared now so the served
+  // shape and the type agree; nullable, and the web keeps its literal until the
+  // piece wires it.
+  metric?: {
+    eur_month: number;
+    eur_month_raw: number;
+    unit_lt?: string | null;
+    subtext_lt: string;
+  };
   intro_lt?: string;
   breakdown?: {
     column_headers_lt: string[];
@@ -147,6 +161,20 @@ export interface Block2Data {
   // occupancy resolve; absent → render the static table, no selector.
   standard_occupancy?: number;
   household_modelling?: Block2HouseholdModelling;
+  // ── THE RULED BLOCK-2 COPY (gate 2026-08-06: №1, №3–7) ──────────────────
+  // Served from the backend's one origin so the web and the PDF cannot title
+  // one chart two things or describe it two ways. Declared here ahead of the
+  // components reading them (the copy-parity piece); every one is defaulted,
+  // so a report stored before the fields existed simply omits them.
+  monthly_chart_title_lt?: string | null;
+  monthly_chart_description_lt?: string | null;
+  forecast_chart_title_lt?: string | null;
+  forecast_chart_description_lt?: string | null;
+  household_table_headers_lt?: {
+    size: string;
+    consumption: string;
+    cost: string;
+  } | null;
 }
 
 export interface ReportData {
@@ -166,6 +194,12 @@ export interface ReportData {
   // The served Block-1 bibliography ([1]–[4]+) — consumed by Citations.tsx
   // (2026-07-29 unification: one backend builder feeds web + PDF).
   citations?: string[];
+  // №2 — the bibliography's heading. Print used to head the same list
+  // „Šaltiniai ir nuorodos" while the web said „Šaltiniai"; one origin now.
+  citations_title_lt?: string | null;
+  // №15–18 — the documents panel's four descriptions, keyed by panel entry.
+  // Print carried bare links with no explanation until these were served.
+  documents_lt?: Record<string, string> | null;
   // Served-but-not-yet-consumed wire sections (kept verbatim by the mock
   // regeneration recipe so the capture needs no hand filtering).
   envelope?: Record<string, unknown>;
@@ -195,6 +229,10 @@ export interface ReportData {
       // + the reason, never an A–E band (the backend keeps it off the ordinal
       // axis; the web must not fall back to 'C'/medium).
       level: 'GOOD' | 'INTERMEDIATE' | 'WEAK' | 'NOT_ASSESSED';
+      // №8 — the heading a screen reader announces over this bar, served from
+      // the backend's one origin. Declared here ahead of the component reading
+      // it (the copy-parity piece), so the type matches the served shape.
+      title_lt?: string | null;
       not_assessed_reason?: string | null;
       // The sentence itself, served. Defaulted: a stored report built before
       // this field existed simply omits it and the local map still answers.
@@ -202,6 +240,10 @@ export interface ReportData {
       // Phase 2: when the band is an era→class ESTIMATE (no certificate), the
       // backend sets this so the UI shows an honest "estimate + basis" caption.
       provenance_label_key?: string | null;
+      // №14 — that caption's sentence, served. Same defaulted shape as
+      // `not_assessed_message_lt`; the component reads it in the copy-parity
+      // piece, and the local map retires with the twin that holds it.
+      provenance_message_lt?: string | null;
       rows?: {
         band: string;
         label_lt: string;
@@ -244,9 +286,25 @@ export interface ReportData {
       active: boolean;
       direction: 'increase' | 'decrease';
     }[];
+    // №9 — the heading a screen reader announces over those factors, served
+    // from the backend's one origin (defaulted, like its siblings).
+    winter_factors_title_lt?: string | null;
     info_box: {
       items_lt: string[];
     };
+    // ⚠ SERVED AND RENDERED BY PRINT ONLY — a web/PDF divergence, found
+    // 2026-08-06 while typing the wire, reported not fixed (it is its own
+    // piece). The backend serves both; `report_pdf.html:421` and `:430`
+    // render them; nothing in `src/` reads either. So the mandated "we could
+    // not use your certificate" sentence and the historical-certificate
+    // listing reach a customer who opens the PDF and no one else.
+    upload_not_used_message_lt?: string | null;
+    secondary_certificate?: {
+      label_lt: string;
+      energy_class?: string | null;
+      kwhm2_year?: number | null;
+      comparison_lt?: string | null;
+    } | null;
     inputs_snapshot: {
       effective_energy_class: string | null;
       effective_epc_kwhm2_year: number | null;
@@ -290,6 +348,11 @@ export interface ReportData {
     energy_class_provenance?: string | null;
     energy_class_provenance_lt?: string | null;
     epc_kwhm2_year: number | null;
+    // №17/№18/№39 — the caption beside the hero figure, naming which road the
+    // verdict came by. Defaulted: a report stored before the field existed
+    // omits it, and the card then renders no sub-line. Null is also the served
+    // answer on every road no ruling covers — never a blank line.
+    hero_source_caption_lt?: string | null;
     epc_source: string | null;
     epc_confidence: string | null;
     glazing_percent: number | null;
@@ -345,8 +408,8 @@ const MOCK_CARRIER_FALLBACK_WARNING =
 export const MOCK_EXISTING: ReportData = {
   "envelope": {
     "address": "Vilnius, Žirmūnų g. 12-5",
-    "request_id": "report-20260731110252",
-    "created_at": "2026-07-31T11:02:52.159113+00:00"
+    "request_id": "report-20260806114735",
+    "created_at": "2026-08-06T11:47:35.703693+00:00"
   },
   "blocks": [
     {
@@ -388,7 +451,7 @@ export const MOCK_EXISTING: ReportData = {
           "no_official_epc_reason": "none",
           "upload_not_used_reason": "none",
           "message_key": "block1.epc.official_metric",
-          "story_key": "block1.block1_energy.story.neutral"
+          "story_key": "block1.block1_energy.story.pagal_sertifikata"
         },
         "drivers": {
           "good_epc": false,
@@ -445,6 +508,7 @@ export const MOCK_EXISTING: ReportData = {
           "registry_epc_kwhm2_year_source": null,
           "official_lookup_status": "not_requested",
           "no_official_epc_reason": "none",
+          "upload_not_used_reason": "none",
           "user_energy_class": null,
           "user_epc_kwhm2_year": null,
           "bill_unit": null,
@@ -505,14 +569,15 @@ export const MOCK_EXISTING: ReportData = {
                 "label_keys": [
                   "official_metric",
                   "delivered_heat",
-                  "hero_official"
+                  "hero_official",
+                  "official_epc"
                 ]
               }
             ],
             "no_official_epc_reason": "none",
             "upload_not_used_reason": "none",
             "message_key": "block1.epc.official_metric",
-            "story_key": "block1.block1_energy.story.neutral"
+            "story_key": "block1.block1_energy.story.pagal_sertifikata"
           },
           "epc_plausibility": null,
           "epc_plausibility_note_lt": null,
@@ -522,12 +587,16 @@ export const MOCK_EXISTING: ReportData = {
           "resolver_context": null,
           "pens_cert_number": null,
           "pens_cert_issued_date": null,
+          "registry_energy_class_superseded": null,
+          "secondary_certificate": null,
+          "register_record": null,
           "unikalus_nr": "4400-1234-5678",
           "unikalus_nr_source": null,
           "heated_area_m2_source": "tier_2_pens_israsas",
           "byproduct_coverage_fraction": null,
           "customer_type_override": null
         },
+        "secondary_certificate": null,
         "winter_factors": [
           {
             "key": "new_or_renovated",
@@ -765,6 +834,8 @@ export const MOCK_EXISTING: ReportData = {
         "bill_unit_eur": null,
         "bill_heating_thermal_kwh_year": null,
         "solar_thermal_present": null,
+        "split_is_modelled": null,
+        "per_m2_mode": null,
         "citations_lt": [
           {
             "category": "💰 Energijos tarifai",
@@ -880,19 +951,19 @@ export const MOCK_EXISTING: ReportData = {
     }
   ],
   "citations": [
-    "VĮ REGISTRŲ CENTRAS. Nekilnojamojo turto registras: objekto duomenys [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.registrucentras.lt",
-    "VĮ REGISTRŲ CENTRAS. Pastatų energinio naudingumo sertifikatų registras (PENS): energinio naudingumo sertifikatas [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.registrucentras.lt",
+    "VĮ REGISTRŲ CENTRAS. Nekilnojamojo turto registras: objekto duomenys [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-08-06]. Prieiga per internetą: https://www.registrucentras.lt",
+    "VĮ REGISTRŲ CENTRAS. Pastatų energinio naudingumo sertifikatų registras (PENS): energinio naudingumo sertifikatas [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-08-06]. Prieiga per internetą: https://www.registrucentras.lt",
     "LIETUVOS RESPUBLIKOS APLINKOS MINISTERIJA. Statybos techninis reglamentas STR 2.01.02:2016 „Pastatų energinio naudingumo projektavimas ir sertifikavimas“. Vilnius: Aplinkos ministerija, 2016. Karšto vandens ruošimo energijos poreikio normos pagal pastato paskirtį — 2 priedo 2.4 lentelė (ψhw, kWh/m²·metai).",
     "MONSTVILAS, E. ir kt. Energinio naudingumo sertifikatų analizė: daugiabučiai gyvenamieji pastatai. Sustainability, 2023, t. 15, Nr. 3, straipsnis 2032 (N = 5 558). ISSN 2071-1050.",
     "MONSTVILAS, E. ir kt. Energinio naudingumo sertifikatų analizė: vieno ir dviejų butų gyvenamieji namai. Journal of Physics: Conference Series, 2023, t. 2654, straipsnis 012061 (N = 56 891). ISSN 1742-6596.",
     "BLIŪDŽIUS, R. ir kt. Energinio naudingumo sertifikatų analizė: administraciniai (biurų) pastatai. Buildings, 2024, t. 14, Nr. 9, straipsnis 2791 (N = 2 340). ISSN 2075-5309. Papildyta STR 2.01.02:2016 langų ploto normatyvais.",
-    "LIETUVOS RESPUBLIKOS APLINKOS MINISTERIJA. Lietuvos ilgalaikė pastatų renovacijos strategija [interaktyvus]. Vilnius: LR aplinkos ministerija / LR Vyriausybė, 2020 [žiūrėta 2026-07-31]. Prieiga per internetą: https://epilietis.lrv.lt. Pastatų fondo statistika pagal energinio naudingumo klasę (17–19, 25 lentelės).",
+    "LIETUVOS RESPUBLIKOS APLINKOS MINISTERIJA. Lietuvos ilgalaikė pastatų renovacijos strategija [interaktyvus]. Vilnius: LR aplinkos ministerija / LR Vyriausybė, 2020 [žiūrėta 2026-08-06]. Prieiga per internetą: https://epilietis.lrv.lt. Pastatų fondo statistika pagal energinio naudingumo klasę (17–19, 25 lentelės).",
     "NT DUOMENYS. Pastatų energijos etalonų bazė v2026.1: pastatų faktinio šilumos poreikio medianos pagal pastato tipą ir energinę klasę, apskaičiuotos iš VĮ Registrų centro Pastatų energinio naudingumo sertifikatų registro (PENS); efektyvių pastatų (A++/A+/A klasių) sujungta mediana — atskiras atskaitos taškas. Renovuoto pastato etalonas prilygintas C energinei klasei — NT Duomenų metodinis sprendimas (vidinė etalonų metodika, 3.2 sk.). Vilnius: NT Duomenys, 2026.",
-    "LIETUVOS RESPUBLIKOS SVEIKATOS APSAUGOS MINISTRAS. Lietuvos higienos norma HN 42:2009 „Gyvenamųjų ir visuomeninių pastatų patalpų mikroklimatas“ [interaktyvus]. Patvirtinta 2009 m. gruodžio 29 d. įsakymu Nr. V-1081. Vilnius: Sveikatos apsaugos ministerija, 2009 [žiūrėta 2026-07-31]. Prieiga per internetą: https://e-seimas.lrs.lt/portal/legalAct/lt/TAD/TAIS.362676",
-    "VĮ REGISTRŲ CENTRAS. Nekilnojamojo turto ir registro išrašų, pažymų ir duomenų įkainiai: dokumentų kopijų parengimas, tvirtinimas ir pateikimas [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.registrucentras.lt/p/nt-israsu-pazymu-duomenu-ikainiai",
-    "GOOGLE. „Google Street View“ gatvės lygio vaizdas pagal objekto koordinates [interaktyvus]. Google Maps Platform. Rodoma tik interaktyvioje ataskaitos versijoje [žiūrėta 2026-07-31].",
-    "GOOGLE. „Google Maps“ palydovinis / hibridinis vaizdas pagal objekto koordinates [interaktyvus]. Google Maps Platform (vaizdai: Airbus, CNES / Airbus, Maxar Technologies ir kt.). Rodoma tik interaktyvioje ataskaitos versijoje [žiūrėta 2026-07-31].",
-    "Pastato kontūras — © OpenStreetMap contributors, ODbL. Duomenys iš „OpenStreetMap“ (per Overpass API) [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.openstreetmap.org/copyright. Rodoma tik interaktyvioje ataskaitos versijoje."
+    "LIETUVOS RESPUBLIKOS SVEIKATOS APSAUGOS MINISTRAS. Lietuvos higienos norma HN 42:2009 „Gyvenamųjų ir visuomeninių pastatų patalpų mikroklimatas“ [interaktyvus]. Patvirtinta 2009 m. gruodžio 29 d. įsakymu Nr. V-1081. Vilnius: Sveikatos apsaugos ministerija, 2009 [žiūrėta 2026-08-06]. Prieiga per internetą: https://e-seimas.lrs.lt/portal/legalAct/lt/TAD/TAIS.362676",
+    "VĮ REGISTRŲ CENTRAS. Nekilnojamojo turto ir registro išrašų, pažymų ir duomenų įkainiai: dokumentų kopijų parengimas, tvirtinimas ir pateikimas [interaktyvus]. Vilnius: VĮ Registrų centras [žiūrėta 2026-08-06]. Prieiga per internetą: https://www.registrucentras.lt/p/nt-israsu-pazymu-duomenu-ikainiai",
+    "GOOGLE. „Google Street View“ gatvės lygio vaizdas pagal objekto koordinates [interaktyvus]. Google Maps Platform. Rodoma tik interaktyvioje ataskaitos versijoje [žiūrėta 2026-08-06].",
+    "GOOGLE. „Google Maps“ palydovinis / hibridinis vaizdas pagal objekto koordinates [interaktyvus]. Google Maps Platform (vaizdai: Airbus, CNES / Airbus, Maxar Technologies ir kt.). Rodoma tik interaktyvioje ataskaitos versijoje [žiūrėta 2026-08-06].",
+    "Pastato kontūras — © OpenStreetMap contributors, ODbL. Duomenys iš „OpenStreetMap“ (per Overpass API) [žiūrėta 2026-08-06]. Prieiga per internetą: https://www.openstreetmap.org/copyright. Rodoma tik interaktyvioje ataskaitos versijoje."
   ],
   "address": "Vilnius, Žirmūnų g. 12-5",
   "ntr_unique_number": "4400-1234-5678",
@@ -900,7 +971,7 @@ export const MOCK_EXISTING: ReportData = {
   "lat": 54.7007624,
   "lng": 25.2993035,
   "bundle_items": [],
-  "generated_at": "2026-07-31T11:02:52.159113+00:00",
+  "generated_at": "2026-08-06T11:47:35.703693+00:00",
   "order_reference": "NTD-DEV-001",
   "block2": {
     "status": "ready",
@@ -908,8 +979,10 @@ export const MOCK_EXISTING: ReportData = {
     "metric": {
       "eur_month": 78,
       "eur_month_raw": 78.34,
+      "unit_lt": null,
       "subtext_lt": "Vidutinė mėnesinė energijos kaina pagal dabartinius tarifus (su PVM)"
     },
+    "per_m2_mode": null,
     "intro_lt": "Šiame bloke pateikiame, kiek šiame būste tikėtina mokėti už energiją kiekvieną mėnesį — šildymą, karštą vandenį ir buitinę elektrą, pritaikytą jūsų namų ūkio dydžiui — pagal dabartinius tarifus ir pastato energinius parametrus. Namų ūkio dydį galite pakeisti.",
     "breakdown": {
       "column_headers_lt": [
@@ -950,13 +1023,13 @@ export const MOCK_EXISTING: ReportData = {
     "carrier_label_lt": "centrinis šildymas",
     "newbuild_note_lt": null,
     "citations_lt": [
-      "VALSTYBINĖ ENERGETIKOS REGULIAVIMO TARYBA. AB „Miesto gijos“ centralizuotai tiekiamos šilumos kaina: paskutinis žinomas patvirtintas tarifas, galiojęs nuo 2026-05-01 iki 2026-05-31 [interaktyvus]. Vilnius: VERT [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.vert.lt",
-      "AB „Energijos skirstymo operatorius“ (ESO). Buitinės elektros energijos kaina: „Standartinis“ planas (be mėnesinio mokesčio), verslui — „Verslas“ planas; tarifus reguliuoja Valstybinė energetikos reguliavimo taryba (VERT) [interaktyvus]. Vilnius: ESO [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.eso.lt",
-      "LIETUVOS RESPUBLIKOS ŠILUMOS ŪKIO ĮSTATYMAS: 13 straipsnis „Šilumos tiekimo sezoniškumas“ (šildymo sezono nustatymo kriterijus pagal vidutinę paros oro temperatūrą; sezono datas skelbia savivaldybės) [interaktyvus]. Vilnius: LR Seimas [žiūrėta 2026-07-31]. Prieiga per internetą: https://e-seimas.lrs.lt. Sektoriaus kontekstas: LIETUVOS ŠILUMOS TIEKĖJŲ ASOCIACIJA (LŠTA), CŠT sektoriaus apžvalgos (https://www.lsta.lt/silumos-ukis/cst-sektoriaus-apzvalga/). Spalio–balandžio mėnesių langas yra NT Duomenų modeliavimo prielaida (vidaus metodikos sprendimas, 2026-07-23), atspindinti tipinį kriterijaus rezultatą.",
-      "LIETUVOS RESPUBLIKOS PRIDĖTINĖS VERTĖS MOKESČIO ĮSTATYMAS, 2002 m. kovo 5 d. Nr. IX-751 (aktuali redakcija): 19 straipsnis — standartinis 21 % PVM tarifas, nuo 2026 m. sausio 1 d. taikomas ir gyvenamosioms patalpoms tiekiamai šilumos energijai bei karštam vandeniui [interaktyvus]. Vilnius: LR Seimas [žiūrėta 2026-07-31]. Prieiga per internetą: https://e-seimas.lrs.lt",
-      "ONEBUILDING.ORG. Tipiniai meteorologiniai metai (TMYx 2011–2025), Lietuvos apskritys [interaktyvus, NOAA ISD pagrindu]. [žiūrėta 2026-07-31]. Prieiga per internetą: https://climate.onebuilding.org. Papildyta: EUROPOS KOMISIJA, Jungtinis tyrimų centras (JRC). PVGIS v5.3 (2005–2023). Mėnesinio energijos kainos kitimo profilis remiasi šildymo laipsnių dienomis (bazė 18 °C).",
-      "EUROSTAT. Suderinti vartotojų kainų indeksai (HICP), serija „HICP CP0455 — šilumos energija“, Lietuva: metinių pokyčių dešimties metų slankusis vidurkis [interaktyvus]. Liuksemburgas: Europos Sąjungos statistikos tarnyba [žiūrėta 2026-07-31]. Prieiga per internetą: https://ec.europa.eu/eurostat",
-      "EUROSTAT. Suderinti vartotojų kainų indeksai (HICP), serija „HICP CP00 — bendrasis indeksas“, Lietuva: dešimties metų vidurkis, 4,76%/m. — taikomas kaip minimali augimo riba [interaktyvus]. Liuksemburgas: Europos Sąjungos statistikos tarnyba [žiūrėta 2026-07-31]. Prieiga per internetą: https://ec.europa.eu/eurostat"
+      "VALSTYBINĖ ENERGETIKOS REGULIAVIMO TARYBA. AB „Miesto gijos“ centralizuotai tiekiamos šilumos kaina: paskutinis žinomas patvirtintas tarifas, galiojęs nuo 2026-05-01 iki 2026-05-31 [interaktyvus]. Vilnius: VERT [žiūrėta 2026-08-06]. Prieiga per internetą: https://www.vert.lt",
+      "AB „Energijos skirstymo operatorius“ (ESO). Buitinės elektros energijos kaina: „Standartinis“ planas (be mėnesinio mokesčio), verslui — „Verslas“ planas; tarifus reguliuoja Valstybinė energetikos reguliavimo taryba (VERT) [interaktyvus]. Vilnius: ESO [žiūrėta 2026-08-06]. Prieiga per internetą: https://www.eso.lt",
+      "LIETUVOS RESPUBLIKOS ŠILUMOS ŪKIO ĮSTATYMAS: 13 straipsnis „Šilumos tiekimo sezoniškumas“ (šildymo sezono nustatymo kriterijus pagal vidutinę paros oro temperatūrą; sezono datas skelbia savivaldybės) [interaktyvus]. Vilnius: LR Seimas [žiūrėta 2026-08-06]. Prieiga per internetą: https://e-seimas.lrs.lt. Sektoriaus kontekstas: LIETUVOS ŠILUMOS TIEKĖJŲ ASOCIACIJA (LŠTA), CŠT sektoriaus apžvalgos (https://www.lsta.lt/silumos-ukis/cst-sektoriaus-apzvalga/). Spalio–balandžio mėnesių langas yra NT Duomenų modeliavimo prielaida (vidaus metodikos sprendimas, 2026-07-23), atspindinti tipinį kriterijaus rezultatą.",
+      "LIETUVOS RESPUBLIKOS PRIDĖTINĖS VERTĖS MOKESČIO ĮSTATYMAS, 2002 m. kovo 5 d. Nr. IX-751 (aktuali redakcija): 19 straipsnis — standartinis 21 % PVM tarifas, nuo 2026 m. sausio 1 d. taikomas ir gyvenamosioms patalpoms tiekiamai šilumos energijai bei karštam vandeniui [interaktyvus]. Vilnius: LR Seimas [žiūrėta 2026-08-06]. Prieiga per internetą: https://e-seimas.lrs.lt",
+      "ONEBUILDING.ORG. Tipiniai meteorologiniai metai (TMYx 2011–2025), Lietuvos apskritys [interaktyvus, NOAA ISD pagrindu]. [žiūrėta 2026-08-06]. Prieiga per internetą: https://climate.onebuilding.org. Papildyta: EUROPOS KOMISIJA, Jungtinis tyrimų centras (JRC). PVGIS v5.3 (2005–2023). Mėnesinio energijos kainos kitimo profilis remiasi šildymo laipsnių dienomis (bazė 18 °C).",
+      "EUROSTAT. Suderinti vartotojų kainų indeksai (HICP), serija „HICP CP0455 — šilumos energija“, Lietuva: metinių pokyčių dešimties metų slankusis vidurkis [interaktyvus]. Liuksemburgas: Europos Sąjungos statistikos tarnyba [žiūrėta 2026-08-06]. Prieiga per internetą: https://ec.europa.eu/eurostat",
+      "EUROSTAT. Suderinti vartotojų kainų indeksai (HICP), serija „HICP CP00 — bendrasis indeksas“, Lietuva: dešimties metų vidurkis, 4,76%/m. — taikomas kaip minimali augimo riba [interaktyvus]. Liuksemburgas: Europos Sąjungos statistikos tarnyba [žiūrėta 2026-08-06]. Prieiga per internetą: https://ec.europa.eu/eurostat"
     ],
     "monthly_variation": [
       {
@@ -1118,6 +1191,15 @@ export const MOCK_EXISTING: ReportData = {
         }
       }
     ],
+    "monthly_chart_title_lt": "Mėnesinė energijos kaina per metus",
+    "monthly_chart_description_lt": "Mėnesinės energijos sąnaudos: vidutiniškai €78 per mėnesį, nuo €18 (Gegužė) iki €159 (Sausis)",
+    "forecast_chart_title_lt": "Prognozuojamas mėnesio energijos kainos kitimas (per 5 metus)",
+    "forecast_chart_description_lt": "Prognozuojama mėnesinė energijos kaina: nuo €78 (2026) iki €99 (2030)",
+    "household_table_headers_lt": {
+      "size": "Namų ūkio dydis",
+      "consumption": "Tipinis suvartojimas (kWh/mėn.)",
+      "cost": "~€ per mėnesį"
+    },
     "household_reference": [
       {
         "household_size": 1,
@@ -1161,9 +1243,9 @@ export const MOCK_EXISTING: ReportData = {
       "citation_lt": {
         "category_lt": "👥 Namų ūkio modeliavimas",
         "lines_lt": [
-          "EUROSTAT. Gyvenamųjų pastatų galutinis elektros energijos suvartojimas Lietuvoje (nrg_bal_c, 2023 m.), išskaidytas pagal namų ūkio dydį [interaktyvus]. Liuksemburgas: Europos Sąjungos statistikos tarnyba [žiūrėta 2026-07-31]. Prieiga per internetą: https://ec.europa.eu/eurostat. Namų ūkio dydžio struktūra — 2021 m. gyventojų ir būstų surašymas (Valstybės duomenų agentūra); išskaidymo metodika — DESTATIS (Vokietijos federalinė statistikos tarnyba).",
-          "VALSTYBĖS DUOMENŲ AGENTŪRA. 2021 m. gyventojų ir būstų surašymas: vidutinis namų ūkio dydis (2,29 asmens) ir vidutinis naudingasis plotas vienam gyventojui (35,5 m²) [interaktyvus]. Vilnius: Valstybės duomenų agentūra [žiūrėta 2026-07-31]. Prieiga per internetą: https://osp.stat.gov.lt. Tipinis gyventojų skaičius pagal buto plotą — NT Duomenų įvertis, išvestas iš šių surašymo suvestinių rodiklių (ne atskira surašymo lentelė).",
-          "MIKUČIONIENĖ, R., MOTUZIENĖ, V., DŽIUGAITĖ-TUMĖNIENĖ, R. 15 % ir 30 % energetiškai efektyviausių pastatų Lietuvoje nustatymo metodika. Vilnius: Vilniaus Gedimino technikos universitetas; užsakė Lietuvos bankų asociacija (ES taksonomijos 7.7 str. įgyvendinimui), 2023 (atnaujinta 2024) [žiūrėta 2026-07-31]. Prieiga per internetą: https://www.lba.lt. Priede pakartotos STR 2.01.02:2016 2 priedo 2.4 lentelės ψhw reikšmės (nepriklausomas patikrinimas)."
+          "EUROSTAT. Gyvenamųjų pastatų galutinis elektros energijos suvartojimas Lietuvoje (nrg_bal_c, 2023 m.), išskaidytas pagal namų ūkio dydį [interaktyvus]. Liuksemburgas: Europos Sąjungos statistikos tarnyba [žiūrėta 2026-08-06]. Prieiga per internetą: https://ec.europa.eu/eurostat. Namų ūkio dydžio struktūra — 2021 m. gyventojų ir būstų surašymas (Valstybės duomenų agentūra); išskaidymo metodika — DESTATIS (Vokietijos federalinė statistikos tarnyba).",
+          "VALSTYBĖS DUOMENŲ AGENTŪRA. 2021 m. gyventojų ir būstų surašymas: vidutinis namų ūkio dydis (2,29 asmens) ir vidutinis naudingasis plotas vienam gyventojui (35,5 m²) [interaktyvus]. Vilnius: Valstybės duomenų agentūra [žiūrėta 2026-08-06]. Prieiga per internetą: https://osp.stat.gov.lt. Tipinis gyventojų skaičius pagal buto plotą — NT Duomenų įvertis, išvestas iš šių surašymo suvestinių rodiklių (ne atskira surašymo lentelė).",
+          "MIKUČIONIENĖ, R., MOTUZIENĖ, V., DŽIUGAITĖ-TUMĖNIENĖ, R. 15 % ir 30 % energetiškai efektyviausių pastatų Lietuvoje nustatymo metodika. Vilnius: Vilniaus Gedimino technikos universitetas; užsakė Lietuvos bankų asociacija (ES taksonomijos 7.7 str. įgyvendinimui), 2023 (atnaujinta 2024) [žiūrėta 2026-08-06]. Prieiga per internetą: https://www.lba.lt. Priede pakartotos STR 2.01.02:2016 2 priedo 2.4 lentelės ψhw reikšmės (nepriklausomas patikrinimas)."
         ]
       },
       "options": [
@@ -2281,6 +2363,13 @@ export const MOCK_EXISTING: ReportData = {
       ]
     }
   },
+  "citations_title_lt": "Šaltiniai",
+  "documents_lt": {
+    "regia": "Žemės sklypų ribos, pastatų kontūrai ir adresai interaktyviame žemėlapyje.",
+    "infostatyba": "Statybos leidimai, projektiniai pasiūlymai ir statybos dokumentacija šiuo adresu.",
+    "tpdr": "Detalieji ir bendrieji planai, specialieji planai, žemėtvarkos projektai.",
+    "registru_centras": "Išsamūs registro duomenys: savininkai, suvaržymai, sandorių istorija ir kita teisinė informacija."
+  },
   "property_profile": {
     "purpose": "residential",
     "paskirtis_label_lt": null,
@@ -2301,6 +2390,7 @@ export const MOCK_EXISTING: ReportData = {
     "energy_class_provenance": "certificate",
     "energy_class_provenance_lt": null,
     "epc_kwhm2_year": 145.2,
+    "hero_source_caption_lt": null,
     "epc_source": "Pastatų energinio naudingumo sertifikatai",
     "epc_confidence": "Aukštas",
     "glazing_percent": null,
@@ -2315,6 +2405,9 @@ export const MOCK_EXISTING: ReportData = {
       "level": "WEAK",
       "not_assessed_reason": null,
       "provenance_label_key": null,
+      "title_lt": "Žiemos komfortas",
+      "not_assessed_message_lt": null,
+      "provenance_message_lt": null,
       "rows": [
         {
           "band": "WEAK",
@@ -2380,6 +2473,7 @@ export const MOCK_EXISTING: ReportData = {
         "direction": "increase"
       }
     ],
+    "winter_factors_title_lt": "Žiemos komforto veiksniai",
     "info_box": {
       "items_lt": [
         "Vertinimas remiasi Pastatų energinio naudingumo sertifikatų duomenimis ir standartinėmis prielaidomis panašiems būstams.",
@@ -2388,6 +2482,8 @@ export const MOCK_EXISTING: ReportData = {
         "Šaltiniai: [2], [3], [8], [9]"
       ]
     },
+    "upload_not_used_message_lt": null,
+    "secondary_certificate": null,
     "inputs_snapshot": {
       "effective_energy_class": "D",
       "effective_epc_kwhm2_year": 145.2,

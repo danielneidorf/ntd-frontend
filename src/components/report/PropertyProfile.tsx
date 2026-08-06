@@ -384,6 +384,12 @@ export default function PropertyProfile({
       label: 'Energijos sąnaudos',
       raw: profile.epc_kwhm2_year,
       format: (v: number) => `${v} kWh/m² per metus`,
+      // №17/№18/№39 — WHICH ROAD this figure came by (the register's record,
+      // the customer's own data, or both), served from the backend's one
+      // origin. Distinct from the „Duomenų šaltinis" row below, which answers
+      // WHICH SOURCE CLASS. Served null on roads no ruling covers, and the
+      // null filter then keeps the sub-line absent rather than blank.
+      helper: profile.hero_source_caption_lt,
     },
     { label: 'Duomenų šaltinis', raw: profile.epc_source },
     // „Duomenų patikimumas" REMOVED (2026-07-22). It rendered a bare grade
