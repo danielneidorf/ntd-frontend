@@ -11,6 +11,7 @@ import { DEV_MOCK_PERMITS } from './report/mockReportData';
 import { Block8Section } from './report/Block8Section';
 import { Block2Section } from './report/Block2Section';
 import PropertyPhoto from './report/PropertyPhoto';
+import UploadNotUsedNotice from './report/UploadNotUsedNotice';
 import { buildPdfUrl } from './report/pdfUrl';
 import ComfortBarComponent, {
   WINTER_LEVELS,
@@ -636,6 +637,11 @@ export default function ReportViewer() {
                   Šiame bloke apžvelgiame, kiek lengva šiame būste palaikyti komfortišką temperatūrą
                   žiemą ir kokia yra perkaitimo rizika vasarą.
                 </p>
+                {/* G2 Piece 1: the certificate sentence, served and rendered on
+                    BOTH surfaces from one origin. Above the bars, as in print —
+                    it explains what the assessment below is built from. Silent
+                    when no upload needed explaining. */}
+                <UploadNotUsedNotice message={block1.upload_not_used_message_lt} />
                 {block1.winter && block1.summer && (
                   <WinterSummerBars
                     winter={block1.winter}
