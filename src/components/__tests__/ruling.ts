@@ -18,14 +18,10 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
-// RENAME STEP 1 (G3 Piece 0): prefer the new name, accept the old. The rename
-// crosses the repo boundary — this path is relative into the sibling backend —
-// so the two repos cannot move in one commit. The fallback is what lets each
-// side land green on its own. Removed at step 3.
-const RENAMED = resolve(HERE, '../../../../bustodnr/docs/tasks/Recalc_gate_ruled.md');
-export const RULING = existsSync(RENAMED)
-  ? RENAMED
-  : resolve(HERE, '../../../../bustodnr/docs/tasks/Recalc_gate_ruled_34.md');
+export const RULING = resolve(
+  HERE,
+  '../../../../bustodnr/docs/tasks/Recalc_gate_ruled.md',
+);
 
 /** The copy-parity gate's eighteen (a separate sitting, its own numbering). */
 export const RULING_18 = resolve(
