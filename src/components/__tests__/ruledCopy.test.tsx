@@ -46,8 +46,13 @@ describe('the browser speaks only ruled words', () => {
 
   it('parses the whole contract, and not the prose around it', () => {
     const ruled = parseRuling(readFileSync(RULING, 'utf8'));
+    // 42 since the G2 sitting (2026-08-07) added №40 `unsupported_format`,
+    // №41 `ambiguous_match` (generalized) and №42 `other` — the last report
+    // reasons whose customer copy no sitting had ruled. This count is the
+    // ledger pin: it is meant to fail when the document grows, so the growth
+    // is deliberate and noticed rather than absorbed.
     expect([...ruled.keys()].sort((a, b) => a - b)).toEqual(
-      Array.from({ length: 39 }, (_, i) => i + 1),
+      Array.from({ length: 42 }, (_, i) => i + 1),
     );
     // The disposition note quotes a sentence that is deliberately NOT ruled.
     for (const value of ruled.values()) {

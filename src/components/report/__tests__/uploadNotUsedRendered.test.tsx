@@ -61,13 +61,14 @@ function servedWith(message: string | null) {
 
 // ── A · the ruled sentences reach the customer ──────────────────────────────
 //
-// Six of the nine reasons that carry copy are ruled today. The remaining three
-// — `unsupported_format`, `ambiguous_match`, `other` — carry customer-facing
-// Lithuanian that this arc makes web-reachable and that no sitting has ruled;
-// they were delivered verbatim to the pen on 2026-08-06 (Amendment B) and JOIN
-// THE LIST BELOW once their addenda land in the gate document. They are not
-// asserted against the backend constant in the meantime: a test whose expected
-// value is the source under test proves only that the source equals itself.
+// ALL NINE reasons that carry copy, every one asserted through the ruling
+// loader. The last three — №40 `unsupported_format`, №41 `ambiguous_match`,
+// №42 `other` — were unruled when this arc began; G2 Piece 1 made them
+// web-reachable, so they went to the pen first (Amendment B) and were ruled at
+// the 2026-08-07 sitting. №41 landed GENERALIZED: its build wording named one
+// mechanism the code can contradict, and the backend copy changed with the
+// ruling. Nothing here asserts a sentence against the backend constant — that
+// would prove only that the source equals itself.
 
 describe('the served certificate sentence renders on the web report', () => {
   it.each([
@@ -77,6 +78,9 @@ describe('the served certificate sentence renders on the web report', () => {
     [12, 'too_old — older than ten years, shown as historical'],
     [13, 'merged_with_register — CREDITS the upload, not a refusal'],
     [38, 'overridden_by_better_official — CREDITS the upload, not a refusal'],
+    [40, 'unsupported_format — the file is not a certificate'],
+    [41, 'ambiguous_match — could not be tied to this property (generalized)'],
+    [42, 'other — the catch-all'],
   ])('★ renders №%i — %s', async (number) => {
     const expected = ruled(number as number);
     await renderReport(servedWith(expected));
@@ -106,6 +110,18 @@ describe('the block stays silent when the certificate was used', () => {
 });
 
 // ── C · the sentence is rendered verbatim, never composed ───────────────────
+
+describe('№41 does not tell the customer something the document contradicts', () => {
+  it('★ the retired single-mechanism claim never reaches the page', async () => {
+    await renderReport(servedWith(ruled(41)));
+
+    // The build's wording said the certificate states no unique object number.
+    // A certificate that prints two buildings unlabelled lands on this same
+    // reason, and for that customer the claim is simply false — which is why
+    // the sitting ruled the generalized form and the backend copy changed.
+    expect(document.body.textContent).not.toContain('nenurodytas unikalus');
+  });
+});
 
 describe('the web authors none of this Lithuanian', () => {
   it('★ renders the served string EXACTLY — no prefix, suffix, or rewording', async () => {
