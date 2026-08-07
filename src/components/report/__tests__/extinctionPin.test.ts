@@ -67,6 +67,19 @@ const SCANNED = [
   'PropertyProfile.tsx',
   'InfoSection.tsx',
   'Block8Section.tsx',
+  // ── Widened by G3 Piece 0b (2026-08-07). These five were report-surface
+  //    components the rule always bound and the scan never looked at, so four
+  //    of them authored Lithuanian the pin has never reported. The decisive
+  //    one is `SecondaryCertificate.tsx`: it entered the repo in G2, LAST
+  //    SESSION, under full discipline — which proves the blind area is not a
+  //    static backlog but one that accumulates precisely when we build. A
+  //    closing allowlist count measured by a partial instrument is the
+  //    convenient marker this whole regime exists to distrust.
+  'ConstructionPermits.tsx',
+  'PropertyMap.tsx',
+  'PropertyPhoto.tsx',
+  'SecondaryCertificate.tsx',
+  'UploadNotUsedNotice.tsx',
 ];
 
 /**
@@ -290,6 +303,70 @@ const ALLOWLIST: { text: string; reason: string }[] = [
       'Owner-access link label. Web-only panel (print has no owner section at '
       + 'all), so nothing to diverge from yet. → ruling owed.',
   },
+
+  // ── SURFACED BY G3 PIECE 0B (2026-08-07), when the scan was widened to the
+  //    five report components it had never opened AND the JSX matcher was
+  //    taught to see text interrupted by an inline expression. Every entry
+  //    below is ALREADY RULED — none is new Lithuanian — and each retires in
+  //    the wave named. They sit here so this piece lands green while the
+  //    findings stay loud, per the no-red-commit rule.
+  {
+    text: 'Užsakyti perskaičiavimo nepavyko. Bandykite dar kartą — jei nepavyks, parašykite mums adresu ntd@ntd.lt.',
+    reason:
+      'RULED №35 — AND THE BACKEND SERVES NO TWIN. Found only when the matcher '
+      + 'learned to read text interrupted by `{…}`: a stripped JSX comment left '
+      + 'empty braces mid-paragraph, so the old arm needed a `<` it never saw. '
+      + 'Ruled copy rendering from the wrong place, in a component that was '
+      + 'always in scope. Print has no counterpart — it is the recalc button\'s '
+      + 'mint-failure, an interactive state — so nothing diverges today, which '
+      + 'is exactly why it stayed invisible. → DISPOSITION OWED (serve it, or '
+      + 'record it as web-only interactive copy with the journey-copy family).',
+  },
+  {
+    text: 'Šaltinis: Infostatyba (IS) / data.gov.lt',
+    reason: 'Ruled №97. Retires when Wave B/D serves it with its component.',
+  },
+  {
+    text: 'Pastato kontūras: ©',
+    reason:
+      'Ruled №98 (two sites: `PropertyMap.tsx:209`, `:237`). Wave B/D verifies '
+      + 'whether print shares the map surface — served where shared, recorded '
+      + 'exception where web-only — and checks the full rendered attribution '
+      + 'after the „©" against the data source\'s attribution requirement.',
+  },
+  {
+    text: 'Uždaryti',
+    reason:
+      'Ruled №99, recorded interactive-chrome exception (Amendment 2): a map '
+      + 'overlay control print has no equivalent of. Retires only if the control '
+      + 'itself goes.',
+  },
+  {
+    text: 'Gatvės vaizdas: ${address}',
+    reason:
+      'Ruled №100, recorded composed exception of №84–85\'s species — an alt '
+      + 'attribute built around the served address. Stays composed; the wording '
+      + 'around the value is what the ruling fixes.',
+  },
+  {
+    text: 'Apžiūrėti Google Street View aplinkoje ↗',
+    reason:
+      'Ruled №101. Wave B/D; the Google product name stays verbatim per the '
+      + 'sitting.',
+  },
+  {
+    text: 'Gatvės vaizdas · Google Street View',
+    reason: 'Ruled №102. Wave B/D, same disposition as №101.',
+  },
+  {
+    text: '— ${energy_class} klasė',
+    reason:
+      'The web half of №103. Print composes the identical phrase server-side '
+      + '(`report_pdf.html:434`), so both surfaces compose it symmetrically — '
+      + 'which is why no parity test caught it. Wave S serves the whole '
+      + 'description line from one origin and BOTH compositions retire; G2\'s '
+      + 'fragment assertions are rewritten to the served path, not deleted.',
+  },
 ];
 
 /** Lithuanian-specific letters — the cheapest unambiguous signal. */
@@ -339,6 +416,39 @@ function renderedStrings(source: string): string[] {
   for (const match of stripped.matchAll(/>([^<>{}]{3,})</g)) {
     found.push(match[1].replace(/\s+/g, ' '));
   }
+  // TEXT THAT ENDS AT AN INLINE EXPRESSION, and text that resumes after one
+  // (widened by G3 Piece 0b, 2026-08-07). The matcher above needs a closing
+  // `<`, so JSX text interrupted by `{…}` was invisible — and
+  //
+  //     <p …>
+  //       Pastato kontūras: ©{' '}
+  //       <a …>OpenStreetMap</a>
+  //
+  // walked through, in a component the scan had never opened anyway. Same
+  // species as the `+`-concatenation gap documented above: a rendered string
+  // the matcher cannot reassemble. Per this file's doctrine the answer is a
+  // better signal, not another allowlist row.
+  //
+  // THE CHARACTER CLASS STAYS BRACE-FREE ON PURPOSE. Allowing braces here so
+  // the whole child region could be captured and its expressions stripped was
+  // tried first and swallowed multi-line code blobs whole — a `>` from an
+  // arrow function running to the next tag — which is the same trap the
+  // backtick arm fell into above. Stopping at the brace is what keeps these
+  // two arms to actual prose.
+  // `;` and `=` are the discriminator: neither appears in rendered report prose,
+  // and both appear in every code region these two arms can otherwise reach —
+  // e.g. a `}` running to the `<` of a generic like `Record<string, …>`. Without
+  // it the arms report whole statements as "copy", which is noise that trains
+  // the reader to skim the one real violation.
+  const isProse = (text: string) => !/[;=]/.test(text);
+  for (const match of stripped.matchAll(/>([^<>{}]{3,})\{/g)) {
+    const text = match[1].replace(/\s+/g, ' ');
+    if (isProse(text)) found.push(text);
+  }
+  for (const match of stripped.matchAll(/\}([^<>{}]{3,})</g)) {
+    const text = match[1].replace(/\s+/g, ' ');
+    if (isProse(text)) found.push(text);
+  }
 
   return found.map((s) => s.trim()).filter(Boolean);
 }
@@ -387,6 +497,36 @@ describe('the report components author no Lithuanian', () => {
       .filter((text) => !allowed.has(text));
 
     expect(violations).toEqual(['Žiemos komforto įvertinti nepavyko']);
+  });
+
+  it('★ JSX text interrupted by an expression is caught — the G3 Piece-0b arm', () => {
+    // The gap this closed: text that ends at `{…}` instead of at a closing tag.
+    // Both shapes are real and both were invisible — the first is how
+    // `Pastato kontūras: ©{' '}` walked through, the second is how a stripped
+    // JSX comment left empty braces mid-paragraph and hid the ruled №35 line.
+    // Deliberately NOT real strings: the allowlist filter would remove those,
+    // and this test is about the matcher's reach, not the exemptions.
+    const beforeAnExpression = "<p>Šilumos punkto būklė:{' '}<a>x</a></p>";
+    const afterAnExpression = '<p>{/* note */}Duomenų šiam pastatui nepakanka.</p>';
+
+    for (const source of [beforeAnExpression, afterAnExpression]) {
+      const violations = renderedStrings(source)
+        .filter((text) => LT_LETTERS.test(text))
+        .filter((text) => !allowed.has(text));
+      expect(violations.length, `nothing caught in: ${source}`).toBeGreaterThan(0);
+    }
+  });
+
+  it('★ the widened arms report prose, not code', () => {
+    // Allowing these arms to cross braces was tried and swallowed whole
+    // statements — a `}` running to the `<` of a generic like `Record<…>`. The
+    // `;`/`=` discriminator is what keeps them to rendered text; without it the
+    // real violation drowns in noise.
+    const code = 'const AVERAGE_LABEL_LT = \'x\'; export function f(): Record<string, number> {}';
+
+    expect(renderedStrings(code)).not.toContain(
+      '; export function f(): Record',
+    );
   });
 
   it('★ a documented history is not a violation — comments are stripped', () => {
