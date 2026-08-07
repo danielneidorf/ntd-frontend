@@ -12,6 +12,7 @@ import { Block8Section } from './report/Block8Section';
 import { Block2Section } from './report/Block2Section';
 import PropertyPhoto from './report/PropertyPhoto';
 import UploadNotUsedNotice from './report/UploadNotUsedNotice';
+import SecondaryCertificate from './report/SecondaryCertificate';
 import { buildPdfUrl } from './report/pdfUrl';
 import ComfortBarComponent, {
   WINTER_LEVELS,
@@ -642,6 +643,11 @@ export default function ReportViewer() {
                     it explains what the assessment below is built from. Silent
                     when no upload needed explaining. */}
                 <UploadNotUsedNotice message={block1.upload_not_used_message_lt} />
+                {/* G2 Piece 2: the other certificate, listed rather than
+                    discarded (annexe §6.7). Print's order is refusal box, then
+                    this, then the bars — the web follows it. Silent in the
+                    ordinary one-certificate case and in the merge case. */}
+                <SecondaryCertificate certificate={block1.secondary_certificate} />
                 {block1.winter && block1.summer && (
                   <WinterSummerBars
                     winter={block1.winter}

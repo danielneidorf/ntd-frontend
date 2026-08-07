@@ -305,11 +305,16 @@ export interface ReportData {
     // `__tests__/uploadNotUsedRendered.test.tsx`). One backend origin,
     // `report_pdf.html:421` and the web component both reading it.
     upload_not_used_message_lt?: string | null;
-    // ⚠ STILL SERVED AND RENDERED BY PRINT ONLY — the surviving half of the
-    // divergence found 2026-08-06. The backend serves it and
-    // `report_pdf.html:430` renders it; nothing in `src/` reads it, so the
-    // historical-certificate listing reaches a customer who opens the PDF and
-    // no one else. G2 Piece 2 closes this; it is gated behind Piece 1's green.
+    // The other certificate for this property (annexe §6.7). Print-only until
+    // 2026-08-07; the web now renders it too (G2 Piece 2 —
+    // `SecondaryCertificate`, mounted in `ReportViewer` after the certificate
+    // sentence, guarded by `__tests__/secondaryCertificateRendered.test.tsx`).
+    // The web ships WITHOUT print's „Kitas šio objekto sertifikatas" heading
+    // (R-G2-1): the backend does not serve that string and no sitting has ruled
+    // it, so print keeps it and it is ledgered as a G3 candidate. This closes
+    // the divergence found 2026-08-06 — both families now reach both surfaces.
+    // Declared as the four keys both surfaces render; the wire carries three
+    // more (`source`, `issued`, `cert_nr`) that neither displays.
     secondary_certificate?: {
       label_lt: string;
       energy_class?: string | null;
