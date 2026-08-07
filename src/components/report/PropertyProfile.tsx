@@ -1,6 +1,7 @@
 // P7-A1.1 / P7-A3.1 / P7-A7: Property Profile — separate cards per group, with map
 import { Fragment } from 'react';
 import type { ReportData } from './mockReportData';
+import { isLandOnly } from '../../utils/evaluationTarget';
 // PropertyMap moved to ReportViewer for data-guide separation
 
 type Profile = ReportData['property_profile'];
@@ -280,7 +281,7 @@ export default function PropertyProfile({
    */
   betweenSections?: React.ReactNode;
 }) {
-  const isLand = profile.evaluation_target === 'Žemės sklypas';
+  const isLand = isLandOnly(profile.evaluation_target);
 
   // Land-only: no building or energy cards — bundle is in the header
   if (isLand) return null;

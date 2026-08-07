@@ -14,6 +14,7 @@ import PropertyPhoto from './report/PropertyPhoto';
 import UploadNotUsedNotice from './report/UploadNotUsedNotice';
 import SecondaryCertificate from './report/SecondaryCertificate';
 import { buildPdfUrl } from './report/pdfUrl';
+import { isLandOnly, evaluationTargetLabel } from '../utils/evaluationTarget';
 import ComfortBarComponent, {
   WINTER_LEVELS,
   SUMMER_LEVELS,
@@ -83,6 +84,12 @@ function PropertyIdentity({ data }: { data: ReportData }) {
     (b) => b.kind !== 'unit_in_building' && b.kind !== 'whole_building' && b.kind !== 'land_plot'
   );
   const profile = data.property_profile;
+  // Served wording first; the raw field only while it still carries the phrase
+  // (removed at step 3). Null → the line does not render at all.
+  const evalLabel = evaluationTargetLabel(
+    profile.evaluation_target_lt,
+    profile.evaluation_target,
+  );
 
   return (
     <div>
@@ -96,8 +103,15 @@ function PropertyIdentity({ data }: { data: ReportData }) {
         </p>
       </div>
       <div className="mt-2 text-sm text-slate-500">
-        <span>Vertinimo tipas: </span>
-        <span className="font-medium text-slate-700">{profile.evaluation_target}</span>
+        {/* G3 Piece 0c: the wording is SERVED; the raw field is the contract
+            value. Absence renders no line rather than a wrong one — a bare
+            „land_only" is not customer copy. */}
+        {evalLabel && (
+          <>
+            <span>Vertinimo tipas: </span>
+            <span className="font-medium text-slate-700" data-evaluation-target>{evalLabel}</span>
+          </>
+        )}
         {extras.length > 0 && (
           <>
             <span className="mx-2 text-slate-300">·</span>
@@ -480,7 +494,7 @@ export default function ReportViewer() {
 
   // Async enrichment: fetch permits after report data is loaded
   useEffect(() => {
-    if (!data || data.property_profile.evaluation_target === 'Žemės sklypas') return;
+    if (!data || isLandOnly(data.property_profile.evaluation_target)) return;
     // Skip for dev mocks (handled above)
     const segments = window.location.pathname.split('/report/');
     const token = segments[1]?.replace(/\/$/, '');
@@ -592,7 +606,7 @@ export default function ReportViewer() {
           <PropertyIdentity data={data} />
         </div>
 
-        {hasCoords && data.property_profile.evaluation_target !== 'Žemės sklypas' && (
+        {hasCoords && !isLandOnly(data.property_profile.evaluation_target) && (
           <PropertyMap lat={data.lat!} lng={data.lng!} address={data.address} />
         )}
 
@@ -611,7 +625,7 @@ export default function ReportViewer() {
         />
 
         {/* Standalone map for land-only (PropertyProfile returns null) */}
-        {hasCoords && data.property_profile.evaluation_target === 'Žemės sklypas' && (
+        {hasCoords && isLandOnly(data.property_profile.evaluation_target) && (
           <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
             <h2 className="text-2xl font-semibold text-[#1E3A5F] mb-4">Sklypo vieta</h2>
             <PropertyMap lat={data.lat!} lng={data.lng!} address={data.address} />

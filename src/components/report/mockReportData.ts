@@ -375,6 +375,12 @@ export interface ReportData {
     glazing_source: string | null;
     cadastral_ref: string | null;
     evaluation_target: string;
+    // G3 Piece 0c: the customer-facing wording, served from one origin that
+    // both surfaces read. `evaluation_target` above is the CONTRACT VALUE —
+    // the page branches on it and must never branch on wording, which is how
+    // a re-worded label could have silently changed a customer's layout.
+    // Optional while the migration lands; no label means no line rendered.
+    evaluation_target_lt?: string | null;
   };
 }
 

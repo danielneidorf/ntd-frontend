@@ -253,8 +253,16 @@ const ALLOWLIST: { text: string; reason: string }[] = [
 
   // ── Property-card row labels. The PDF prints its own set, and they are not
   //    all identical — the card and the print table have drifted before.
+  //
+  //    „Žemės sklypas" WAS LISTED HERE AND IS GONE (G3 Piece 0c, 2026-08-07).
+  //    The pack inherited its "row label" description from this very list, but
+  //    the tree said otherwise: it was never rendered as a label anywhere — every
+  //    report-surface occurrence was an equality check against the evaluation
+  //    target. A display string doing an identifier's job. It is withdrawn from
+  //    the copy ledger (№55, documented gap) and now lives as a named, dated
+  //    migration constant in `utils/evaluationTarget.ts`, which step 3 deletes.
+  //    The staleness guard below is what forced this row out — exactly its job.
   ...[
-    'Žemės sklypas',
     'Šildomas plotas',
     'Naudojimo grupė',
     'Aukštų skaičius',
