@@ -8,13 +8,13 @@
  * string was doing an identifier's job, and re-wording it would silently have
  * changed which layout a customer got.
  *
- * G3 Piece 0c moves the wire to the code and serves the wording separately.
+ * G3 Piece 0c moved the wire to the code and serves the wording separately.
  * These helpers are the single place that knows the difference, so the four
  * comparison sites and the one display site cannot drift apart again.
  *
- * The legacy phrase is accepted DURING the migration only — the backend still
- * sends it until step 2 lands, and this tolerance is removed at step 3. It is
- * named and dated rather than left as a quiet `||`.
+ * The migration's legacy-phrase tolerance was removed at step 3, once the
+ * backend served the contract value on every road. Nothing here accepts a
+ * display string as an identifier any more.
  */
 
 export type EvaluationTargetCode =
@@ -22,17 +22,6 @@ export type EvaluationTargetCode =
   | 'new_build_project'
   | 'land_only';
 
-/**
- * The exact wordings the serve boundary produces TODAY, and the only raw values
- * the display will fall back to. Removed at Piece 0c step 3.
- *
- * An allowlist rather than "anything that isn't a contract code": the fallback
- * exists to carry two known strings through the migration, not to render
- * whatever arrives. Without this, an unrecognised value would print itself to
- * the customer — which is the falsehood the no-line rule forbids.
- */
-const LEGACY_LAND_PHRASE = 'Žemės sklypas';
-const LEGACY_PHRASES: readonly string[] = [LEGACY_LAND_PHRASE, 'Esamas pastatas'];
 
 /**
  * Is this a land-only report?
@@ -41,25 +30,20 @@ const LEGACY_PHRASES: readonly string[] = [LEGACY_LAND_PHRASE, 'Esamas pastatas'
  * three-value contract has no "everything else" bucket.
  */
 export function isLandOnly(target: string | null | undefined): boolean {
-  return target === 'land_only' || target === LEGACY_LAND_PHRASE;
+  return target === 'land_only';
 }
 
 /**
- * What the customer reads for „Vertinimo tipas".
+ * What the customer reads for „Vertinimo tipas" — served, or nothing.
  *
- * Prefers the served label; falls back to the raw field while the backend still
- * sends the phrase there. Returns null when neither is usable — and the caller
- * renders NO LINE rather than a wrong one, which is the report's established
- * pattern for an unrecognised value (see the hero source-line template).
+ * There is deliberately no fallback. The backend serves exactly three wordings
+ * for exactly three contract values, and an unrecognised value yields none — so
+ * the caller renders NO LINE rather than a wrong one, which is the report's
+ * established pattern (see the hero source-line template's own note). A contract
+ * value is never shown: „land_only" is not customer copy.
  */
 export function evaluationTargetLabel(
   servedLabel: string | null | undefined,
-  rawTarget: string | null | undefined,
 ): string | null {
-  if (servedLabel) return servedLabel;
-  // Step-1 tolerance: the raw field still carries one of two known phrases
-  // until step 2 lands. A bare contract code is never shown („land_only" is not
-  // customer copy), and neither is anything unrecognised.
-  if (rawTarget && LEGACY_PHRASES.includes(rawTarget)) return rawTarget;
-  return null;
+  return servedLabel || null;
 }

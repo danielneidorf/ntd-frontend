@@ -11,6 +11,11 @@ interface ReportTourData {
   hasPermits: boolean;
   permitCount: number;
   isLandOnly: boolean;
+  // G3 Piece 0c: the SERVED evaluation type — the contract code the page
+  // branches on, and the ruled wording the customer reads. The guide speaks
+  // the wording and decides on the code; it infers neither.
+  evaluationTargetCode: string | null;
+  evaluationTargetLabel: string | null;
   // B8-3: Block 8 (recommendations) DOM-scraped content
   block8Intro: string | null;
   block8ViewingQuestions: string[];
@@ -96,8 +101,22 @@ export function extractReportData(): ReportTourData {
   const permitItems = permitsSection?.querySelectorAll('[class*="border-l-2"]') ?? [];
   const hasPermits = permitItems.length > 0;
 
-  // Land-only
-  const isLandOnly = !document.querySelector('[data-guide="climate-assessment"]');
+  // G3 Piece 0c — THE INFERENCE IS DEAD. This used to read
+  //     !document.querySelector('[data-guide="climate-assessment"]')
+  // and conclude "land plot" from a MISSING ELEMENT. Two things were wrong with
+  // that: the block is also absent when Block 1 is not applicable for other
+  // reasons, and any future render failure would have had the guide confidently
+  // telling a customer they bought a plot. A conclusion may not rest on an
+  // absence. It now reads the contract value the page serves.
+  //
+  // querySelector survives elsewhere in this file as a SCROLL GUARD — do not
+  // navigate to a block that is not there — which is a different job entirely.
+  const identity = document.querySelector('[data-guide="property-identity"]');
+  const evaluationTargetCode =
+    identity?.getAttribute('data-evaluation-target-code') || null;
+  const evaluationTargetLabel =
+    document.querySelector('[data-evaluation-target]')?.textContent?.trim() || null;
+  const isLandOnly = evaluationTargetCode === 'land_only';
 
   // B8-3: Block 8 — Recommendations (status="ready" only; absent in land-only mocks)
   const block8Section = document.querySelector('[data-guide="block8"]');
@@ -195,6 +214,8 @@ export function extractReportData(): ReportTourData {
     hasPermits,
     permitCount: permitItems.length,
     isLandOnly,
+    evaluationTargetCode,
+    evaluationTargetLabel,
     block8Intro,
     block8ViewingQuestions,
     block8NegotiationAngles,

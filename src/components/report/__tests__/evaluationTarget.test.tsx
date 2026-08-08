@@ -1,17 +1,21 @@
 /**
- * G3 Piece 0c step 1 — THE CONNECTION TEST for the evaluation type.
+ * G3 Piece 0c — THE CONNECTION TEST for the evaluation type, browser side.
  *
- * THE SEAM: served payload → real `ReportViewer` → DOM, across the migration.
- * The page used to branch on a DISPLAY STRING — „Žemės sklypas" — so a re-worded
- * label would silently have changed which layout a customer got. It now branches
- * on the contract value and renders a SERVED label, and this file proves both
- * wire shapes work while the backend catches up.
+ * THE SEAM: served payload → real `ReportViewer` → DOM. The page used to branch
+ * on a DISPLAY STRING — „Žemės sklypas" — so re-wording a label would silently
+ * have changed which layout a customer received. It branches on the contract
+ * value now and renders a SERVED wording, and the two are kept apart here.
  *
- * THE DEFECT THIS CLOSES, asserted directly below: the serve boundary
- * manufactures only two wordings (land, or *everything else* → „Esamas
- * pastatas"), so a new-build customer reads the wrong type on the primary
- * surface while print says the right one. Step 2 makes the backend serve all
- * three; this file is what fails if it ever collapses them again.
+ * THE DEFECT THIS CLOSED: the serve boundary manufactured only two wordings —
+ * land, or *everything else* → „Esamas pastatas" — so a new-build customer read
+ * the wrong type on the primary surface while print said the right one. The
+ * backend serves all three as of step 2; this file is what reddens if they are
+ * ever collapsed again.
+ *
+ * The step-1 migration tolerance (accepting the legacy phrase as an identifier,
+ * falling back to the raw field for display) was REMOVED at step 3, and the
+ * assertions that covered it were flipped rather than deleted — they now pin
+ * that the tolerance is gone.
  */
 import { render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -50,8 +54,11 @@ describe('the land branch keys on the contract value', () => {
     expect(isLandOnly('land_only')).toBe(true);
   });
 
-  it('★ still recognises the legacy phrase — step 1 tolerance, gone at step 3', () => {
-    expect(isLandOnly('Žemės sklypas')).toBe(true);
+  it('★ the legacy phrase is NO LONGER an identifier — step 3 removed the tolerance', () => {
+    // Step 1 accepted it while the backend still sent it. Step 2 moved the wire
+    // to the contract value, so this string is now display copy and nothing
+    // else — and a display string must never decide a layout again.
+    expect(isLandOnly('Žemės sklypas')).toBe(false);
   });
 
   it('★ a NEW BUILD is not land — the three-value contract has no else-bucket', () => {
@@ -77,9 +84,12 @@ describe('the rendered „Vertinimo tipas" line', () => {
     expect(document.body.textContent).not.toContain('Vertinimo tipas: Esamas pastatas');
   });
 
-  it('★ falls back to the raw field while it still carries the phrase', async () => {
+  it('★ NO fallback: a wording with no served label renders no line at all', async () => {
+    // The step-1 fallback is gone with the migration it existed for. If the
+    // label is missing the customer is told nothing, rather than being shown
+    // whatever happened to be in the contract field.
     const el = await renderWith('Žemės sklypas', null);
-    expect(el?.textContent).toBe('Žemės sklypas');
+    expect(el).toBeNull();
   });
 
   it('★ renders NO LINE for a bare contract code — „land_only" is not copy', async () => {
@@ -98,9 +108,10 @@ describe('the rendered „Vertinimo tipas" line', () => {
 // ── the helper's own contract, so the component tests above cannot drift ────
 
 describe('evaluationTargetLabel', () => {
-  it('★ never shows a contract code, with or without a label', () => {
-    expect(evaluationTargetLabel(null, 'land_only')).toBeNull();
-    expect(evaluationTargetLabel(null, 'new_build_project')).toBeNull();
-    expect(evaluationTargetLabel('Žemės sklypas', 'land_only')).toBe('Žemės sklypas');
+  it('★ served or nothing — never a contract code, never a guess', () => {
+    expect(evaluationTargetLabel(null)).toBeNull();
+    expect(evaluationTargetLabel(undefined)).toBeNull();
+    expect(evaluationTargetLabel('')).toBeNull();
+    expect(evaluationTargetLabel('Žemės sklypas')).toBe('Žemės sklypas');
   });
 });

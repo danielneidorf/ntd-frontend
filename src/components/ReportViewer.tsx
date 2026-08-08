@@ -84,12 +84,8 @@ function PropertyIdentity({ data }: { data: ReportData }) {
     (b) => b.kind !== 'unit_in_building' && b.kind !== 'whole_building' && b.kind !== 'land_plot'
   );
   const profile = data.property_profile;
-  // Served wording first; the raw field only while it still carries the phrase
-  // (removed at step 3). Null → the line does not render at all.
-  const evalLabel = evaluationTargetLabel(
-    profile.evaluation_target_lt,
-    profile.evaluation_target,
-  );
+  // The wording is served or the line does not render at all.
+  const evalLabel = evaluationTargetLabel(profile.evaluation_target_lt);
 
   return (
     <div>
@@ -602,7 +598,11 @@ export default function ReportViewer() {
           </div>
         )}
 
-        <div data-guide="property-identity">
+        {/* G3 Piece 0c: the CONTRACT VALUE in the DOM, so the guide can read
+            the type instead of inferring it from a missing block. The
+            wording is rendered separately below — this attribute is never
+            copy, so no ruled string travels through it. */}
+        <div data-guide="property-identity" data-evaluation-target-code={data.property_profile.evaluation_target}>
           <PropertyIdentity data={data} />
         </div>
 

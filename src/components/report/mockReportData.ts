@@ -2428,7 +2428,8 @@ export const MOCK_EXISTING: ReportData = {
     "glazing_percent": null,
     "glazing_source": null,
     "cadastral_ref": "4400-1234-5678",
-    "evaluation_target": "Esamas pastatas"
+    "evaluation_target": "existing_object",
+    "evaluation_target_lt": "Esamas pastatas / patalpos"
   },
   "block1": {
     "applicable": true,
@@ -2880,7 +2881,8 @@ export const MOCK_LAND_ONLY: ReportData = {
     "glazing_percent": null,
     "glazing_source": null,
     "cadastral_ref": "5500-0000-0001",
-    "evaluation_target": "Žemės sklypas"
+    "evaluation_target": "land_only",
+    "evaluation_target_lt": "Žemės sklypas"
   },
   "block1": {
     "applicable": false,

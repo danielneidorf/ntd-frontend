@@ -79,7 +79,11 @@ export function buildPropertyContext(): string | undefined {
       data.measuredBasis ? 'Skaičiavimo pagrindas: pagal kliento pateiktą sąskaitą' : null,
       data.solarNote ? `Saulės kolektoriai: ${data.solarNote}` : null,
       data.hasPermits ? `Statybos leidimai: ${data.permitCount} rasta` : 'Statybos leidimų nerasta',
-      data.isLandOnly ? 'Vertinimo tipas: Žemės sklypas' : 'Vertinimo tipas: Esamas pastatas',
+      // G3 Piece 0c: the SERVED wording, not a phrase composed from a
+      // boolean. This line used to build its own Lithuanian from an
+      // inference, so it could say „Žemės sklypas" about a building and
+      // could never say „Naujas statybos projektas" at all.
+      data.evaluationTargetLabel ? `Vertinimo tipas: ${data.evaluationTargetLabel}` : null,
       // B8-3: surface Block 8 content to the chat backend for Ona.
       data.block8Intro ? `8 bloko įžanga: ${data.block8Intro}` : null,
       data.block8ViewingQuestions.length > 0
