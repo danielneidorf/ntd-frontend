@@ -46,14 +46,20 @@ describe('the browser speaks only ruled words', () => {
 
   it('parses the whole contract, and not the prose around it', () => {
     const ruled = parseRuling(readFileSync(RULING, 'utf8'));
-    // 42 since the G2 sitting (2026-08-07) added №40 `unsupported_format`,
-    // №41 `ambiguous_match` (generalized) and №42 `other` — the last report
-    // reasons whose customer copy no sitting had ruled. This count is the
-    // ledger pin: it is meant to fail when the document grows, so the growth
-    // is deliberate and noticed rather than absorbed.
-    expect([...ruled.keys()].sort((a, b) => a - b)).toEqual(
-      Array.from({ length: 42 }, (_, i) => i + 1),
-    );
+    // 1…106 EXCEPT 55 since the G3 landing's addendum (2026-08-07/08) entered
+    // 63 entries at once. This stopped being a contiguous range on purpose:
+    // №55 is a DOCUMENTED GAP, not a string. „Žemės sklypas" reached the
+    // sitting pack described as a property-card row label, but the tree showed
+    // it is a wire sentinel — never rendered as copy, every report-surface
+    // occurrence an equality check. Ruling it as copy would have let a
+    // re-wording silently change which layout a customer receives, so it is
+    // withdrawn; the same characters are ruled DISPLAY copy at №106.
+    //
+    // This count is the ledger pin: it is meant to fail when the document
+    // grows, so growth is deliberate and noticed rather than absorbed. It did.
+    const expected = Array.from({ length: 106 }, (_, i) => i + 1).filter((n) => n !== 55);
+    expect([...ruled.keys()].sort((a, b) => a - b)).toEqual(expected);
+    expect(ruled.has(55), '№55 is a documented gap — the withdrawal was undone').toBe(false);
     // The disposition note quotes a sentence that is deliberately NOT ruled.
     for (const value of ruled.values()) {
       expect(value).not.toContain('Nemokamo užsakymo patvirtinti negalime');
